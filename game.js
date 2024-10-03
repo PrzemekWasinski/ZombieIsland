@@ -1,72 +1,72 @@
 document.addEventListener("DOMContentLoaded", () => {
-    var canvas = null;
 
-    var map = [[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-                        [0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0],
-                        [0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0],
-                        [0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0],
-                        [0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0],
-                        [0, 1, 1, 1, 1, 1, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0],
-                        [0, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0],
-                        [0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0],
-                        [0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0],
-                        [0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0],
-                        [0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0],
-                        [0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0],
-                        [0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0],
-                        [0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0],
-                        [0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0],
-                        [0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0],
-                        [0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0],
-                        [0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0],
-                        [0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0],
-                        [0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0],
-                        [0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0],
-                        [0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0],
-                        [0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0],
-                        [0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0],
-                        [0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0],
-                        [0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0],
-                        [0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0],
-                        [0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0],
-                        [0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0],
-                        [0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0],
-                        [0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0],
-                        [0, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0],
-                        [0, 1, 1, 1, 1, 1, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0],
-                        [0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 0],
-                        [0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 0],
-                        [0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0],
-                        [0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0],
-                        [0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0],
-                        [0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0],
-                        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]];
+    const map = [[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                            [0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0],
+                            [0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0],
+                            [0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0],
+                            [0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0],
+                            [0, 1, 1, 1, 1, 1, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0],
+                            [0, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0],
+                            [0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 1, 1, 1, 1, 1, 1, 1, 1, 0],
+                            [0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 1, 2, 2, 2, 1, 1, 1, 1, 1, 1, 1, 0],
+                            [0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 1, 1, 1, 1, 1, 1, 1, 0],
+                            [0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0],
+                            [0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0],
+                            [0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0],
+                            [0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0],
+                            [0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0],
+                            [0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0],
+                            [0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0],
+                            [0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0],
+                            [0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 4, 4, 4, 4, 4, 4, 4, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0],
+                            [0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 4, 1, 1, 1, 1, 1, 4, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0],
+                            [0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 4, 1, 1, 1, 1, 1, 4, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0],
+                            [0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 4, 1, 1, 1, 1, 1, 4, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0],
+                            [0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 4, 4, 4, 4, 1, 4, 4, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0],
+                            [0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0],
+                            [0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0],
+                            [0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0],
+                            [0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0],
+                            [0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0],
+                            [0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0],
+                            [0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0],
+                            [0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0],
+                            [0, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0],
+                            [0, 1, 1, 1, 1, 1, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0],
+                            [0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 0],
+                            [0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 0],
+                            [0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0],
+                            [0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0],
+                            [0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0],
+                            [0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0],
+                            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]];
 
-    var colours = {0: "#338a0e", //Trees
-                              1: "#6beb34", //Grass
-                              2: "#0471c4", //Water
-                              3: "#ebcc52", //Sand
-                              4: "#7d3909", //Wood
-                              "player": "#6e00b8", //Player
-                              "zombies": "#c70d00", //Zombie
-                              "font": "#f5f5f5"} //Font
+    const colours = {0: "#338a0e", //Trees
+                                  1: "#6beb34", //Grass
+                                  2: "#0471c4", //Water
+                                  3: "#ebcc52", //Sand
+                                  4: "#7d3909", //Wood
+                                  "player": "#6e00b8", //Player
+                                  "zombies": "#c70d00", //Zombie
+                                  "font": "#f5f5f5"} //Font colour
 
-    var mapWidth = map[0].length;
-    var mapHeight = map.length;
+    const mapWidth = map[0].length;
+    const mapHeight = map.length;
     
-    var tileWidth = 40;
-    var tileHeight = 40;
+    const tileWidth = 40;
+    const tileHeight = 40;
 
     // player
-    var player = new Player();
+    const player = new Player();
 
     function Player() {
+        this.score = 0;
         this.health = 100;
         this.timeMoved = 0;
-        this.size = [40, 40];
-        this.position = [800, 800];
-        this.fromPosition = [20, 20];
-        this.toPosition = [20, 20];
+        this.size = [tileWidth, tileHeight];
+        this.position = [720, 800];
+        this.fromPosition = [this.position[0] / this.size[0], this.position[1] / this.size[1]];
+        this.toPosition = [this.position[0] / this.size[0], this.position[1] / this.size[1]];
         this.delayMove = 275;
     }
 
@@ -90,7 +90,7 @@ document.addEventListener("DOMContentLoaded", () => {
             this.position[1] = (this.fromPosition[1] * tileHeight) + ((tileHeight - this.size[1]) / 2);
 
             if (this.toPosition[0] != this.fromPosition[0]) {
-                var distance = (tileWidth / this.delayMove) * (time - this.timeMoved);
+                let distance = (tileWidth / this.delayMove) * (time - this.timeMoved);
                 if (this.toPosition[0] < this.fromPosition[0]) {
                     this.position[0] -= distance;
                 } else {
@@ -98,7 +98,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 }
             }
             if (this.toPosition[1] != this.fromPosition[1]) {
-                var distance = (tileHeight / this.delayMove) * (time - this.timeMoved);
+                let distance = (tileHeight / this.delayMove) * (time - this.timeMoved);
                 if (this.toPosition[1] < this.fromPosition[1]) {
                     this.position[1] -= distance;
                 } else {
@@ -113,33 +113,33 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     //zombies
-
-    var zombieAmount = 3;
-
-    var spawnCoordinates = [];
+    const spawnCoordinates = [];
     let coordinate = 0;
-
+    
     while (coordinate != 1520) {
         coordinate += 40;
         spawnCoordinates.push(coordinate);
     }
 
-    zombie = [];
-    for (var i = 0; i < zombieAmount; i++) {
+    const zombieAmount = 8;
 
+    let zombie = [];
+    for (i = 0; i < zombieAmount; i++) {
         let spawnY = spawnCoordinates[Math.floor(Math.random()*spawnCoordinates.length)];
         let spawnX = spawnCoordinates[Math.floor(Math.random()*spawnCoordinates.length)];
 
         zombie.push(new Zombie())
 
         function Zombie() {
+            this.inRange = false;
             this.damage = 0.01;
+            this.health = 100;
             this.timeMoved = 0;
-            this.size = [40, 40];
+            this.size = [tileWidth, tileHeight];
             this.position = [spawnY, spawnX];
             this.fromPosition = [spawnY / this.size[0], spawnX / this.size[1]];
             this.toPosition = [spawnY / this.size[0], spawnX / this.size[1]];
-            this.delayMove = 400;
+            this.delayMove = 410;
         }
 
         Zombie.prototype.move = function(x, y) {
@@ -162,7 +162,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 this.position[1] = (this.fromPosition[1] * tileHeight) + ((tileHeight - this.size[1]) / 2);
 
                 if (this.toPosition[0] != this.fromPosition[0]) {
-                    var distance = (tileWidth / this.delayMove) * (time - this.timeMoved);
+                    let distance = (tileWidth / this.delayMove) * (time - this.timeMoved);
                     if (this.toPosition[0] < this.fromPosition[0]) {
                         this.position[0] -= distance;
                     } else {
@@ -170,7 +170,7 @@ document.addEventListener("DOMContentLoaded", () => {
                     }
                 }
                 if (this.toPosition[1] != this.fromPosition[1]) {
-                    var distance = (tileHeight / this.delayMove) * (time - this.timeMoved);
+                    let distance = (tileHeight / this.delayMove) * (time - this.timeMoved);
                     if (this.toPosition[1] < this.fromPosition[1]) {
                         this.position[1] -= distance;
                     } else {
@@ -186,45 +186,45 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     // camera
-    var camera = {
-        screen : [0, 0],
-        startTile : [0, 0],
-        endTile : [0, 0],
-        position : [0, 0]}
+    const camera = {screen : [0, 0],
+                                  topLeft : [0, 0],
+                                  bottomRight : [0, 0],
+                                  position : [0, 0]};
 
     function setCamera(px, py) {
         camera.position[0] = Math.floor((camera.screen[0] / 2) - px);
         camera.position[1] = Math.floor((camera.screen[1] / 2) - py);
 
-        var tile = [Math.floor(px / tileWidth), Math.floor(py / tileHeight)];
+        let tile = [Math.floor(px / tileWidth), Math.floor(py / tileHeight)];
 
-        camera.startTile[0] = tile[0] - 1 - Math.ceil((camera.screen[0] / 2) / tileWidth);
-        camera.startTile[1] = tile[1] - 1 - Math.ceil((camera.screen[1] / 2) / tileHeight);
+        camera.topLeft[0] = tile[0] - 1 - Math.ceil((camera.screen[0] / 2) / tileWidth);
+        camera.topLeft[1] = tile[1] - 1 - Math.ceil((camera.screen[1] / 2) / tileHeight);
 
-        if (camera.startTile[0] < 0) {
-            camera.startTile[0] = 0;
+        if (camera.topLeft[0] < 0) {
+            camera.topLeft[0] = 0;
         }
 
-        if (camera.startTile[1] < 0) {
-            camera.startTile[1] = 0;
+        if (camera.topLeft[1] < 0) {
+            camera.topLeft[1] = 0;
         }
 
-        camera.endTile[0] = tile[0] + 1 + Math.ceil((camera.screen[0] / 2) / tileWidth);
-        camera.endTile[1] = tile[1] + 2 + Math.ceil((camera.screen[1] / 2) / tileHeight);
+        camera.bottomRight[0] = tile[0] + 1 + Math.ceil((camera.screen[0] / 2) / tileWidth);
+        camera.bottomRight[1] = tile[1] + 2 + Math.ceil((camera.screen[1] / 2) / tileHeight);
 
-        if (camera.endTile[0] >= mapWidth) {
-            camera.endTile[0] = mapWidth - 1;
+        if (camera.bottomRight[0] >= mapWidth) {
+            camera.bottomRight[0] = mapWidth - 1;
         }
 
-        if (camera.endTile[1] >= mapHeight) {
-            camera.endTile[1] = mapHeight - 1;
+        if (camera.bottomRight[1] >= mapHeight) {
+            camera.bottomRight[1] = mapHeight - 1;
         }
     }
 
-    var controls = {37: false,
-                               38: false,
-                               39: false,
-                               40: false};
+    const controls = {37: false,
+                                   38: false,
+                                   39: false,
+                                   40: false,
+                                   81: false};
 
     window.onload = function() {
         camera.screen = [document.getElementById("game").width, document.getElementById("game").height]
@@ -232,75 +232,35 @@ document.addEventListener("DOMContentLoaded", () => {
         requestAnimationFrame(displayGame);
 
         window.addEventListener("keydown", function(event) { // If user presses down a key
-            if (event.keyCode >= 37 && event.keyCode <= 40) { // Check if the key is an arrow key
-                controls[event.keyCode] = true; // Set key down to true
-            }
+            controls[event.keyCode] = true; // Set key down to true
         });
         window.addEventListener("keyup", function(event) { // If user lets go of a key
-            if (event.keyCode >= 37 && event.keyCode <= 40) { // Check if the key is an arrow key
-                controls[event.keyCode] = false; // Set key down to true
-            }
+            controls[event.keyCode] = false; // Set key down to false
         });
     }
 
     function displayGame() {
-    
-        if (!player.updatePosition(Date.now())) { //moveemnts
-            if (controls[38]) { //up
-                if (player.fromPosition[1] > 0) {
-                    if (map[player.fromPosition[1] - 1][player.fromPosition[0]] == 1) { 
-                        player.toPosition[1] -= 1;
-                    }
-                }
-            } else if (controls[40]) { //down
-                if (player.fromPosition[1] < (mapHeight - 1)) {
-                    if (map[player.fromPosition[1] + 1][player.fromPosition[0]] == 1) {
-                        player.toPosition[1] += 1;
-                    }
-                }
-            } else if (controls[37]) { //left
-                if (player.fromPosition[0] > 0) {
-                    if (map[player.fromPosition[1]][player.fromPosition[0] - 1] == 1) {
-                        player.toPosition[0] -= 1;
-                    }
-                }                
-            } else if (controls[39]) { //right
-                if (player.fromPosition[0] < (mapWidth - 1)) {
-                    if (map[player.fromPosition[1]][player.fromPosition[0] + 1] == 1) { 
-                        player.toPosition[0] += 1;
-                    }
-                }
-            }
-
-            if (player.fromPosition[0] != player.toPosition[0]) {
-                player.timeMoved = Date.now();
-            } else if (player.fromPosition[1] != player.toPosition[1]) {
-                player.timeMoved = Date.now();
-            }
-        }
-
-        for (var i = 0; i < zombieAmount; i++) {
-
-            if (!zombie[i].updatePosition(Date.now())) { //moveemnts
-                if (player.position[1] < zombie[i].position[1]) { //up
+        for (i = 0; i < zombieAmount; i++) {
+            if (!zombie[i].updatePosition(Date.now())) { //movements for zombies
+                if (player.position[1] < zombie[i].position[1]) { //up if player is above
                     if (zombie[i].fromPosition[1] > 0) {
                         if (map[zombie[i].fromPosition[1] - 1][zombie[i].fromPosition[0]] == 1) { 
                             zombie[i].toPosition[1] -= 1;
                         }
                     }
-                } else if (player.position[1] > zombie[i].position[1]) { //down
+                } else if (player.position[1] > zombie[i].position[1]) { //down if player is below
                     if (zombie[i].fromPosition[1] < (mapHeight - 1)) {
                         if (map[zombie[i].fromPosition[1] + 1][zombie[i].fromPosition[0]] == 1) {
                             zombie[i].toPosition[1] += 1;
                         }
                     }
-                } else if (player.position[0] < zombie[i].position[0]) { //left
+                } else if (player.position[0] < zombie[i].position[0]) { //left if player is to the right
                     if (zombie[i].fromPosition[0] > 0) {
                         if (map[zombie[i].fromPosition[1]][zombie[i].fromPosition[0] - 1] == 1) {
                             zombie[i].toPosition[0] -= 1;
                         }
                     }                
-                } else if (player.position[0] > zombie[i].position[0]) { //right
+                } else if (player.position[0] > zombie[i].position[0]) { //right if player is to the left
                     if (zombie[i].fromPosition[0] < (mapWidth - 1)) {
                         if (map[zombie[i].fromPosition[1]][zombie[i].fromPosition[0] + 1] == 1) { 
                             zombie[i].toPosition[0] += 1;
@@ -315,45 +275,106 @@ document.addEventListener("DOMContentLoaded", () => {
                 }
             }
 
+            zombie[i].inRange = false;
+
+            //collisions
             if (player.position[1] - 40 < zombie[i].position[1] && player.position[1] + 40 > zombie[i].position[1] ||
                 player.position[1] + 40 < zombie[i].position[1] && player.position[1] - 40 > zombie[i].position[1]) {
                     if (player.position[0] == zombie[i].position[0]) {
-                        player.health -= zombie[i].damage;
+                        if (zombie[i].health > 0) {
+                            player.health -= zombie[i].damage;
+                            zombie[i].inRange = true;
+                        }
                     }
                 }
 
             if (player.position[0] - 40 < zombie[i].position[0] && player.position[0] + 40 > zombie[i].position[0] ||
                 player.position[0] + 40 < zombie[i].position[0] && player.position[0] - 40 > zombie[i].position[0]) {
                     if (player.position[1] == zombie[i].position[1]) {
-                        player.health -= zombie[i].damage
+                        if (zombie[i].health > 0) {
+                            player.health -= zombie[i].damage;
+                            zombie[i].inRange = true;
+                        }
                     }
                 }
             }
+
+        if (!player.updatePosition(Date.now())) { //movements for player
+            if (controls[38]) { //up
+                if (player.fromPosition[1] > 0) {
+                    if (map[player.fromPosition[1] - 1][player.fromPosition[0]] == 1) { 
+                        player.toPosition[1] -= 1;
+                    }
+                }
+            }
+            if (controls[40]) { //down
+                if (player.fromPosition[1] < (mapHeight - 1)) {
+                    if (map[player.fromPosition[1] + 1][player.fromPosition[0]] == 1) {
+                        player.toPosition[1] += 1;
+                    }
+                }
+            }
+            if (controls[37]) { //left
+                if (player.fromPosition[0] > 0) {
+                    if (map[player.fromPosition[1]][player.fromPosition[0] - 1] == 1) {
+                        player.toPosition[0] -= 1;
+                    }
+                }                
+            }
+            if (controls[39]) { //right
+                if (player.fromPosition[0] < (mapWidth - 1)) {
+                    if (map[player.fromPosition[1]][player.fromPosition[0] + 1] == 1) { 
+                        player.toPosition[0] += 1;
+                    }
+                }
+            }
+            if (controls[81]) { //attack
+                for (i = 0; i < zombieAmount; i++) {
+                    if (zombie[i].inRange) {
+                        zombie[i].health -= 1;
+                    }
+                }
+            }
+
+            if (player.fromPosition[0] != player.toPosition[0]) {
+                player.timeMoved = Date.now();
+            } else if (player.fromPosition[1] != player.toPosition[1]) {
+                player.timeMoved = Date.now();
+            }
+        }
             
         setCamera(player.position[0] + (player.size[0] / 2), player.position[1] + (player.size[1] / 2));
         canvas.fillStyle = colours[2] // Make background blue
         canvas.fillRect(0, 0, camera.screen[0], camera.screen[1]);
 
-        for (var i = camera.startTile[1]; i <= camera.endTile[1]; i++) { //Fill in visible area
-            for (var j = camera.startTile[0]; j <= camera.endTile[0]; j++) {
+        for (i = camera.topLeft[1]; i <= camera.bottomRight[1]; i++) { //Fill in visible area
+            for (j = camera.topLeft[0]; j <= camera.bottomRight[0]; j++) {
                 canvas.fillStyle = colours[map[i][j]];
                 canvas.fillRect(camera.position[0] + j * tileWidth, camera.position[1] + i * tileHeight, tileWidth, tileHeight);
             }
         }
         
+        for (i = 0; i < zombieAmount; i++) {
+            if (zombie[i].health == 0) { //Add points for each dead zombie and remove dead zombies
+                player.score += 1;
+                zombie[i].health = -1;
+            }
 
-        for (var i = 0; i < zombieAmount; i++) {
-            canvas.fillStyle = colours["zombies"];
-            canvas.fillRect(camera.position[0] + zombie[i].position[0], camera.position[1] + zombie[i].position[1], zombie[i].size[0], zombie[i].size[1]);
-
-            canvas.fillStyle = colours["player"];
-            canvas.fillRect(camera.position[0] + player.position[0], camera.position[1] + player.position[1], player.size[0], player.size[1]);
-
-            canvas.fillStyle = colours["font"];
-            canvas.font = "40px Arial";
-            canvas.fillText("Health: " + Math.floor(player.health),10,50);
+            if (zombie[i].health > 0) { //If zombie is alive draw it on the display
+                canvas.fillStyle = colours["zombies"];
+                canvas.fillRect(camera.position[0] + zombie[i].position[0], camera.position[1] + zombie[i].position[1], zombie[i].size[0], zombie[i].size[1]);
+                canvas.fillText(zombie[i].health, (camera.position[0] + zombie[i].position[0]), (camera.position[1] + zombie[i].position[1]) - 10)
+            }
         }
+
+        canvas.fillStyle = colours["player"];
+        canvas.fillRect(camera.position[0] + player.position[0], camera.position[1] + player.position[1], player.size[0], player.size[1]);
+
+        canvas.fillStyle = colours["font"];
+        canvas.font = "30px Arial";
+        canvas.fillText("Health: " + Math.floor(player.health),10, 35);
+        canvas.fillText("Score: " + player.score, 10, 70)
+        
         requestAnimationFrame(displayGame);
     }
 })
-

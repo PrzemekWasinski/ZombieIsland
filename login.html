@@ -6,7 +6,8 @@
     <title>Login</title>
 </head>
 <body>
-
+    <h1>Zombie Island</h1>
+    
     <form onsubmit="login(event)">
         <label>Login</label>
         <div>
@@ -36,7 +37,6 @@
             params.append("username", username);
             params.append("score", 0);
             setTimeout(() => {  window.location.href = "index.html?" + params.toString(); }, 3000);
-            // at the end of the game put username and score in game page local storage
            } else {
             console.log("Username and password do not match")
            }
