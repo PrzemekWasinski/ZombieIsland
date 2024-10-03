@@ -121,7 +121,7 @@ document.addEventListener("DOMContentLoaded", () => {
         spawnCoordinates.push(coordinate);
     }
 
-    const zombieAmount = 8;
+    const zombieAmount = 10;
 
     let zombie = [];
     for (i = 0; i < zombieAmount; i++) {
@@ -242,7 +242,43 @@ document.addEventListener("DOMContentLoaded", () => {
     function displayGame() {
         for (i = 0; i < zombieAmount; i++) {
             if (!zombie[i].updatePosition(Date.now())) { //movements for zombies
-                if (player.position[1] < zombie[i].position[1]) { //up if player is above
+                if (player.position[1] < zombie[i].position[1] && player.position[0] < zombie[i].position[0]) { // up and left
+                    if (zombie[i].fromPosition[1] > 0 && zombie[i].fromPosition[0] > 0) {
+                        if (map[zombie[i].fromPosition[1] - 1][zombie[i].fromPosition[0]] == 1 && 
+                            map[zombie[i].fromPosition[1]][zombie[i].fromPosition[0] - 1] == 1 && 
+                            map[zombie[i].fromPosition[1] - 1][zombie[i].fromPosition[0] - 1] == 1) {
+                            zombie[i].toPosition[0] -= 1;
+                            zombie[i].toPosition[1] -= 1;
+                        }
+                    }
+                } else if (player.position[1] < zombie[i].position[1] && player.position[0] > zombie[i].position[0]) { // up and right
+                    if (zombie[i].fromPosition[1] > 0 && zombie[i].fromPosition[0] < (mapWidth - 1)) {
+                        if (map[zombie[i].fromPosition[1] - 1][zombie[i].fromPosition[0]] == 1 &&
+                            map[zombie[i].fromPosition[1]][zombie[i].fromPosition[0] + 1] == 1 &&
+                            map[zombie[i].fromPosition[1] - 1][zombie[i].fromPosition[0] + 1] == 1) {
+                            zombie[i].toPosition[0] += 1;
+                            zombie[i].toPosition[1] -= 1;
+                        }
+                    }
+                } else if (player.position[1] > zombie[i].position[1] && player.position[0] < zombie[i].position[0]) { // down and left
+                    if (zombie[i].fromPosition[1] < (mapHeight - 1) && zombie[i].fromPosition[0] > 0) {
+                        if (map[zombie[i].fromPosition[1] + 1][zombie[i].fromPosition[0]] == 1 &&
+                            map[zombie[i].fromPosition[1]][zombie[i].fromPosition[0] - 1] == 1 &&
+                            map[zombie[i].fromPosition[1] + 1][zombie[i].fromPosition[0] - 1] == 1) {
+                            zombie[i].toPosition[0] -= 1;
+                            zombie[i].toPosition[1] += 1;
+                        }
+                    }
+                } else if (player.position[1] > zombie[i].position[1] &&  player.position[0] > zombie[i].position[0]) { // down and right
+                    if (zombie[i].fromPosition[1] < (mapHeight - 1) && zombie[i].fromPosition[0] < (mapWidth - 1)) {
+                        if (map[zombie[i].fromPosition[1] + 1][zombie[i].fromPosition[0]] == 1 &&
+                            map[zombie[i].fromPosition[1]][zombie[i].fromPosition[0] + 1] == 1 &&
+                            map[zombie[i].fromPosition[1] + 1][zombie[i].fromPosition[0] + 1] == 1) {
+                            zombie[i].toPosition[0] += 1;
+                            zombie[i].toPosition[1] += 1;
+                        }
+                    }
+                } else if (player.position[1] < zombie[i].position[1]) { //up if player is above
                     if (zombie[i].fromPosition[1] > 0) {
                         if (map[zombie[i].fromPosition[1] - 1][zombie[i].fromPosition[0]] == 1) { 
                             zombie[i].toPosition[1] -= 1;
@@ -300,28 +336,61 @@ document.addEventListener("DOMContentLoaded", () => {
             }
 
         if (!player.updatePosition(Date.now())) { //movements for player
-            if (controls[38]) { //up
+            if (controls[38] && controls[37]) { // up and left
+                if (player.fromPosition[1] > 0 && player.fromPosition[0] > 0) {
+                    if (map[player.fromPosition[1] - 1][player.fromPosition[0]] == 1 && 
+                        map[player.fromPosition[1]][player.fromPosition[0] - 1] == 1 && 
+                        map[player.fromPosition[1] - 1][player.fromPosition[0] - 1] == 1) {
+                        player.toPosition[0] -= 1;
+                        player.toPosition[1] -= 1;
+                    }
+                }
+            } else if (controls[38] && controls[39]) { // up and right
+                if (player.fromPosition[1] > 0 && player.fromPosition[0] < (mapWidth - 1)) {
+                    if (map[player.fromPosition[1] - 1][player.fromPosition[0]] == 1 &&
+                        map[player.fromPosition[1]][player.fromPosition[0] + 1] == 1 &&
+                        map[player.fromPosition[1] - 1][player.fromPosition[0] + 1] == 1) {
+                        player.toPosition[0] += 1;
+                        player.toPosition[1] -= 1;
+                    }
+                }
+            } else if (controls[40] && controls[37]) { // down and left
+                if (player.fromPosition[1] < (mapHeight - 1) && player.fromPosition[0] > 0) {
+                    if (map[player.fromPosition[1] + 1][player.fromPosition[0]] == 1 &&
+                        map[player.fromPosition[1]][player.fromPosition[0] - 1] == 1 &&
+                        map[player.fromPosition[1] + 1][player.fromPosition[0] - 1] == 1) {
+                        player.toPosition[0] -= 1;
+                        player.toPosition[1] += 1;
+                    }
+                }
+            } else if (controls[40] && controls[39]) { // down and right
+                if (player.fromPosition[1] < (mapHeight - 1) && player.fromPosition[0] < (mapWidth - 1)) {
+                    if (map[player.fromPosition[1] + 1][player.fromPosition[0]] == 1 &&
+                        map[player.fromPosition[1]][player.fromPosition[0] + 1] == 1 &&
+                        map[player.fromPosition[1] + 1][player.fromPosition[0] + 1] == 1) {
+                        player.toPosition[0] += 1;
+                        player.toPosition[1] += 1;
+                    }
+                }
+            } else if (controls[38]) { //up
                 if (player.fromPosition[1] > 0) {
                     if (map[player.fromPosition[1] - 1][player.fromPosition[0]] == 1) { 
                         player.toPosition[1] -= 1;
                     }
                 }
-            }
-            if (controls[40]) { //down
+            } else if (controls[40]) { //down
                 if (player.fromPosition[1] < (mapHeight - 1)) {
                     if (map[player.fromPosition[1] + 1][player.fromPosition[0]] == 1) {
                         player.toPosition[1] += 1;
                     }
                 }
-            }
-            if (controls[37]) { //left
+            } else if (controls[37]) { //left
                 if (player.fromPosition[0] > 0) {
                     if (map[player.fromPosition[1]][player.fromPosition[0] - 1] == 1) {
                         player.toPosition[0] -= 1;
                     }
                 }                
-            }
-            if (controls[39]) { //right
+            } else if (controls[39]) { //right
                 if (player.fromPosition[0] < (mapWidth - 1)) {
                     if (map[player.fromPosition[1]][player.fromPosition[0] + 1] == 1) { 
                         player.toPosition[0] += 1;
