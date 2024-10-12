@@ -1,54 +1,45 @@
 document.addEventListener("DOMContentLoaded", () => {
 
-    const map = [[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-                            [0, 3, 3, 3, 3, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0],
-                            [0, 3, 3, 3, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0],
-                            [0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0],
-                            [0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0],
-                            [0, 1, 1, 1, 1, 1, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0],
-                            [0, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0],
-                            [0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 1, 1, 1, 1, 1, 1, 1, 1, 0],
-                            [0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 1, 2, 2, 2, 1, 1, 1, 1, 1, 1, 1, 0],
-                            [0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 1, 1, 1, 1, 1, 1, 1, 0],
-                            [0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0],
-                            [0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0],
-                            [0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0],
-                            [0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0],
-                            [0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0],
-                            [0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0],
-                            [0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0],
-                            [0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0],
-                            [0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0],
-                            [0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0],
-                            [0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0],
-                            [0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0],
-                            [0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0],
-                            [0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0],
-                            [0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0],
-                            [0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0],
-                            [0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0],
-                            [0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0],
-                            [0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0],
-                            [0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0],
-                            [0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0],
-                            [0, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0],
-                            [0, 1, 1, 1, 1, 1, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0],
-                            [0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 0],
-                            [0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 0],
+    const map =  [[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0],
+                            [0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 1, 1, 0, 0, 0],
+                            [0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0],
+                            [0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0],
+                            [0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0],
+                            [0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0],
+                            [0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0],
+                            [0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0],
+                            [0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0],
+                            [0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0],
+                            [0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0],
+                            [0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 1, 1, 0, 0],
+                            [0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 0],
+                            [0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 0],
+                            [0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 1, 1, 1, 1, 0],
+                            [0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 1, 1, 1, 1, 1, 0],
+                            [0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 1, 1, 1, 1, 1, 1, 0],
+                            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 1, 1, 1, 1, 1, 1, 0],
+                            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 0],
+                            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 0],
+                            [0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 1, 1, 1, 1, 1, 1, 1, 0],
+                            [0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 1, 1, 1, 1, 1, 1, 0],
+                            [0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 1, 1, 1, 1, 1, 0],
+                            [0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 1, 1, 0, 0],
+                            [0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0],
+                            [0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0],
                             [0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0],
                             [0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0],
                             [0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0],
                             [0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0],
+                            [0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0],
+                            [0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0],
+                            [0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 1, 0, 1, 1, 1, 0, 1, 0],
+                            [0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 1, 0, 1, 1, 1, 0, 1, 0],
+                            [0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 1, 0, 1, 0, 1, 0, 1, 0],
+                            [0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 0, 0, 1, 0, 0, 1, 0],
+                            [0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 0, 1, 1, 1, 0, 1, 0],
+                            [0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0],
                             [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]];
-
-    const colours = {0: "#338a0e", //Trees
-                                  1: "#6beb34", //Grass
-                                  2: "#0471c4", //Water
-                                  3: "#ebcc52", //Sand
-                                  4: "#7d3909", //Wood
-                                  "player": "#c70d00", //Player
-                                  "zombies": "#6e00b8", //Zombie
-                                  "font": "#f5f5f5"} //Font colour
 
     const mapWidth = map[0].length;
     const mapHeight = map.length;
@@ -56,9 +47,11 @@ document.addEventListener("DOMContentLoaded", () => {
     const tileWidth = 40;
     const tileHeight = 40;
 
+    
+    let frame = 0;
     // player
     class Player {
-        constructor(score, health, timeMoved, size, position, fromPosition, toPosition, delayMove) {
+        constructor(score, health, timeMoved, size, position, fromPosition, toPosition, delayMove, images, direction) {
             this.score = score;
             this.health = health;
             this.timeMoved = timeMoved;
@@ -67,6 +60,8 @@ document.addEventListener("DOMContentLoaded", () => {
             this.fromPosition = fromPosition;
             this.toPosition = toPosition;
             this.delayMove = delayMove;
+            this.images = images;
+            this.direction = direction;
         }
     
         move(x, y) {
@@ -104,7 +99,6 @@ document.addEventListener("DOMContentLoaded", () => {
                         this.position[1] += distance;
                     }
                 }
-    
                 this.position[0] = Math.round(this.position[0]);
                 this.position[1] = Math.round(this.position[1]);
             }
@@ -115,12 +109,20 @@ document.addEventListener("DOMContentLoaded", () => {
     const playerSpawn = [720, 800];
     const playerToPosition = [[playerSpawn[0] / tileWidth, playerSpawn[1] / tileHeight]];
     const playerFromPosition = [playerSpawn[0] / tileWidth, playerSpawn[1] / tileHeight];
-    
-    const player = new Player(0, 100, 0, [tileWidth, tileHeight], playerSpawn, playerToPosition, playerFromPosition, 275);
+    const images = {"up": "assets/player/up.png",
+                                 "up-right": "assets/player/up-right.png",
+                                 "right": "assets/player/right.png",
+                                 "down-right": "assets/player/down-right.png",
+                                 "down": "assets/player/down.png",
+                                 "down-left": "assets/player/down-left.png",
+                                 "left": "assets/player/left.png",
+                                 "up-left": "assets/player/up-left.png",}
+                                 
+    const player = new Player(0, 100, 0, [tileWidth, tileHeight], playerSpawn, playerToPosition, playerFromPosition, 275, images, "up");
 
     //zombies
     class Zombie {
-        constructor(inRange, damage, health, timeMoved, size, position, fromPosition, toPosition, delayMove) {
+        constructor(inRange, damage, health, timeMoved, size, position, fromPosition, toPosition, delayMove, images, direction) {
             this.inRange = inRange;
             this.damage = damage;
             this.health = health;
@@ -130,6 +132,8 @@ document.addEventListener("DOMContentLoaded", () => {
             this.fromPosition = fromPosition;
             this.toPosition = toPosition;
             this.delayMove = delayMove;
+            this.images = images;
+            this.direction = direction;
         }
     
         move(x, y) {
@@ -166,8 +170,7 @@ document.addEventListener("DOMContentLoaded", () => {
                     } else {
                         this.position[1] += distance;
                     }
-                }
-    
+                } 
                 this.position[0] = Math.round(this.position[0]);
                 this.position[1] = Math.round(this.position[1]);
             }
@@ -184,12 +187,20 @@ document.addEventListener("DOMContentLoaded", () => {
 
     const zombieAmount = 10;
     const zombie = [];
-    for (let  i = 0; i < zombieAmount; i++) {
+    for (let i = 0; i < zombieAmount; i++) {
         let spawn = [spawnCoordinates[Math.floor(Math.random() * spawnCoordinates.length)], spawnCoordinates[Math.floor(Math.random() * spawnCoordinates.length)]];
         let zombieFromPosition = [spawn[0] / tileHeight, spawn[1] / tileWidth];
         let zombieToPosition = [spawn[0] / tileHeight, spawn[1] / tileWidth];
+        const images = {"up": "assets/zombie/up.png",
+                                     "up-right": "assets/zombie/up-right.png",
+                                     "right": "assets/zombie/right.png",
+                                     "down-right": "assets/zombie/down-right.png",
+                                     "down": "assets/zombie/down.png",
+                                     "down-left": "assets/zombie/down-left.png",
+                                     "left": "assets/zombie/left.png",
+                                     "up-left": "assets/zombie/up-left.png"}
 
-        zombie.push(new Zombie(false, 0.01, 100, 0, [tileWidth, tileHeight], spawn, zombieFromPosition, zombieToPosition, 250)) 
+        zombie.push(new Zombie(false, 0.01, 100, 0, [tileWidth, tileHeight], spawn, zombieFromPosition, zombieToPosition, 250, images, "up")) 
     }
 
     // camera
@@ -228,14 +239,14 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     const controls = {37: false, //Left
-                                   38: false, //Up
-                                   39: false, //Right
-                                   40: false, //Down
-                                   81: false}; //Attack
+                                38: false, //Up
+                                39: false, //Right
+                                40: false, //Down
+                                81: false}; //Attack
 
     window.onload = function() {
         camera.screen = [document.getElementById("game").width, document.getElementById("game").height]
-        canvas = document.getElementById("game").getContext("2d");
+        ctx = document.getElementById("game").getContext("2d");
         requestAnimationFrame(displayGame);
 
         window.addEventListener("keydown", function(event) { // If user presses down a key
@@ -246,8 +257,11 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     }
 
+    
+
     function displayGame() {
-        for (i = 0; i < zombieAmount; i++) {
+        
+        for (let i = 0; i < zombieAmount; i++) {
             if (!zombie[i].updatePosition(Date.now())) { //movements for zombies
                 if (player.position[1] < zombie[i].position[1] && player.position[0] < zombie[i].position[0]) { // up and left
                     if (zombie[i].fromPosition[1] > 0 && zombie[i].fromPosition[0] > 0) {
@@ -256,6 +270,7 @@ document.addEventListener("DOMContentLoaded", () => {
                             map[zombie[i].fromPosition[1] - 1][zombie[i].fromPosition[0] - 1] == 1) {
                             if (zombie[i].toPosition[0] - 1 != player.toPosition[0] || 
                                 zombie[i].toPosition[1] - 1 != player.toPosition[1]) {
+                                zombie[i].direction = "up-left";
                                 zombie[i].toPosition[0] -= 1;
                                 zombie[i].toPosition[1] -= 1;
                             }
@@ -268,6 +283,7 @@ document.addEventListener("DOMContentLoaded", () => {
                             map[zombie[i].fromPosition[1] - 1][zombie[i].fromPosition[0] + 1] == 1) {
                             if (zombie[i].toPosition[0] + 1 != player.toPosition[0] || 
                                 zombie[i].toPosition[1] - 1 != player.toPosition[1]) {
+                                zombie[i].direction = "up-right";
                                 zombie[i].toPosition[0] += 1;
                                 zombie[i].toPosition[1] -= 1;
                             }
@@ -280,6 +296,7 @@ document.addEventListener("DOMContentLoaded", () => {
                             map[zombie[i].fromPosition[1] + 1][zombie[i].fromPosition[0] - 1] == 1) {
                             if (zombie[i].toPosition[0] - 1 != player.toPosition[0] || 
                                 zombie[i].toPosition[1] + 1 != player.toPosition[1]) {
+                                zombie[i].direction = "down-left";
                                 zombie[i].toPosition[0] -= 1;
                                 zombie[i].toPosition[1] += 1;
                             }
@@ -292,6 +309,7 @@ document.addEventListener("DOMContentLoaded", () => {
                             map[zombie[i].fromPosition[1] + 1][zombie[i].fromPosition[0] + 1] == 1) {
                             if (zombie[i].toPosition[0] + 1 != player.toPosition[0] || 
                                 zombie[i].toPosition[1] + 1 != player.toPosition[1]) {
+                                zombie[i].direction = "down-right";
                                 zombie[i].toPosition[0] += 1;
                                 zombie[i].toPosition[1] += 1;
                             }
@@ -301,6 +319,7 @@ document.addEventListener("DOMContentLoaded", () => {
                     if (zombie[i].fromPosition[1] > 0) {
                         if (map[zombie[i].fromPosition[1] - 1][zombie[i].fromPosition[0]] == 1) { //hyy6
                             if (zombie[i].position[1] > player.position[1] + 40) {
+                                zombie[i].direction = "up";
                                 zombie[i].toPosition[1] -= 1;
                             }
                         }
@@ -309,6 +328,7 @@ document.addEventListener("DOMContentLoaded", () => {
                     if (zombie[i].fromPosition[1] < (mapHeight - 1)) {
                         if (map[zombie[i].fromPosition[1] + 1][zombie[i].fromPosition[0]] == 1) {
                             if (zombie[i].position[1] < player.position[1] - 40) {
+                                zombie[i].direction = "down"
                                 zombie[i].toPosition[1] += 1;
                             }
                         }
@@ -317,6 +337,7 @@ document.addEventListener("DOMContentLoaded", () => {
                     if (zombie[i].fromPosition[0] > 0) {
                         if (map[zombie[i].fromPosition[1]][zombie[i].fromPosition[0] - 1] == 1) {
                             if (zombie[i].position[0] > player.position[0] + 40) {
+                                zombie[i].direction = "left";
                                 zombie[i].toPosition[0] -= 1;
                             }
                         }
@@ -325,6 +346,7 @@ document.addEventListener("DOMContentLoaded", () => {
                     if (zombie[i].fromPosition[0] < (mapWidth - 1)) {
                         if (map[zombie[i].fromPosition[1]][zombie[i].fromPosition[0] + 1] == 1) { 
                             if (zombie[i].position[0] < player.position[0] - 40) {
+                                zombie[i].direction = "right";
                                 zombie[i].toPosition[0] += 1;
                             }
                         }
@@ -338,9 +360,8 @@ document.addEventListener("DOMContentLoaded", () => {
                 }
             }
 
-            zombie[i].inRange = false;
-
             //collisions vertical
+            zombie[i].inRange = false;
             if (player.position[1] - 45 < zombie[i].position[1] && player.position[1] + 45 > zombie[i].position[1] ||
                 player.position[1] + 45 < zombie[i].position[1] && player.position[1] - 45 > zombie[i].position[1]) {
                     if (player.position[0] == zombie[i].position[0]) {
@@ -369,6 +390,7 @@ document.addEventListener("DOMContentLoaded", () => {
                     if (map[player.fromPosition[1] - 1][player.fromPosition[0]] == 1 && 
                         map[player.fromPosition[1]][player.fromPosition[0] - 1] == 1 && 
                         map[player.fromPosition[1] - 1][player.fromPosition[0] - 1] == 1) {
+                        player.direction = "up-left";
                         player.toPosition[0] -= 1;
                         player.toPosition[1] -= 1;
                     }
@@ -378,6 +400,7 @@ document.addEventListener("DOMContentLoaded", () => {
                     if (map[player.fromPosition[1] - 1][player.fromPosition[0]] == 1 &&
                         map[player.fromPosition[1]][player.fromPosition[0] + 1] == 1 &&
                         map[player.fromPosition[1] - 1][player.fromPosition[0] + 1] == 1) {
+                        player.direction = "up-right";
                         player.toPosition[0] += 1;
                         player.toPosition[1] -= 1;
                     }
@@ -387,6 +410,7 @@ document.addEventListener("DOMContentLoaded", () => {
                     if (map[player.fromPosition[1] + 1][player.fromPosition[0]] == 1 &&
                         map[player.fromPosition[1]][player.fromPosition[0] - 1] == 1 &&
                         map[player.fromPosition[1] + 1][player.fromPosition[0] - 1] == 1) {
+                        player.direction = "down-left"
                         player.toPosition[0] -= 1;
                         player.toPosition[1] += 1;
                     }
@@ -396,6 +420,7 @@ document.addEventListener("DOMContentLoaded", () => {
                     if (map[player.fromPosition[1] + 1][player.fromPosition[0]] == 1 &&
                         map[player.fromPosition[1]][player.fromPosition[0] + 1] == 1 &&
                         map[player.fromPosition[1] + 1][player.fromPosition[0] + 1] == 1) {
+                        player.direction = "down-right"
                         player.toPosition[0] += 1;
                         player.toPosition[1] += 1;
                     }
@@ -403,34 +428,51 @@ document.addEventListener("DOMContentLoaded", () => {
             } else if (controls[38]) { //up
                 if (player.fromPosition[1] > 0) {
                     if (map[player.fromPosition[1] - 1][player.fromPosition[0]] == 1) { 
+                        player.direction = "up";
                         player.toPosition[1] -= 1;
                     }
                 }
             } else if (controls[40]) { //down
                 if (player.fromPosition[1] < (mapHeight - 1)) {
                     if (map[player.fromPosition[1] + 1][player.fromPosition[0]] == 1) {
+                        player.direction = "down";
                         player.toPosition[1] += 1;
                     }
                 }
             } else if (controls[37]) { //left
                 if (player.fromPosition[0] > 0) {
                     if (map[player.fromPosition[1]][player.fromPosition[0] - 1] == 1) { 
+                        player.direction = "left";
                         player.toPosition[0] -= 1;
                     }
                 }                
             } else if (controls[39]) { //right
                 if (player.fromPosition[0] < (mapWidth - 1)) {
                     if (map[player.fromPosition[1]][player.fromPosition[0] + 1] == 1) { 
+                        player.direction = "right";
                         player.toPosition[0] += 1;
                     }
                 }
             }
+            
+            
+            
+            
             if (controls[81]) { //attack
-                for (let  i = 0; i < zombieAmount; i++) {
+                for (let i = 0; i < zombieAmount; i++) {
                     if (zombie[i].inRange) {
                         zombie[i].health -= 1;
                     }
                 }
+                if (frame > 23) {
+                    frame = 0;
+                } else {
+                    frame += 1;
+                }
+            }
+
+            if (!controls[81]) {
+                frame = 0;
             }
 
             if (player.fromPosition[0] != player.toPosition[0]) {
@@ -439,38 +481,44 @@ document.addEventListener("DOMContentLoaded", () => {
                 player.timeMoved = Date.now();
             }
         }
-            
-        setCamera(player.position[0] + (player.size[0] / 2), player.position[1] + (player.size[1] / 2));
-        canvas.fillStyle = colours[2] // Make background blue
-        canvas.fillRect(0, 0, camera.screen[0], camera.screen[1]);
 
-        for (i = camera.topLeft[1]; i <= camera.bottomRight[1]; i++) { //Fill in visible area
-            for (j = camera.topLeft[0]; j <= camera.bottomRight[0]; j++) {
-                canvas.fillStyle = colours[map[i][j]];
-                canvas.fillRect(camera[0] + j * tileWidth, camera[1] + i * tileHeight, tileWidth, tileHeight);
-            }
-        }
+        setCamera(player.position[0] + (player.size[0] / 2), player.position[1] + (player.size[1] / 2));
+
+        const mapImage = new Image();
+        mapImage.src = "assets/map.jpg";
         
-        for (i = 0; i < zombieAmount; i++) {
-            if (zombie[i].health == 0) { //Add points for each dead zombie and remove dead zombies
+        ctx.fillStyle = "#105db0";
+        ctx.fillRect(0, 0, camera.screen[0], camera.screen[1]);
+        ctx.drawImage(mapImage, (camera[0] + camera.center[0] * tileWidth) - 40, (camera[1] + camera.center[1] * tileHeight) - 40);
+
+        for (let i = 0; i < zombieAmount; i++) { //Add points for each dead zombie and remove dead zombies
+            if (zombie[i].health == 0) { 
                 player.score += 1;
                 zombie[i].health = -1;
             }
 
             if (zombie[i].health > 0) { //If zombie is alive draw it on the display
-                canvas.fillStyle = colours["zombies"];
-                canvas.fillRect(camera[0] + zombie[i].position[0], camera[1] + zombie[i].position[1], zombie[i].size[0], zombie[i].size[1]);
-                canvas.fillText(zombie[i].health, (camera[0] + zombie[i].position[0]), (camera[1] + zombie[i].position[1]) - 10)
+                const zombieImage = new Image();
+                zombieImage.src = zombie[i].images[zombie[i].direction];
+                ctx.drawImage(zombieImage, camera[0] + zombie[i].position[0], camera[1] + zombie[i].position[1])
+                ctx.fillStyle = "#FF0000";
+                ctx.fillText(zombie[i].health, (camera[0] + zombie[i].position[0]), (camera[1] + zombie[i].position[1]) - 10)
             }
         }
 
-        canvas.fillStyle = colours["player"];
-        canvas.fillRect(camera[0] + player.position[0], camera[1] + player.position[1], player.size[0], player.size[1]);
+        const playerImage = new Image();
+        if (frame > 0) {
+            let animationImg = Math.floor(frame);
+            playerImage.src = "assets/player/punch-animation/punch" + animationImg.toString() + ".png";
+        } else {
+            playerImage.src = player.images[player.direction];
+        }
+        ctx.drawImage(playerImage, camera[0] + player.position[0], camera[1] + player.position[1])
 
-        canvas.fillStyle = colours["font"];
-        canvas.font = "30px Arial";
-        canvas.fillText("Health: " + Math.floor(player.health),10, 35);
-        canvas.fillText("Score: " + player.score, 10, 70)
+        ctx.fillStyle = "#f5f5f5";
+        ctx.font = "30px Arial";
+        ctx.fillText("Health: " + Math.floor(player.health),10, 35);
+        ctx.fillText("Score: " + player.score, 10, 70)
         
         requestAnimationFrame(displayGame);
     }
