@@ -4,28 +4,38 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <script src="../JavaScript/register.js" charset="utf-8"></script>
+    <link rel="stylesheet" type="text/css" href="../CSS/register.css" />
     <title>Register</title>
 </head>
 <body>
-    <a href="login.html">login</a> <a href="register.html">register</a> <a href="rankings.html">ranking</a>
-    <div>
-        Username <input type="text" id="register-username">
+    <div id="nav-bar">
+        <a href="../index.html">Home </a><a href="./login.html">Login</a> <a href="./register.html">Register</a> <a href="./rankings.html">Rankings</a>
     </div>
-    <div>
-        Email <input type="text" id="register-email">
-    </div>
-    <div>
-        Phone Number <input type="text" id="register-phone">
-    </div>
-    <div>
-        Password <input type="password" id="register-password">
-    </div>
-    <div>
-        Confirm Password <input type="password" id="register-confirm-password">
-    </div>
-        <p id="message"></p>
-    <div>
-        <button onclick="register()">Register</button>
+    <div id="registration">
+        <div>
+            <p>Register</p>
+        </div>
+        <div>
+            <input type="text" id="register-username" placeholder="Username">
+        </div>
+        <div>
+            <input type="text" id="register-email" placeholder="Email">
+        </div>
+        <div>
+            <input type="text" id="register-phone" placeholder="Phone Number">
+        </div>
+        <div>
+            <input type="password" id="register-password" placeholder="Password">
+        </div>
+        <div>
+            <input type="password" id="register-confirm-password" placeholder="Confirm Password">
+        </div>
+        <div>
+            <p id="message"></p>
+        </div>
+        <div id="register-button">
+            <button onclick="register()">Register</button>
+        </div>
     </div>
 </body>
 </html>

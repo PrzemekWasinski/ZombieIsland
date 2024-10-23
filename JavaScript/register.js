@@ -15,11 +15,11 @@ function register() {
     const storageDetails = JSON.parse(localStorage.getItem(username));
                            
     if (!username && !username.value || !email && !email.value || !phone && !phone.value || !password && !password.value || !confirm_password && confirm_password.value) {
-        document.getElementById("message").innerText = "Missing details"
+        document.getElementById("message").innerText = "All fields must be filled!"
     } else if (storageDetails) {
-        document.getElementById("message").innerText = "Account exists"
+        document.getElementById("message").innerText = "Account already exists!"
     } else if (new String(password).valueOf() != new String(confirm_password).valueOf()) {
-        document.getElementById("message").innerText = "Passwords dont match!"
+        document.getElementById("message").innerText = "Passwords don't match!"
     } else if (new String(password).valueOf() == new String(confirm_password).valueOf()) {
         localStorage.setItem(username, JSON.stringify(userDetails));
         document.getElementById("message").innerText = ""

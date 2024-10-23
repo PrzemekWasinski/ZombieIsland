@@ -1,4 +1,5 @@
-
+const mapImage = new Image();
+mapImage.src = "..//assets/game/map.jpg";
 
 const map =  [[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
                         [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0],
@@ -47,11 +48,12 @@ const mapHeight = map.length;
 const tileWidth = 40;
 const tileHeight = 40;
 
-let currentTime = Date.now;
-let frame = 0;
+const currentTime = Date.now;
+let frame = 1;
+let round = 1;
 
 class Player {
-    constructor(score, health, timeMoved, size, position, fromPosition, toPosition, delayMove, images, direction) {
+    constructor(score, health, timeMoved, size, position, fromPosition, toPosition, delayMove, images, direction, damage) {
         this.score = score;
         this.health = health;
         this.timeMoved = timeMoved;
@@ -62,6 +64,7 @@ class Player {
         this.delayMove = delayMove;
         this.images = images;
         this.direction = direction;
+        this.damage = damage;
     }
 
     move(x, y) {
@@ -110,17 +113,16 @@ class Player {
 const playerSpawn = [720, 800];
 const playerToPosition = [[playerSpawn[0] / tileWidth, playerSpawn[1] / tileHeight]];
 const playerFromPosition = [playerSpawn[0] / tileWidth, playerSpawn[1] / tileHeight];
-const images = {"up": "..//assets/player/up.png",
-                                "up-right": "..//assets/player/up-right.png",
-                                "right": "..//assets/player/right.png",
-                                "down-right": "..//assets/player/down-right.png",
-                                "down": "..//assets/player/down.png",
-                                "down-left": "..//assets/player/down-left.png",
-                                "left": "..//assets/player/left.png",
-                                "up-left": "..//assets/player/up-left.png",}
+const images = {"up": "..//assets/player/walking/up.png",
+                             "up-right": "..//assets/player/walking/up-right.png",
+                             "right": "..//assets/player/walking/right.png",
+                             "down-right": "..//assets/player/walking/down-right.png",
+                             "down": "..//assets/player/walking/down.png",
+                             "down-left": "..//assets/player/walking/down-left.png",
+                             "left": "..//assets/player/walking/left.png",
+                             "up-left": "..//assets/player/walking/up-left.png"}
                                 
-const player = new Player(0, 100, 0, [tileWidth, tileHeight], playerSpawn, playerToPosition, playerFromPosition, 275, images, "up");
-
+const player = new Player(0, 100, 0, [tileWidth, tileHeight], playerSpawn, playerToPosition, playerFromPosition, 275, images, "up", 1);
 
 //zombies
 let coordinate = 0;
@@ -131,8 +133,7 @@ while (coordinate != 1520) {
 }
 
 class Zombie {
-    constructor(inRange, damage, health, timeMoved, size, position, fromPosition, toPosition, delayMove, images, direction) {
-        this.inRange = inRange;
+    constructor(damage, health, timeMoved, size, position, fromPosition, toPosition, delayMove, images, direction) {
         this.damage = damage;
         this.health = health;
         this.timeMoved = timeMoved;
@@ -187,64 +188,92 @@ class Zombie {
     }
 }
 
-const zombieAmount = 10;
 const zombie = [];
-for (let i = 0; i < zombieAmount; i++) {
-    let spawn = [spawnCoordinates[Math.floor(Math.random() * spawnCoordinates.length)], spawnCoordinates[Math.floor(Math.random() * spawnCoordinates.length)]];
-    let zombieFromPosition = [spawn[0] / tileHeight, spawn[1] / tileWidth];
-    let zombieToPosition = [spawn[0] / tileHeight, spawn[1] / tileWidth];
-    const images = {"up": "..//assets/zombie/up.png",
-                                    "up-right": "..//assets/zombie/up-right.png",
-                                    "right": "..//assets/zombie/right.png",
-                                    "down-right": "..//assets/zombie/down-right.png",
-                                    "down": "..//assets/zombie/down.png",
-                                    "down-left": "..//assets/zombie/down-left.png",
-                                    "left": "..//assets/zombie/left.png",
-                                    "up-left": "..//assets/zombie/up-left.png"}
 
-    zombie.push(new Zombie(false, 0.05, 100, 0, [tileWidth, tileHeight], spawn, zombieFromPosition, zombieToPosition, 350, images, "up")) 
+function spawnZombies(zombieAmount, zombie) {
+    for (let i = 0; i < zombieAmount; i++) {
+        let spawn = [spawnCoordinates[Math.floor(Math.random() * spawnCoordinates.length)], spawnCoordinates[Math.floor(Math.random() * spawnCoordinates.length)]];
+        let x = spawn[0] / tileWidth;
+        let y = spawn[1] / tileHeight;
+        if (map[y][x] == 1) {
+            let zombieFromPosition = [spawn[0] / tileHeight, spawn[1] / tileWidth];
+            let zombieToPosition = [spawn[0] / tileHeight, spawn[1] / tileWidth];
+            const images = {"up": "..//assets/zombie/up.png",
+                                        "up-right": "..//assets/zombie/up-right.png",
+                                        "right": "..//assets/zombie/right.png",
+                                        "down-right": "..//assets/zombie/down-right.png",
+                                        "down": "..//assets/zombie/down.png",
+                                        "down-left": "..//assets/zombie/down-left.png",
+                                        "left": "..//assets/zombie/left.png",
+                                        "up-left": "..//assets/zombie/up-left.png"}
+        
+            zombie.push(new Zombie(0.03, 100, 0, [tileWidth, tileHeight], spawn, zombieFromPosition, zombieToPosition, 350, images, "up")) 
+        }
+    }
 }
+
+class Drop {
+    constructor(health, damage, image, position, tilePosition) {
+        this.health = health;
+        this.damage = damage;
+        this.image = image;
+        this.position = position;
+        this.tilePosition = tilePosition;
+    }
+}
+
+const drops = [];
 
 // camera
-const camera = {screen : [0, 0],
-                              topLeft : [0, 0],
-                              bottomRight : [0, 0],
-                              center : [0, 0]};
-
-function setCamera(px, py) {
-    camera[0] = Math.floor((camera.screen[0] / 2) - px);
-    camera[1] = Math.floor((camera.screen[1] / 2) - py);
-
-    let tile = [Math.floor(px / tileWidth), Math.floor(py / tileHeight)];
-
-    camera.topLeft[0] = tile[0] - 1 - Math.ceil((camera.screen[0] / 2) / tileWidth);
-    camera.topLeft[1] = tile[1] - 1 - Math.ceil((camera.screen[1] / 2) / tileHeight);
-
-    if (camera.topLeft[0] < 0) {
-        camera.topLeft[0] = 0;
+class Camera {
+    constructor(positionX, positionY, screen, topLeft, bottomRight, center) {
+        this.positionX = positionX;
+        this.positionY = positionY;
+        this.screen = screen;
+        this.topLeft = topLeft;
+        this.bottomRight = bottomRight;
+        this.center = center;
     }
 
-    if (camera.topLeft[1] < 0) {
-        camera.topLeft[1] = 0;
-    }
+    setCamera(x, y) {
+        this.positionX = Math.floor((this.screen[0] / 2) - x);
+        this.positionY = Math.floor((this.screen[1] / 2) - y);
 
-    camera.bottomRight[0] = tile[0] + 1 + Math.ceil((camera.screen[0] / 2) / tileWidth);
-    camera.bottomRight[1] = tile[1] + 2 + Math.ceil((camera.screen[1] / 2) / tileHeight);
+        let tile = [Math.floor(x / tileWidth), Math.floor(y / tileHeight)];
 
-    if (camera.bottomRight[0] >= mapWidth) {
-        camera.bottomRight[0] = mapWidth - 1;
-    }
+        this.topLeft[0] = tile[0] - 1 - Math.ceil((this.screen[0] / 2) / tileWidth);
+        this.topLeft[1] = tile[1] - 1 - Math.ceil((this.screen[1] / 2) / tileHeight);
 
-    if (camera.bottomRight[1] >= mapHeight) {
-        camera.bottomRight[1] = mapHeight - 1;
+        if (this.topLeft[0] < 0) {
+            this.topLeft[0] = 0;
+        }
+
+        if (this.topLeft[1] < 0) {
+            this.topLeft[1] = 0;
+        }
+
+        this.bottomRight[0] = tile[0] + 1 + Math.ceil((this.screen[0] / 2) / tileWidth);
+        this.bottomRight[1] = tile[1] + 2 + Math.ceil((this.screen[1] / 2) / tileHeight);
+
+        if (this.bottomRight[0] >= mapWidth) {
+            this.bottomRight[0] = mapWidth - 1;
+        }
+
+        if (this.bottomRight[1] >= mapHeight) {
+            this.bottomRight[1] = mapHeight - 1;
+        }
     }
 }
 
-const controls = {37: false, //Left
-                               38: false, //Up
-                               39: false, //Right
-                               40: false, //Down
-                               81: false}; //Attack
+camera = new Camera(0, 0, [0, 0], [0, 0], [0, 0], [0, 0])
+
+const controls = {65: false, //Left
+                               87: false, //Up
+                               68: false, //Right
+                               83: false, //Down
+                               32: false, //Attack
+                               82: false, //Restart
+                               81: false}; //Quit
 
 window.onload = function() {
     camera.screen = [document.getElementById("game").width, document.getElementById("game").height]
@@ -275,9 +304,12 @@ function isOccupied(x, y) { //Checks if a tile isn't occupied (doesn't have a pl
     }
     return false;
 }
-
 function displayGame() {
-    if (player.health >= 0) { 
+    if (player.health > 0) { 
+        if (zombie.length < 5) {
+            round++;
+            spawnZombies(5 + round, zombie);
+        }
         for (let i = 0; i < zombie.length; i++) {
             if (!zombie[i].updatePosition(currentTime())) { //movements for zombies
                 if (player.position[1] < zombie[i].position[1] && player.position[0] < zombie[i].position[0]) { // up and left
@@ -333,7 +365,7 @@ function displayGame() {
                 }
             }
 
-            //collisions
+            //collisions (zombie attacks player)
             zombie[i].inRange = false;
             if (player.toPosition[0] == zombie[i].toPosition[0] && player.toPosition[1] == zombie[i].toPosition[1] - 1 || //left
                 player.toPosition[0] == zombie[i].toPosition[0] && player.toPosition[1] == zombie[i].toPosition[1] + 1 || //right
@@ -343,73 +375,121 @@ function displayGame() {
                 player.toPosition[0] + 1== zombie[i].toPosition[0] && player.toPosition[1] == zombie[i].toPosition[1] + 1 || //down-right
                 player.toPosition[0] - 1 == zombie[i].toPosition[0] && player.toPosition[1] == zombie[i].toPosition[1]  + 1|| //up-right
                 player.toPosition[0] + 1 == zombie[i].toPosition[0] && player.toPosition[1] == zombie[i].toPosition[1] - 1) { //down-left
-                zombie[i].inRange = true;
                 player.health -= zombie[i].damage;
             }
         }
 
         if (!player.updatePosition(currentTime())) { //movements for player
-            if (controls[38] && controls[37]) { // up and left
+            if (controls[87] && controls[65]) { // up and left
                 player.direction = "up-left";
                 if (!isOccupied(player.toPosition[1] - 1, player.toPosition[0] - 1)) {
                     player.toPosition[0] -= 1;
                     player.toPosition[1] -= 1; 
                 }
-            } else if (controls[38] && controls[39]) { // up and right
+            } else if (controls[87] && controls[68]) { // up and right
                 player.direction = "up-right";
                 if (!isOccupied(player.toPosition[1] - 1, player.toPosition[0] + 1)) {
                     player.toPosition[0] += 1;
                     player.toPosition[1] -= 1;
                 }
-            } else if (controls[40] && controls[37]) { // down and left
+            } else if (controls[83] && controls[65]) { // down and left
                 player.direction = "down-left";
                 if (!isOccupied(player.toPosition[1] + 1, player.toPosition[0] - 1)) {
                     player.toPosition[0] -= 1;
                     player.toPosition[1] += 1;
                 }
-            } else if (controls[40] && controls[39]) { // down and right
+            } else if (controls[83] && controls[68]) { // down and right
                 player.direction = "down-right"
                 if (!isOccupied(player.toPosition[1] + 1, player.toPosition[0] + 1)) {
                     player.toPosition[0] += 1;
                     player.toPosition[1] += 1;
                 }
-            } else if (controls[38]) { //up
+            } else if (controls[87]) { //up
                 player.direction = "up";
                 if (!isOccupied(player.toPosition[1] - 1, player.toPosition[0])) {
                     player.toPosition[1] -= 1;
                 }
-            } else if (controls[40]) { //down
+            } else if (controls[83]) { //down
                 player.direction = "down";
                 if (!isOccupied(player.toPosition[1] + 1, player.toPosition[0])) {
                     player.toPosition[1] += 1;
                 }
-            } else if (controls[37]) { //left
+            } else if (controls[65]) { //left
                 player.direction = "left";
                 if (!isOccupied(player.toPosition[1], player.toPosition[0] - 1)) {
                     player.toPosition[0] -= 1;
                 }          
-            } else if (controls[39]) { //right
+            } else if (controls[68]) { //right
                 player.direction = "right";
                 if (!isOccupied(player.toPosition[1], player.toPosition[0] + 1)) {
                     player.toPosition[0] += 1;
                 }
             }
             
-            if (controls[81] && !controls[37] && !controls[38] && !controls[39] && !controls[40]) { //attack
+            if (controls[32] && !controls[65] && !controls[87] && !controls[68] && !controls[83]) { //attack
                 for (let i = 0; i < zombie.length; i++) {
-                    if (zombie[i].inRange) {
-                        zombie[i].health -= 1;
+                    // collisions (player attacks zombie)
+                    if (player.direction == "down") {  
+                        if (player.toPosition[0] == zombie[i].toPosition[0] && player.toPosition[1] == zombie[i].toPosition[1] - 1 ||
+                            player.toPosition[0] == zombie[i].toPosition[0] - 1&& player.toPosition[1] == zombie[i].toPosition[1] - 1 ||
+                            player.toPosition[0] == zombie[i].toPosition[0] + 1&& player.toPosition[1] == zombie[i].toPosition[1] - 1) {
+                            zombie[i].health -= player.damage;
+                        }
+                    } else if (player.direction == "up") { 
+                        if (player.toPosition[0] == zombie[i].toPosition[0] && player.toPosition[1] == zombie[i].toPosition[1] + 1 ||
+                            player.toPosition[0] == zombie[i].toPosition[0] - 1&& player.toPosition[1] == zombie[i].toPosition[1] + 1 ||
+                            player.toPosition[0] == zombie[i].toPosition[0] + 1&& player.toPosition[1] == zombie[i].toPosition[1] + 1) {
+                            zombie[i].health -= player.damage;
+                        }
+                    } else if (player.direction == "left") { 
+                        if (player.toPosition[0] == zombie[i].toPosition[0] + 1&& player.toPosition[1] == zombie[i].toPosition[1] ||
+                            player.toPosition[0] == zombie[i].toPosition[0] + 1&& player.toPosition[1] == zombie[i].toPosition[1] + 1 ||
+                            player.toPosition[0] == zombie[i].toPosition[0] + 1&& player.toPosition[1] == zombie[i].toPosition[1] - 1) {
+                            zombie[i].health -= player.damage;
+                        }
+                    } else if (player.direction == "right") {
+                        if (player.toPosition[0] == zombie[i].toPosition[0] - 1&& player.toPosition[1] == zombie[i].toPosition[1] ||
+                            player.toPosition[0] == zombie[i].toPosition[0] - 1&& player.toPosition[1] == zombie[i].toPosition[1] + 1 ||
+                            player.toPosition[0] == zombie[i].toPosition[0] - 1&& player.toPosition[1] == zombie[i].toPosition[1] - 1) {
+                            zombie[i].health -= player.damage;
+                        }
+                    } else if (player.direction == "up-right") { 
+                        if (player.toPosition[0] == zombie[i].toPosition[0] && player.toPosition[1] == zombie[i].toPosition[1] + 1 ||
+                            player.toPosition[0] == zombie[i].toPosition[0] - 1&& player.toPosition[1] == zombie[i].toPosition[1] ||
+                            player.toPosition[0] == zombie[i].toPosition[0] - 1&& player.toPosition[1] == zombie[i].toPosition[1] + 1) {
+                            zombie[i].health -= player.damage;
+                        }
+                    } else if (player.direction == "up-left") { 
+                        if (player.toPosition[0] == zombie[i].toPosition[0] && player.toPosition[1] == zombie[i].toPosition[1] + 1 ||
+                            player.toPosition[0] == zombie[i].toPosition[0] + 1&& player.toPosition[1] == zombie[i].toPosition[1] ||
+                            player.toPosition[0] == zombie[i].toPosition[0] + 1&& player.toPosition[1] == zombie[i].toPosition[1] + 1) {
+                            zombie[i].health -= player.damage;
+                        }
+                    } else if (player.direction == "down-right") {
+                        if (player.toPosition[0] == zombie[i].toPosition[0] - 1&& player.toPosition[1] == zombie[i].toPosition[1] ||
+                            player.toPosition[0] == zombie[i].toPosition[0] && player.toPosition[1] == zombie[i].toPosition[1] - 1 ||
+                            player.toPosition[0] == zombie[i].toPosition[0] - 1&& player.toPosition[1] == zombie[i].toPosition[1] - 1) {
+                            zombie[i].health -= player.damage;
+                        }
+                    } else if (player.direction == "down-left") { 
+                        if (player.toPosition[0] == zombie[i].toPosition[0] && player.toPosition[1] == zombie[i].toPosition[1] - 1 ||
+                            player.toPosition[0] == zombie[i].toPosition[0] + 1&& player.toPosition[1] == zombie[i].toPosition[1] ||
+                            player.toPosition[0] == zombie[i].toPosition[0] + 1&& player.toPosition[1] == zombie[i].toPosition[1] - 1) {
+                            zombie[i].health -= player.damage;
+                        }
                     }
                 }
-                if (frame > 21) {
-                    frame = 0;
+
+                if (frame > 6) {
+                    frame = 1;
+                    frame += 0.1;
                 } else {
-                    frame += 1;
+                    frame += 0.1;
                 }
             }
 
-            if (!controls[81]) {
-                frame = 0;
+            if (!controls[32]) {
+                frame = 1;
             }
 
             if (player.fromPosition[0] != player.toPosition[0]) {
@@ -418,23 +498,42 @@ function displayGame() {
                 player.timeMoved = currentTime();
             }
         }
-    } 
-
-    setCamera(player.position[0] + (player.size[0] / 2), player.position[1] + (player.size[1] / 2));
-
-    const mapImage = new Image();
-    mapImage.src = "..//assets/map.jpg";
     
+
+    camera.setCamera(player.position[0] + (player.size[0] / 2), player.position[1] + (player.size[1] / 2));
+
     ctx.fillStyle = "#105db0";
     ctx.fillRect(0, 0, camera.screen[0], camera.screen[1]);
-    ctx.drawImage(mapImage, (camera[0] + camera.center[0] * tileWidth) - 40, (camera[1] + camera.center[1] * tileHeight) - 40);
+    ctx.drawImage(mapImage, (camera.positionX + camera.center[0] * tileWidth) - 40, (camera.positionY + camera.center[1] * tileHeight) - 40);
 
     for (let i = 0; i < zombie.length; i++) { // remove dead zombies and add points for each dead zombies
         if (zombie[i].health == 0 || zombie[i].health < 0) { 
-            const index = zombie.indexOf(zombie[i]);
+            let index = zombie.indexOf(zombie[i]);
             if (index > -1) {
+                if (Math.floor(Math.random() * 11) > 5) { //50% chance to drop a healing heart
+                    drops.push(new Drop(10, 0, "../assets/game/health.png", zombie[i].position, zombie[i].toPosition));
+                }
                 zombie.splice(index, 1);
                 player.score += 1;
+            }
+        }
+    }
+
+    for (let i = 0; i < drops.length; i++) {
+        const healthImage = new Image();
+        healthImage.src = drops[i].image;
+        ctx.drawImage(healthImage, camera.positionX + drops[i].position[0], camera.positionY + drops[i].position[1]);
+        if (player.toPosition[0] == drops[i].tilePosition[0] && player.toPosition[1] == drops[i].tilePosition[1]) {
+            if (player.health > 90) {
+                player.health = 100;
+                player.damage += drops[i].damage;
+            } else {
+                player.health += drops[i].health;
+                player.damage += drops[i].damage;
+            }
+            let index = drops.indexOf(drops[i]);
+            if (index > -1) {
+                drops.splice(index, 1);
             }
         }
     }
@@ -442,36 +541,51 @@ function displayGame() {
     for (let i = 0; i < zombie.length; i++) {
         const zombieImage = new Image();
         zombieImage.src = zombie[i].images[zombie[i].direction];
-        ctx.drawImage(zombieImage, camera[0] + zombie[i].position[0], camera[1] + zombie[i].position[1])
-        ctx.fillStyle = "#FF0000";
-        ctx.fillText(zombie[i].health, (camera[0] + zombie[i].position[0]), (camera[1] + zombie[i].position[1]) - 10)
+        ctx.drawImage(zombieImage, camera.positionX + zombie[i].position[0], camera.positionY + zombie[i].position[1])
+        ctx.fillStyle = "rgb(0, 0, 0)";
+        ctx.fillRect((camera.positionX + zombie[i].position[0]) - 5, (camera.positionY + zombie[i].position[1]) - 15, 52, 10)
+        ctx.fillStyle = "rgb(255, 0, 0)";
+        ctx.fillRect((camera.positionX + zombie[i].position[0]) - 4, (camera.positionY + zombie[i].position[1]) - 14, Math.round(zombie[i].health) / 2, 8)
     }
 
     const playerImage = new Image();
-    if (frame > 0) {
+    if (frame > 1) {
         let animationImg = Math.floor(frame);
-        playerImage.src = "..//assets/player/punch-animation/punch" + animationImg.toString() + ".png";
+        playerImage.src = "..//assets/player/punch-" + player.direction + "/punch" + animationImg.toString() + ".png";
     } else {
         playerImage.src = player.images[player.direction];
     }
 
-    ctx.drawImage(playerImage, camera[0] + player.position[0], camera[1] + player.position[1])
-    ctx.fillStyle = "#f5f5f5";
-    ctx.font = "30px Arial";
-    ctx.fillText("Health: " + Math.floor(player.health),10, 35);
-    ctx.fillText("Score: " + player.score, 10, 70)
+    ctx.drawImage(playerImage, camera.positionX + player.position[0], camera.positionY + player.position[1])
+    
+    ctx.fillStyle = "rgb(255, 255, 255)";
+    ctx.font = "22px joystix"
+    ctx.fillText("Health: " + Math.round(player.health),12, 555);
+    ctx.fillText("Score:  " + player.score, 10, 525)
 
-    if (player.health <= 0) {
-        const game_over = new Image();
-        game_over.src = "..//assets/game_over.png";
-        ctx.drawImage(game_over, 100, 100);
+    ctx.fillStyle = "rgb(0, 0, 0)";
+    ctx.fillRect(15 - 5, 580 - 15, 202, 30)
+    ctx.fillStyle = "rgb(0, 255, 0)";
+    ctx.fillRect(15 - 4, 580 - 14, Math.round(player.health) * 2, 28)
+
+    } else {
+        ctx.fillStyle = "rgb(255, 255, 255)";
+        ctx.font = "50px joystix";
+        ctx.fillText("GAME OVER!", 367, 290)
+        ctx.font = "30px joystix";
+        ctx.fillText("R-RESTART", 340, 340)
+        ctx.fillText("Q-QUIT", 600, 340)
+        if (controls[81]) {
+            window.open("../index.html", "_self")
+        } else if (controls[82]) {
+            window.open("../HTML/game.html", "_self")
+        }
+        const user = sessionStorage.getItem("User")
+        let details = JSON.parse(localStorage.getItem(user));
+        if (player.score > details["Score"]) {
+            details["Score"] = player.score;
+            localStorage.setItem(user, JSON.stringify(details))
+        }
     }
-
-    const user = sessionStorage.key(0);
-    let details = JSON.parse(sessionStorage.getItem(user));
-    details["Score"] = player.score;
-    localStorage.setItem(user, JSON.stringify(details))
-
     requestAnimationFrame(displayGame);
 }
-

@@ -1,0 +1,71 @@
+body {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center; 
+    height: 110vh;
+    margin: 0; 
+    padding: 0; 
+    overflow: hidden; 
+    position: relative;
+    font-family: monospace;
+
+    /*Background image*/
+    background-image: url("../assets/web-pages/forest.jpg");
+    background-size: cover; 
+    background-position: center;
+    background-repeat: no-repeat; 
+}
+
+#nav-bar {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%; 
+    display: flex;
+    justify-content: space-between; 
+    padding: 10px 20px; 
+    background-color: rgba(255, 255, 255, 0.5); 
+    box-sizing: border-box; 
+}
+
+#nav-bar a {
+    text-decoration: none;
+    color: black;
+    font-size: 21px;
+    padding: 15px;
+}
+
+a:hover {
+    border-radius: 30px;
+    padding: 10px 20px;
+    background-color: rgba(53, 53, 53, 0.5);
+}
+
+#scores {
+    width: 33%;
+    border-collapse: collapse;
+    margin: 20px 0;
+    font-size: 18px;
+    text-align: left;
+    background-color: rgba(255, 255, 255, 0.5);
+    padding: 5px;
+}
+
+th, td {
+    padding: 12px 15px;
+    border: 2px solid #000000;
+
+}
+
+tr:hover {
+    background-color: #dbdbdb;
+}
+
+p {
+    padding: 10px;
+    border-radius: 10px;
+    background-color: rgba(255, 255, 255, 0.5); 
+    font-size: 18px;
+}
+

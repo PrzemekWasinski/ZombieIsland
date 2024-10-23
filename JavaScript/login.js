@@ -13,8 +13,8 @@ function login(event) {
    } else if (storageDetails["Password"] !== password) {
     document.getElementById("message").innerText = "Incorrect detail"
    } else {
-    sessionStorage.clear()
-    sessionStorage.setItem(username, JSON.stringify(storageDetails))
-    window.open("..//index.html");
+    sessionStorage.setItem("User", username)
+    window.open("../HTML/game.html", "_self");
+    window.focus();
    }
 }

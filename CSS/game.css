@@ -1,0 +1,12 @@
+#game{
+    position:fixed;
+    left:0;
+    top:0;
+    width:100%;
+    height:100%;
+}
+
+@font-face {
+    font-family: "joystix";
+    src: url("../assets/game/joystix.otf") format("truetype");
+}
