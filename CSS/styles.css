@@ -1,0 +1,288 @@
+@font-face { /* Adding a new font */
+    font-family: "joystix";
+    src: url("../assets/game/joystix.otf") format("truetype");
+}
+
+body { /* Styling the page */
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center; 
+    height: 110vh;
+    margin: 0; 
+    padding: 0; 
+    overflow: hidden; 
+    position: relative;
+    font-family: monospace;
+
+    /* Background image */
+    background-image: url("../assets/web-pages/forest.jpg");
+    background-size: cover; 
+    background-position: center;
+    background-repeat: no-repeat; 
+}
+
+/* Navigation bar */
+#nav-bar { /* Navigation bar background */
+    background-color: rgba(255, 255, 255, 0.5);
+    display: flex;
+    align-items: center;
+    position: fixed;
+    padding: 15px;
+    top: 0;
+    left: 0;
+    right: 0;
+    justify-content: space-around;
+}
+
+#nav-bar a { /* Style for each link in the nav bar */
+    color: rgb(0, 0, 0); 
+    text-decoration: none;
+    padding: 10px 15px;
+    border-radius: 20px;
+    transition: background-color 0.3s;
+    font-size: 21px;
+    font-family: "joystix";
+}
+
+#nav-bar a:hover { /* Effect when hovering over a link */
+    border-radius: 20px;
+    background-color: rgba(67, 67, 67, 0.5);
+}
+
+#nav-bar a.active, /* Keep colour and position of links the same */
+#nav-bar a#current {
+    position: relative; 
+    color: rgb(0, 0, 0); 
+}
+
+#nav-bar a.active::after, /* Underline current link */
+#nav-bar a#current::after {
+    content: "";
+    position: absolute; 
+    left: 0;
+    right: 0;
+    bottom: -2px; 
+    height: 3px; 
+    background-color: rgb(0, 0, 0); 
+}
+
+/* Home page */
+#home-heading { /* Title of the game in the home page */
+    font-family: 'Joystix';
+    font-size: 60px;
+    color: #d81f2e;
+    text-align: center;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    padding: 15px;
+    background-color: #000000c6;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
+    position: fixed; 
+    top: 80px; 
+    left: 0;
+    right: 0; 
+}
+
+#home-container { /* align paragraph and controls image */
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start; 
+    margin: 100px 20px 20px; 
+}
+
+#home-paragraph { /* Paragraph explaining the game */
+    font-family: 'Arial', sans-serif;
+    font-size: 20px;
+    color: #000000;
+    line-height: 1.5;
+    background-color: rgba(255, 255, 255, 0.5);
+    border: 1px solid #000000;
+    padding: 15px;
+    border-radius: 8px;
+    max-width: 40%; 
+    margin-right: 40px; 
+}
+
+#home-controls {  /* Background for the controls image */
+    display: flex;
+    flex-direction: column; 
+    justify-content: center;
+    align-items: center;
+    padding: 10px;
+    background-color: rgba(255, 255, 255, 0.5);
+    border: 1px solid #000000;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+#home-controls img { /* Image showing the controls */
+    max-width: 100%;
+    height: auto;
+    border-radius: 4px;
+}
+
+#home-how-to-play { /* Text labeling the controls image */
+    font-family: "Joystix";
+    font-size: 30px;
+    text-decoration: underline;
+    color: #000000;
+    text-align: center;
+    margin-bottom: 10px; 
+}
+
+/* Styling input fields */
+input { /* Input field styling */
+    border: 2px solid rgb(168, 168, 168);
+    border-radius: 5px;
+    padding: 10px;
+    font-size: 16px;
+    width: calc(100% - 20px);
+    margin-bottom: 15px;
+    transition: border-color 0.3s, box-shadow 0.3s;
+}
+
+input:focus { /* Effect when clicking on an input field */
+    border-color: rgb(0, 0, 0); 
+    outline: none;
+}
+
+input::placeholder { /* Styling the place holder */
+    color: rgb(168, 168, 168);
+    opacity: 1;
+}
+
+/* Login ands registration feedback messages */
+#error-message { /* Styling the error message */
+    font-size: 18px;
+    color: rgb(255, 0, 0); 
+}
+
+#success-message { /* Styling the success message */
+    font-size: 18px;
+    color: rgb(12, 160, 9); 
+}
+
+/* Registration */
+#registration { /* Background for input fields */
+    background-color: rgba(255, 255, 255, 0.5);
+    border: 2px solid rgb(0, 0, 0); 
+    border-radius: 10px;
+    padding: 20px;
+    width: 400px;
+    margin: 20px auto;
+    box-shadow: 0 2px 10px rgb(0, 0, 0);
+}
+
+#register-heading { /* Title of register page */
+    font-size: 30px;
+    font-weight: bold;
+    color: rgb(0, 0, 0); 
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+#register-button { /* Centering the register button */
+    text-align: center;
+}
+
+#register-button button { /* Styling the register button */
+    font-family: "joystix";
+    background-color: rgb(255, 255, 255);
+    color: rgb(0, 0, 0); 
+    border: none;
+    border-radius: 5px;
+    padding: 10px 20px;
+    font-size: 16px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+#register-button button:hover { /* Hover effect for the registration button */
+    background-color: rgb(255, 0, 0); 
+}
+
+/* Login */
+#login { /* Styling the login container */
+    background-color: rgba(255, 255, 255, 0.5);
+    border: 2px solid rgb(0, 0, 0); 
+    border-radius: 10px;
+    padding: 20px;
+    width: 400px;
+    margin: 20px auto;
+    box-shadow: 0 2px 10px rgb(0, 0, 0);
+}
+
+#login-heading { /* Login page title */
+    font-size: 30px;
+    font-weight: bold;
+    color: rgb(0, 0, 0); 
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+#login-button { /* Centering login button */
+    text-align: center;
+}
+
+#login-button button { /* Styling the login button */
+    font-family: "joystix";
+    border: none;
+    border-radius: 5px;
+    padding: 10px 20px;
+    font-size: 16px;
+    background-color: rgb(255, 255, 255);
+    color: rgb(0, 0, 0); 
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+#login-button button:hover { /* Hover effect for the login button */
+    background-color: rgb(255, 0, 0); 
+}
+
+/* Rankings */
+#rankings-heading {
+    font-size: 20px;
+    font-weight: bold;
+    color: rgb(0, 0, 0); 
+    text-align: center;
+    margin-bottom: 20px;
+    background-color: rgba(255, 255, 255, 0.5);
+    border: 2px solid rgb(0, 0, 0); 
+    border-radius: 10px;
+    padding: 20px;
+    width: auto;
+    margin: auto;
+    box-shadow: 0 2px 10px rgb(0, 0, 0);
+}
+
+#table-container { /* Table styling */
+    max-height: 600px;
+    overflow-y: auto;  
+    overflow-x: hidden;
+    border: 1px solid #ffffff9e;
+    margin-top: 10px; 
+}
+
+table { /* Table styling */
+    width: 1000px; 
+    border-collapse: collapse; 
+}
+
+th, td { /* Row styling */
+    background-color: #cccccc93;
+    font-size: 20px;
+    padding: 8px;
+    text-align: left; 
+    border-bottom: 1px solid #000000; 
+}
+
+th { /* Row styling */
+    background-color: #f2f2f2; 
+}
+
+tbody tr:hover { /* Hover effect styling */
+    background-color: #e0e0e0; 
+}
+

@@ -3,20 +3,29 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" type="text/css" href="../CSS/rankings.css" />
+    <link rel="stylesheet" type="text/css" href="../CSS/styles.css" />
     <title>Rankings</title>
 </head>
 <body>
-    <div id="nav-bar">
-        <a href="../index.html">Home </a><a href="./login.html">Login</a> <a href="./register.html">Register</a> <a href="./rankings.html">Rankings</a>
+    <div id="nav-bar"> <!--Navigation bar-->
+        <a href="../index.html">Home </a><a href="./login.html">Login</a><a href="./register.html">Register</a><a href="./game.html">Play!</a><a href="./rankings.html" id="current">Rankings</a>
     </div>
     <div>
-        <p>Top Players</p>
+        <p id="rankings-heading">Top Players</p>
     </div>
-    <table id="scores">
-        <tr>
-        </tr>
-    </table>
+    <div id="table-container"> <!--Table is stored in a div-->
+        <table id="scores"> <!--Table to store the scores-->
+            <thead>
+                <tr>
+                    <th>Player</th> <!--Headings-->
+                    <th>Score</th>
+                </tr>
+            </thead>
+            <tbody> <!--Inserted rows are stored here-->
+
+            </tbody>
+        </table>
+    </div>
 </body>
 <script src="..//JavaScript/rankings.js"></script>
 </html>

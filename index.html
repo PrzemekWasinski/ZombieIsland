@@ -3,12 +3,38 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" type="text/css" href="./CSS/home.css" />
+    <link rel="stylesheet" type="text/css" href="./CSS/styles.css" />
     <title>Home</title>
 </head>
 <body>
-    <div id="nav-bar">
-        <a href="./index.html">Home </a><a href="./HTML/login.html">Login</a> <a href="./HTML/register.html">Register</a> <a href="./HTML/rankings.html">Rankings</a>
+    <div id="nav-bar"> <!--Navigation bar-->
+        <a href="../index.html" id="current">Home </a><a href="./HTML/login.html">Login</a><a href="/HTML/register.html">Register</a><a href="/HTML/game.html">Play!</a><a href="/HTML/rankings.html">Rankings</a>
     </div>
+    <div>
+        <h1 id="home-heading"> <!--Title of the game-->
+            Zombie Island
+        </h1>
+        <div id="home-container"> <!--Store paragraph and controls image in a container-->
+            <p id="home-paragraph"> <!--Paragraph explaining the game-->
+                Zombie Island is a 2D survival game where the player finds himself stranded on an island and has to fight
+                waves of zombies which get increasingly more difficult. You need to survive for as long as possible and
+                defeat as many zombies as you can to achieve a score which is displayed on the rankings page. 
+                <br>
+                <br>
+                The game features a health system for the player and the  zombies, fighting, items dropped by the zombies
+                that the player can use, 2D pixel-art style graphics and a round system where each round becomes more 
+                difficult for the player. The game's controls can be seen on the left, restart and quit will only become 
+                available once the game is over. Be aware your score will not save if you go to another page before the 
+                game ends!
+                <br>
+                <br>
+                Before you start playing make sure to register and login to your account so that your highscore appears 
+                on the rankings page.
+            </p>
+            <div id="home-controls"> <!--Store image and title in a div-->
+                <h2 id="home-how-to-play">How to Play</h2> <!--Title of the image 'How to play'-->
+                <img src="/assets/web-pages/controls.png"> <!--Image showing the controls-->
+            </div>
+        </div>
     </body>
 </html>

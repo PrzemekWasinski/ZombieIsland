@@ -4,28 +4,31 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <script src="../JavaScript/login.js" charset="utf-8"></script>
-    <link rel="stylesheet" type="text/css" href="../CSS/login.css" />
+    <link rel="stylesheet" type="text/css" href="../CSS/styles.css" />
     <title>Login</title>
 </head>
 <body>
-    <div id="nav-bar">
-        <a href="../index.html">Home </a><a href="./login.html">Login</a> <a href="./register.html">Register</a> <a href="./rankings.html">Rankings</a>
+    <div id="nav-bar"> <!--Navigation bar-->
+        <a href="../index.html">Home </a><a href="./login.html" id="current">Login</a><a href="./register.html">Register</a><a href="./game.html">Play!</a><a href="./rankings.html">Rankings</a>
     </div>
-    <div id="login">
+    <div id="login"> <!--All the input divs are stored in one big  div-->
         <div>
-            <p>Login</p>
+            <p id="login-heading">Login</p> <!--Login page heading-->
         </div>
         <div>
-            <input type="text" id="login-username" placeholder="Username">
+            <input type="text" id="login-username" placeholder="Username"> <!--Username input field-->
         </div>
         <div>
-            <input type="password" id="login-password" placeholder="Password">
+            <input type="password" id="login-password" placeholder="Password"> <!--Password input field-->
         </div>
         <div>
-            <p id="message"></p>
+            <p id="error-message"></p> <!--Error message-->
         </div>
         <div>
-            <button onclick="login(event)">Play</button>
+            <p id="success-message"></p> <!--Success message-->
+        </div>
+        <div id="login-button">
+            <button onclick="login(event)">Login</button> <!--Login button-->
         </div>
     </div>
 </body>

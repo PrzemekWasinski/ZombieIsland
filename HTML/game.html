@@ -4,13 +4,13 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Game</title>
-    <script src="../JavaScript/game.js" charset="utf-8">    </script>
+    <script src="../JavaScript/game/game.js" charset="utf-8" type="module">    </script>
     <link rel="stylesheet" type="text/css" href="../CSS/game.css" />
 </head>
     <body>
-        <canvas height="621" width="1104" id="game"></canvas>
-        <div id="restart">
-
+        <div id="nav-bar"> <!--  Navigation bar-->
+            <a href="../index.html">Home </a><a href="./login.html">Login</a><a href="./register.html">Register</a><a href="./game.html" id="current">Play!</a><a href="./rankings.html">Rankings</a>
         </div>
+        <canvas height="615" width="1093" id="game"></canvas> <!--Game canvas-->
     </body>
 </html>

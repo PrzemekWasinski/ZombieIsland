@@ -4,37 +4,40 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <script src="../JavaScript/register.js" charset="utf-8"></script>
-    <link rel="stylesheet" type="text/css" href="../CSS/register.css" />
+    <link rel="stylesheet" type="text/css" href="../CSS/styles.css" />
     <title>Register</title>
 </head>
 <body>
-    <div id="nav-bar">
-        <a href="../index.html">Home </a><a href="./login.html">Login</a> <a href="./register.html">Register</a> <a href="./rankings.html">Rankings</a>
+    <div id="nav-bar"> <!--Navigation bar-->
+        <a href="../index.html">Home </a><a href="./login.html">Login</a><a href="./register.html" id="current">Register</a><a href="./game.html">Play!</a><a href="./rankings.html">Rankings</a>
     </div>
-    <div id="registration">
-        <div>
+    <div id="registration"> <!--Store all divs in a big div-->
+        <div id="register-heading"> <!--Register page title-->
             <p>Register</p>
         </div>
         <div>
-            <input type="text" id="register-username" placeholder="Username">
+            <input type="text" id="register-username" placeholder="Username"> <!--Username input field-->
         </div>
         <div>
-            <input type="text" id="register-email" placeholder="Email">
+            <input type="text" id="register-email" placeholder="Email"> <!--Email input field-->
         </div>
         <div>
-            <input type="text" id="register-phone" placeholder="Phone Number">
+            <input type="text" id="register-phone" placeholder="Phone Number"> <!--Phone number input field-->
         </div>
         <div>
-            <input type="password" id="register-password" placeholder="Password">
+            <input type="password" id="register-password" placeholder="Password"> <!--Password input field-->
         </div>
         <div>
-            <input type="password" id="register-confirm-password" placeholder="Confirm Password">
+            <input type="password" id="register-confirm-password" placeholder="Confirm Password"> <!--Confirm password input field-->
         </div>
         <div>
-            <p id="message"></p>
+            <p id="error-message"></p> <!--Error message-->
+        </div>
+        <div>
+            <p id="success-message"></p> <!--Success message-->
         </div>
         <div id="register-button">
-            <button onclick="register()">Register</button>
+            <button onclick="register()">Register</button> <!--Register button-->
         </div>
     </div>
 </body>
