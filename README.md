@@ -1,6 +1,6 @@
 # Zombie Island
 
-This is a 2D survival web game I made for a second year University project, it has features such as a health system, fighting system, a round system where the game gets harder every roud, enemies that chase the player and drop items after dying and a map with obstacles.
+This is a 2D survival web game I made for a second year University project that got 98/100, it has features such as a health system, fighting system, a round system where the game gets harder every roud, enemies that chase the player and drop items after dying and a map with obstacles.
 
 The game's website also features a login and register feature where the user has to create an account and login to it before playing, this is so their user gets a score which can be displayed on the `rankings` page, the details are stored in HTML local storage which is used as a database for user's accounts following the university project requirements
 
