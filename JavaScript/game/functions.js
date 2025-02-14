@@ -20,7 +20,7 @@ export function spawnZombies(zombieAmount, zombie, spawnCoordinates, tileWidth, 
                 "up-left": "../assets/ZombieIsland/zombie/up-left.png"
             }
 
-            const fist = new Weapon("zombie-fist", 10, "meelee", 0)
+            const fist = new Weapon("zombie-fist", 10, "meelee", 0, 0)
             zombie.push(new Zombie(0.03, 100, 0, [tileWidth, tileHeight], spawn, zombieFromPosition, zombieToPosition, 350, images, "up", fist)) //Make a new zombie
         }
     }

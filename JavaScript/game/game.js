@@ -80,9 +80,9 @@ const images = {
     "up-left": "../assets/ZombieIsland/player/walking/up-left.png"
 }
   
-const fist = new Weapon("fist", 10, "meelee", 0)
-const gun = new Weapon("gun", 1, "range", 0)
-const player = new Player(0, 100, 0, [tileWidth, tileHeight], playerSpawn, playerToPosition, playerFromPosition, 275, images, "up", 1, [fist], gun); //Create player object
+const fist = new Weapon("fist", 10, "meelee", 0, 0)
+const gun = new Weapon("gun", 5, "range", 10, 500)
+const player = new Player(0, 100, 0, [tileWidth, tileHeight], playerSpawn, playerToPosition, playerFromPosition, 275, images, "up", 1, [fist, gun], fist); //Create player object
 
 const zombie = []; //Store zombies and drops in lists
 const drops = [];
@@ -95,6 +95,8 @@ const controls = {
     68: false, //Right
     83: false, //Down
     32: false, //Attack
+    49: false, //Fist
+    50: false, //Gun
     82: false, //Restart
     81: false //Quit
 }; 
@@ -116,11 +118,28 @@ window.onload = function() {
 
 spawnZombies(10, zombie, spawnCoordinates, tileWidth, tileHeight, map); //Spawn 10 zombies at the start
 
+let locked = false;
+
+
+if (frame > 1) { //If the player is punching
+    let animationImg = Math.floor(frame); //Round the animation's frame
+    
+} else { //If player isn't punching
+    playerImage.src = player.images[player.direction]; //Set the player's image to walking in it's direction
+}
+
+
 function displayGame() {
     if (player.health > 0) { //If the player is alive
         if (zombie.length < 5) { //If theres less than 5 zombies
             spawnZombies(5 + round, zombie, spawnCoordinates, tileWidth, tileHeight, map); //Spawn 5 more zombies + whichever round the player is on
             round++; //Move onto the next round
+        }
+
+        if (controls[49]) {
+            player.weapon = fist
+        } else if (controls[50]) {
+            player.weapon = gun
         }
 
         for (let i = 0; i < zombie.length; i++) { //For every zombie
@@ -177,10 +196,33 @@ function displayGame() {
                     zombie[i].timeMoved = currentTime(); //Keep track of the time to compare later
                 }
             }
+
             zombie[i].weapon.attack(zombie[i], map, projectiles, player)
+            function playerAttack() {
+                if (!locked) {
+                    player.weapon.attack(player, map, projectiles, zombie[i]);
+                    locked = true;
+                    setTimeout(() => {unlock();}, player.weapon.speed);
+                } 
+            }
+
+            function unlock() {
+                locked = false;
+            }
 
             if (controls[32] && !controls[65] && !controls[87] && !controls[68] && !controls[83]) { //If the player punches
-                player.weapon.attack(player, map, projectiles, zombie[i])
+                if (player.weapon.name != "fist") {
+                    playerAttack();
+                } else {
+                    player.weapon.attack(player, map, projectiles, zombie[i]);
+
+                    if (frame > 6) { //If the animation has reached the end
+                        frame = 1; //Set the frame to 0
+                        frame += 0.02; //Carry on the animation
+                    } else { //If animation has nto reached the end
+                        frame += 0.02; //Carry on the animation
+                    }
+                }
             }
 
             if (!controls[32]) { //If the player stops attacking

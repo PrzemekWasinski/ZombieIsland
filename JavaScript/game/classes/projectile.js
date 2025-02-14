@@ -1,6 +1,5 @@
 export class Projectile {
-    constructor(time, direction, timeMoved, size, position, fromPosition, toPosition, delayMove, image) {
-        this.time = time;
+    constructor(direction, timeMoved, size, position, fromPosition, toPosition, delayMove, image) {
         this.direction = direction;
         this.timeMoved = timeMoved;
         this.size = size;
