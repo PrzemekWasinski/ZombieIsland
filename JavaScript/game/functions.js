@@ -1,5 +1,4 @@
-import { Zombie } from "./classes/zombie.js";
-import { Weapon } from "./classes/weapon.js";
+import {Zombie} from "./classes/zombie.js";
 
 export function spawnZombies(zombieAmount, zombie, spawnCoordinates, tileWidth, tileHeight, map) { //A function to spawn zombies
     for (let i = 0; i < zombieAmount; i++) { //For each zombie requested
@@ -9,19 +8,16 @@ export function spawnZombies(zombieAmount, zombie, spawnCoordinates, tileWidth, 
         if (map[y][x] == 1) { //If the spawn coordinate is on a passable tile
             let zombieFromPosition = [spawn[0] / tileHeight, spawn[1] / tileWidth]; //Set the zombie's spawn coordinates
             let zombieToPosition = [spawn[0] / tileHeight, spawn[1] / tileWidth];
-            const images = {
-                "up": "../assets/ZombieIsland/zombie/up.png", //A hash table to store the zombie's images for each direction
-                "up-right": "../assets/ZombieIsland/zombie/up-right.png",
-                "right": "../assets/ZombieIsland/zombie/right.png",
-                "down-right": "../assets/ZombieIsland/zombie/down-right.png",
-                "down": "../assets/ZombieIsland/zombie/down.png",
-                "down-left": "../assets/ZombieIsland/zombie/down-left.png",
-                "left": "../assets/ZombieIsland/zombie/left.png",
-                "up-left": "../assets/ZombieIsland/zombie/up-left.png"
-            }
+            const images = {"up": "../assets/zombie/up.png", //A hash table to store the zombie's images for each direction
+                                         "up-right": "../assets/zombie/up-right.png",
+                                         "right": "../assets/zombie/right.png",
+                                         "down-right": "../assets/zombie/down-right.png",
+                                         "down": "../assets/zombie/down.png",
+                                         "down-left": "../assets/zombie/down-left.png",
+                                         "left": "../assets/zombie/left.png",
+                                         "up-left": "../assets/zombie/up-left.png"}
 
-            const fist = new Weapon("zombie-fist", 10, "meelee", 0, 0)
-            zombie.push(new Zombie(0.03, 100, 0, [tileWidth, tileHeight], spawn, zombieFromPosition, zombieToPosition, 350, images, "up", fist)) //Make a new zombie
+            zombie.push(new Zombie(0.03, 100, 0, [tileWidth, tileHeight], spawn, zombieFromPosition, zombieToPosition, 350, images, "up")) //Make a new zombie
         }
     }
 }

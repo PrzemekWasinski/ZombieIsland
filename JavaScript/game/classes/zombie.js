@@ -1,5 +1,5 @@
 export class Zombie {
-    constructor(damage, health, timeMoved, size, position, fromPosition, toPosition, delayMove, images, direction, weapon) {
+    constructor(damage, health, timeMoved, size, position, fromPosition, toPosition, delayMove, images, direction) {
         this.damage = damage;
         this.health = health;
         this.timeMoved = timeMoved;
@@ -10,7 +10,6 @@ export class Zombie {
         this.delayMove = delayMove;
         this.images = images;
         this.direction = direction;
-        this.weapon = weapon;
     }
 
     move(x, y) { 
