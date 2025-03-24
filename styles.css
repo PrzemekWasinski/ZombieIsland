@@ -1,0 +1,14 @@
+@font-face { /* Font for the game */
+    font-family: "joystix";
+    src: url("/assets/game/joystix.otf") format("truetype");
+}
+
+#game{ /* Centering the canvas and stretching it across the screen */
+    position:fixed;
+    left:0;
+    top:0px;
+    width:100%;
+    height:100%;
+}
+
+
