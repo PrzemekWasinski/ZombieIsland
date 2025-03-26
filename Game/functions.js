@@ -42,3 +42,29 @@ export function isOccupied(player, map, zombie, x, y) { //Checks if a tile isn't
     }
     return false; //Tile is not occupied
 }
+
+export function resetGame(player, round) {
+    player.health = 100;
+    player.score = 0
+    player.ammo = 30
+    round = 0
+}
+
+export async function saveProgress(gold, level, inventory) {
+    const user = auth.currentUser;
+
+    if (!user) {
+        return;
+    }
+
+    try {
+        await database.ref('users/' + user.uid).update({
+            gold: gold,
+            level: level,
+            inventory: inventory
+        });
+
+    } catch (error) {
+        console.error("Error saving progress:", error.message);
+    }
+}

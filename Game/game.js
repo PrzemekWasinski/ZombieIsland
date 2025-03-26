@@ -2,11 +2,10 @@ import { Player } from "/Game/classes/player.js";
 import { Camera } from "/Game/classes/camera.js";
 import { Drop } from "/Game/classes/drop.js";
 import { Weapon } from "/Game/classes/weapon.js";
-import { spawnZombies, isOccupied } from "./functions.js";
+import { spawnZombies, isOccupied, resetGame, saveProgress } from "./functions.js";
 import { map } from "/Game/map.js";
 
-
-const tileWidth = 40; //Size of each tile in pixels
+const tileWidth = 40;
 const tileHeight = 40;
 
 const tileImages = {
@@ -25,25 +24,25 @@ directions.forEach(dir => {
     zombieImages[dir].src = `/Game/assets/zombie/${dir}.png`; 
 });
 
-let coordinate = 0; //Add all possible coordinates to a list
+let coordinate = 0; 
 let spawnCoordinates = [];
 while (coordinate != 1520) {
     coordinate += 40;
     spawnCoordinates.push(coordinate);
 }
 
-const currentTime = Date.now; //Set current time, frame and round
+const currentTime = Date.now;
 let frame = 1;
 let round = 1;
 
-const camera = new Camera(0, 0, [0, 0], [0, 0], [0, 0], [0, 0]) //Make a camera object
+const camera = new Camera(0, 0, [0, 0], [0, 0], [0, 0], [0, 0])
 
 const playerSpawn = [920, 880]; //Set the player spawn
 const playerToPosition = [[playerSpawn[0] / tileWidth, playerSpawn[1] / tileHeight]];
 const playerFromPosition = [playerSpawn[0] / tileWidth, playerSpawn[1] / tileHeight];
 
 const images = {
-    "up": "/Game/assets/player/walking/up.png", //Store all the player images in a hash table
+    "up": "/Game/assets/player/walking/up.png", 
     "up-right": "/Game/assets/player/walking/up-right.png",
     "right": "/Game/assets/player/walking/right.png",
     "down-right": "/Game/assets/player/walking/down-right.png",
@@ -58,11 +57,10 @@ const gun = new Weapon("gun", 5, "range", 500, "/Game/assets/items/gun.png")
 const rifle = new Weapon("machine-gun", 2, "range", 100, "/Game/assets/items/rifle.png")
 const player = new Player(0, 100, 0, [tileWidth, tileHeight], playerSpawn, playerToPosition, playerFromPosition, 275, images, "up", 1, [fist, gun, rifle], fist, 50); //Create player object
 
-const zombie = []; //Store zombies and drops in lists
+const zombie = []; 
 const drops = [];
 const projectiles = [];
 
-//A hash table that stores the state of each key
 const controls = {
     65: false, //Left
     87: false, //Up
@@ -306,9 +304,9 @@ function displayGame() {
             }
         }
 
-        for (let i = 0; i < drops.length; i++) { //For each drop
-            const healthImage = new Image(); //Create new image 
-            healthImage.src = drops[i].image; //Set the image path
+        for (let i = 0; i < drops.length; i++) {
+            const healthImage = new Image(); 
+            healthImage.src = drops[i].image; 
             ctx.drawImage(healthImage, camera.positionX + drops[i].position[0], camera.positionY + drops[i].position[1]); //Draw the drop in the correct position
             if (player.toPosition[0] == drops[i].tilePosition[0] && player.toPosition[1] == drops[i].tilePosition[1]) { //If player walks into the drop add its effects
                 if (player.health > 90) { //If health is higher than 90
@@ -441,15 +439,16 @@ function displayGame() {
         ctx.fillStyle = "rgb(0, 255, 0)";
         ctx.fillRect(15 - 4, 580 - 14, Math.round(player.health) * 2, 28)
 
-    } else { //If player is dead
+    } else { 
         ctx.fillStyle = "rgb(255, 255, 255)"; //Draw the game over screen
         ctx.font = "50px joystix";
         ctx.fillText("GAME OVER!", 367, 290)
         ctx.font = "30px joystix";
         ctx.fillText("R-RESTART", 470, 340)
-        if (controls[82]) { //If user restarts
-            window.open("/index.html", "_self") //Reload the page
+        if (controls[82]) { 
+            resetGame(player, round)
         }
     }
-    requestAnimationFrame(displayGame); //Recall the game function creatig a loop
+    saveProgress(0, player.score, player.inventory)
+    requestAnimationFrame(displayGame);
 }
