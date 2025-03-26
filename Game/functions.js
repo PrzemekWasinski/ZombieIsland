@@ -10,14 +10,14 @@ export function spawnZombies(zombieAmount, zombie, spawnCoordinates, tileWidth, 
             let zombieFromPosition = [spawn[0] / tileHeight, spawn[1] / tileWidth]; //Set the zombie's spawn coordinates
             let zombieToPosition = [spawn[0] / tileHeight, spawn[1] / tileWidth];
             const images = {
-                "up": "/assets/zombie/up.png", //A hash table to store the zombie's images for each direction
-                "up-right": "/assets/zombie/up-right.png",
-                "right": "/assets/zombie/right.png",
-                "down-right": "/assets/zombie/down-right.png",
-                "down": "/assets/zombie/down.png",
-                "down-left": "/assets/zombie/down-left.png",
-                "left": "/assets/zombie/left.png",
-                "up-left": "/assets/zombie/up-left.png"
+                "up": "/Game/assets/zombie/up.png", //A hash table to store the zombie's images for each direction
+                "up-right": "/Game/assets/zombie/up-right.png",
+                "right": "/Game/assets/zombie/right.png",
+                "down-right": "/Game/assets/zombie/down-right.png",
+                "down": "/Game/assets/zombie/down.png",
+                "down-left": "/Game/assets/zombie/down-left.png",
+                "left": "/Game/assets/zombie/left.png",
+                "up-left": "/Game/assets/zombie/up-left.png"
             }
 
             const fist = new Weapon("zombie-fist", 10, "meelee", 0, 0)

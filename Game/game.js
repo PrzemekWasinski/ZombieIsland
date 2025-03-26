@@ -1,9 +1,9 @@
-import { Player } from "./classes/player.js";
-import { Camera } from "./classes/camera.js";
-import { Drop } from "./classes/drop.js";
-import { Weapon } from "./classes/weapon.js";
+import { Player } from "/Game/classes/player.js";
+import { Camera } from "/Game/classes/camera.js";
+import { Drop } from "/Game/classes/drop.js";
+import { Weapon } from "/Game/classes/weapon.js";
 import { spawnZombies, isOccupied } from "./functions.js";
-import { map } from "./map.js";
+import { map } from "/Game/map.js";
 
 
 const tileWidth = 40; //Size of each tile in pixels
@@ -13,15 +13,16 @@ const tileImages = {
     0: new Image(),
     1: new Image()
 };
-tileImages[0].src = "/assets/map/two.png";
-tileImages[1].src = "/assets/map/one.png";
+
+tileImages[0].src = "/Game/assets/map/two.png";
+tileImages[1].src = "/Game/assets/map/one.png";
 
 const zombieImages = {};
 const directions = ["up", "up-right", "right", "down-right", "down", "down-left", "left", "up-left"];
 
 directions.forEach(dir => {
     zombieImages[dir] = new Image();
-    zombieImages[dir].src = `/assets/zombie/${dir}.png`; 
+    zombieImages[dir].src = `/Game/assets/zombie/${dir}.png`; 
 });
 
 let coordinate = 0; //Add all possible coordinates to a list
@@ -40,20 +41,21 @@ const camera = new Camera(0, 0, [0, 0], [0, 0], [0, 0], [0, 0]) //Make a camera 
 const playerSpawn = [920, 880]; //Set the player spawn
 const playerToPosition = [[playerSpawn[0] / tileWidth, playerSpawn[1] / tileHeight]];
 const playerFromPosition = [playerSpawn[0] / tileWidth, playerSpawn[1] / tileHeight];
+
 const images = {
-    "up": "/assets/player/walking/up.png", //Store all the player images in a hash table
-    "up-right": "/assets/player/walking/up-right.png",
-    "right": "/assets/player/walking/right.png",
-    "down-right": "/assets/player/walking/down-right.png",
-    "down": "/assets/player/walking/down.png",
-    "down-left": "/assets/player/walking/down-left.png",
-    "left": "/assets/player/walking/left.png",
-    "up-left": "/assets/player/walking/up-left.png"
+    "up": "/Game/assets/player/walking/up.png", //Store all the player images in a hash table
+    "up-right": "/Game/assets/player/walking/up-right.png",
+    "right": "/Game/assets/player/walking/right.png",
+    "down-right": "/Game/assets/player/walking/down-right.png",
+    "down": "/Game/assets/player/walking/down.png",
+    "down-left": "/Game/assets/player/walking/down-left.png",
+    "left": "/Game/assets/player/walking/left.png",
+    "up-left": "/Game/assets/player/walking/up-left.png"
 }
   
-const fist = new Weapon("fist", 10, "meelee", 0, "/assets/items/fist.png")
-const gun = new Weapon("gun", 5, "range", 500, "/assets/items/gun.png")
-const rifle = new Weapon("machine-gun", 2, "range", 100, "/assets/items/rifle.png")
+const fist = new Weapon("fist", 10, "meelee", 0, "/Game/assets/items/fist.png")
+const gun = new Weapon("gun", 5, "range", 500, "/Game/assets/items/gun.png")
+const rifle = new Weapon("machine-gun", 2, "range", 100, "/Game/assets/items/rifle.png")
 const player = new Player(0, 100, 0, [tileWidth, tileHeight], playerSpawn, playerToPosition, playerFromPosition, 275, images, "up", 1, [fist, gun, rifle], fist, 50); //Create player object
 
 const zombie = []; //Store zombies and drops in lists
@@ -77,19 +79,34 @@ const controls = {
 }; 
 
 window.onload = function() {
-    camera.screen = [document.getElementById("game").width, document.getElementById("game").height] //Give the camera the canvas dimensions
-    const canvas = document.getElementById("game");
+    const canvas = document.getElementById("game-canvas");
+    
+    if (!canvas) {
+        console.error("Canvas element not found!");
+        return;
+    }
+
+    camera.screen = [canvas.width, canvas.height];
+    
     window.ctx = canvas.getContext("2d");
 
-    requestAnimationFrame(displayGame);
+    window.addEventListener("keydown", function(event) {
+        controls[event.keyCode] = true;
+    });
 
-    window.addEventListener("keydown", function(event) { // If user presses down a key
-        controls[event.keyCode] = true; // Set that key down to true
+    window.addEventListener("keyup", function(event) {
+        controls[event.keyCode] = false;
     });
-    window.addEventListener("keyup", function(event) { // If user lets go of a key
-        controls[event.keyCode] = false; // Set that key down to false
-    });
-}
+
+    // Ensure displayGame function exists before calling
+    if (typeof displayGame === 'function') {
+        requestAnimationFrame(displayGame);
+    } else {
+        console.error("displayGame function is not defined!");
+    }
+};
+
+console.log('Canvas element:', document.getElementById('game-canvas'));
 
 spawnZombies(10, zombie, spawnCoordinates, tileWidth, tileHeight, map); //Spawn 10 zombies at the start
 
@@ -279,9 +296,9 @@ function displayGame() {
                 let index = zombie.indexOf(zombie[i]); //Find where it is in the list
                 if (index > -1) { //When its found
                     if (Math.floor(Math.random() * 11) > 7) { //30% chance to drop ammo
-                        drops.push(new Drop(0, 0, 10, "/assets/drops/ammo-drop.png", zombie[i].position, zombie[i].toPosition, false)); //Add the drop to the list of drops
+                        drops.push(new Drop(0, 0, 10, "/Game/assets/drops/ammo-drop.png", zombie[i].position, zombie[i].toPosition, false)); //Add the drop to the list of drops
                     } else if (Math.floor(Math.random() * 11) > 5) { //50% chance to drop a healing heart
-                        drops.push(new Drop(10, 0, 0, "/assets/drops/health-drop.png", zombie[i].position, zombie[i].toPosition, false)); //Add the drop to the list of drops
+                        drops.push(new Drop(10, 0, 0, "/Game/assets/drops/health-drop.png", zombie[i].position, zombie[i].toPosition, false)); //Add the drop to the list of drops
                     }
                     zombie.splice(index, 1); //Remove the dead zombie
                     player.score += 1; //Update the player's score
@@ -375,7 +392,7 @@ function displayGame() {
 
         if (frame > 1) { 
             let animationImg = Math.floor(frame); 
-            playerImage.src = "/assets/player/punch-" + player.direction + "/punch" + animationImg.toString() + ".png";
+            playerImage.src = "/Game/assets/player/punch-" + player.direction + "/punch" + animationImg.toString() + ".png";
         } else { 
             playerImage.src = player.images[player.direction]; 
         }
@@ -388,7 +405,7 @@ function displayGame() {
         ctx.fillText("Health: " + Math.round(player.health), 12, 555);
 
         const hotbarImage = new Image()
-        hotbarImage.src = "/assets/game/hotbar.png"
+        hotbarImage.src = "/Game/assets/game/hotbar.png"
         ctx.drawImage(hotbarImage, 440, 520)
 
         let indexPosition = 452
@@ -431,7 +448,7 @@ function displayGame() {
         ctx.font = "30px joystix";
         ctx.fillText("R-RESTART", 470, 340)
         if (controls[82]) { //If user restarts
-            window.open("./index.html", "_self") //Reload the page
+            window.open("/index.html", "_self") //Reload the page
         }
     }
     requestAnimationFrame(displayGame); //Recall the game function creatig a loop

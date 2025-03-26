@@ -63,7 +63,7 @@ export class Weapon {
 
         } else if (this.type == "range") {
             if (attacker.ammo > 0) {
-                projectiles.push(new Projectile(attacker.direction, 0, [40, 40], [attacker.position[0], attacker.position[1]], [attacker.fromPosition[0], attacker.fromPosition[1]], [attacker.toPosition[0], attacker.toPosition[1]], 40, "/assets/projectiles/bullet.png"))
+                projectiles.push(new Projectile(attacker.direction, 0, [40, 40], [attacker.position[0], attacker.position[1]], [attacker.fromPosition[0], attacker.fromPosition[1]], [attacker.toPosition[0], attacker.toPosition[1]], 40, "/Game/assets/projectiles/bullet.png"))
                 attacker.ammo -= 1
             }
         }
