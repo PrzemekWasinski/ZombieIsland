@@ -9,12 +9,22 @@ const tileWidth = 40;
 const tileHeight = 40;
 
 const tileImages = {
-    0: new Image(),
-    1: new Image()
+    9: new Image(),
+    14: new Image(),
+    19: new Image(),
+    25: new Image(),
+    29: new Image(),
+    38: new Image()
 };
 
-tileImages[0].src = "/Game/assets/map/two.png";
-tileImages[1].src = "/Game/assets/map/one.png";
+tileImages[9].src = "/Game/assets/map/cold-grass.png";
+tileImages[14].src = "/Game/assets/map/water.png";
+tileImages[19].src = "/Game/assets/map/plains-tree.png";
+tileImages[25].src = "/Game/assets/map/plains-grass.png";
+tileImages[29].src = "/Game/assets/map/sand.png";
+tileImages[38].src = "/Game/assets/map/desert-sand.png";
+
+const unpassableTiles = [14, 19]
 
 const zombieImages = {};
 const directions = ["up", "up-right", "right", "down-right", "down", "down-left", "left", "up-left"];
@@ -37,7 +47,7 @@ let round = 1;
 
 const camera = new Camera(0, 0, [0, 0], [0, 0], [0, 0], [0, 0])
 
-const playerSpawn = [920, 880]; //Set the player spawn
+const playerSpawn = [680 * 40, 650 * 40]; //Set the player spawn
 const playerToPosition = [[playerSpawn[0] / tileWidth, playerSpawn[1] / tileHeight]];
 const playerFromPosition = [playerSpawn[0] / tileWidth, playerSpawn[1] / tileHeight];
 
@@ -106,15 +116,16 @@ window.onload = function() {
 
 console.log('Canvas element:', document.getElementById('game-canvas'));
 
-spawnZombies(10, zombie, spawnCoordinates, tileWidth, tileHeight, map); //Spawn 10 zombies at the start
+spawnZombies(10, zombie, spawnCoordinates, tileWidth, tileHeight, map, player, unpassableTiles); //Spawn 10 zombies at the start
 
 let locked = false;
 let shooting = false;
 
 function displayGame() {
+    console.log(zombie.length)
     if (player.health > 0) { //If the player is alive
         if (zombie.length < 5) { //If theres less than 5 zombies
-            spawnZombies(5 + round, zombie, spawnCoordinates, tileWidth, tileHeight, map); //Spawn 5 more zombies + whichever round the player is on
+            spawnZombies(5 + round, zombie, spawnCoordinates, tileWidth, tileHeight, map, player, unpassableTiles); //Spawn 5 more zombies + whichever round the player is on
             round++; //Move onto the next round
         }
 
@@ -128,46 +139,46 @@ function displayGame() {
             if (!zombie[i].updatePosition(currentTime())) {//If zombie has moved
                 if (player.position[1] < zombie[i].position[1] && player.position[0] < zombie[i].position[0]) { //If the player is above and to the left
                     zombie[i].direction = "up-left"; //Set the zombie's direction accordingly
-                    if (!isOccupied(player, map, zombie, zombie[i].toPosition[1] - 1, zombie[i].toPosition[0] - 1)) { //If the destination tile is unoccupied
+                    if (!isOccupied(player, map, zombie, zombie[i].toPosition[1] - 1, zombie[i].toPosition[0] - 1, unpassableTiles)) { //If the destination tile is unoccupied
                         zombie[i].toPosition[0] -= 1; //Move the zombie's image up and left
                         zombie[i].toPosition[1] -= 1;
                     }
                 } else if (player.position[1] < zombie[i].position[1] && player.position[0] > zombie[i].position[0]) { //If the player is above and to the right
                     zombie[i].direction = "up-right"; //Set the zombie's direction accordingly
-                    if (!isOccupied(player, map, zombie, zombie[i].toPosition[1] - 1, zombie[i].toPosition[0] + 1)) { //If the destination tile is unoccupied
+                    if (!isOccupied(player, map, zombie, zombie[i].toPosition[1] - 1, zombie[i].toPosition[0] + 1, unpassableTiles)) { //If the destination tile is unoccupied
                         zombie[i].toPosition[0] += 1; //Move the zombie's image up and to the right
                         zombie[i].toPosition[1] -= 1;
                     }
                 } else if (player.position[1] > zombie[i].position[1] && player.position[0] < zombie[i].position[0]) { // down and left
                     zombie[i].direction = "down-left"; //Set the zombie's direction accordingly
-                    if (!isOccupied(player, map, zombie, zombie[i].toPosition[1] + 1, zombie[i].toPosition[0] - 1)) { //If the destination tile is unoccupied
+                    if (!isOccupied(player, map, zombie, zombie[i].toPosition[1] + 1, zombie[i].toPosition[0] - 1, unpassableTiles)) { //If the destination tile is unoccupied
                         zombie[i].toPosition[0] -= 1; //Move the zombie's image down and to the left
                         zombie[i].toPosition[1] += 1;
                     }
                 } else if (player.position[1] > zombie[i].position[1] &&  player.position[0] > zombie[i].position[0]) { // down and right
                     zombie[i].direction = "down-right"; //Set the zombie's direction accordingly
-                    if (!isOccupied(player, map, zombie, zombie[i].toPosition[1] + 1, zombie[i].toPosition[0] + 1)) { //If the destination tile is unoccupied                     
+                    if (!isOccupied(player, map, zombie, zombie[i].toPosition[1] + 1, zombie[i].toPosition[0] + 1, unpassableTiles)) { //If the destination tile is unoccupied                     
                         zombie[i].toPosition[0] += 1; //Move the zombie's image down and to the right
                         zombie[i].toPosition[1] += 1;
                     }
                 } else if (player.position[1] < zombie[i].position[1]) { // move up if player is above
                     zombie[i].direction = "up"; //Set the zombie's direction accordingly
-                    if (!isOccupied(player, map, zombie, zombie[i].toPosition[1] - 1, zombie[i].toPosition[0])) { //If the destination tile is unoccupied
+                    if (!isOccupied(player, map, zombie, zombie[i].toPosition[1] - 1, zombie[i].toPosition[0], unpassableTiles)) { //If the destination tile is unoccupied
                         zombie[i].toPosition[1] -= 1; //Move the zombie's image up
                     }
                 } else if (player.position[1] > zombie[i].position[1]) { // move down if player is below
                     zombie[i].direction = "down"; //Set the zombie's direction accordingly
-                    if (!isOccupied(player, map, zombie, zombie[i].toPosition[1] + 1, zombie[i].toPosition[0])) { //If the destination tile is unoccupied
+                    if (!isOccupied(player, map, zombie, zombie[i].toPosition[1] + 1, zombie[i].toPosition[0], unpassableTiles)) { //If the destination tile is unoccupied
                         zombie[i].toPosition[1] += 1; //Move the zombie's image down
                     }
                 } else if (player.position[0] < zombie[i].position[0]) { // move left if player is to the right
                     zombie[i].direction = "left"; //Set the zombie's direction accordingly
-                    if (!isOccupied(player, map, zombie, zombie[i].toPosition[1], zombie[i].toPosition[0] - 1)) { //If the destination tile is unoccupied
+                    if (!isOccupied(player, map, zombie, zombie[i].toPosition[1], zombie[i].toPosition[0] - 1, unpassableTiles)) { //If the destination tile is unoccupied
                         zombie[i].toPosition[0] -= 1; //Move the zombie's image left
                     }                
                 } else if (player.position[0] > zombie[i].position[0]) { // move right if player is to the left
                     zombie[i].direction = "right"; //Set the zombie's direction accordingly
-                    if (!isOccupied(player, map, zombie, zombie[i].toPosition[1], zombie[i].toPosition[0] + 1)) { //If the destination tile is unoccupied
+                    if (!isOccupied(player, map, zombie, zombie[i].toPosition[1], zombie[i].toPosition[0] + 1, unpassableTiles)) { //If the destination tile is unoccupied
                         zombie[i].toPosition[0] += 1; //Move the zombie's image right
                     }
                 }
@@ -216,46 +227,46 @@ function displayGame() {
         if (!player.updatePosition(currentTime())) { //If player has moved
             if (controls[87] && controls[65]) { // If the player has moved up and to the left
                 player.direction = "up-left"; //Set the player's direction accordingly
-                if (!isOccupied(player, map, zombie, player.toPosition[1] - 1, player.toPosition[0] - 1)) { //If the destination tile is unoccupied
+                if (!isOccupied(player, map, zombie, player.toPosition[1] - 1, player.toPosition[0] - 1, unpassableTiles)) { //If the destination tile is unoccupied
                     player.toPosition[0] -= 1; //Move the player's image up and to the left
                     player.toPosition[1] -= 1; 
                 }
             } else if (controls[87] && controls[68]) { //If the player has moved up and to the right
                 player.direction = "up-right"; //Set the player's direction accordingly
-                if (!isOccupied(player, map, zombie, player.toPosition[1] - 1, player.toPosition[0] + 1)) { //If the destination tile is unoccupied
+                if (!isOccupied(player, map, zombie, player.toPosition[1] - 1, player.toPosition[0] + 1, unpassableTiles)) { //If the destination tile is unoccupied
                     player.toPosition[0] += 1; //Move the player's image up and to the right
                     player.toPosition[1] -= 1;
                 }
             } else if (controls[83] && controls[65]) { //If the player has moved down and to the left
                 player.direction = "down-left"; //Set the player's direction accordingly
-                if (!isOccupied(player, map, zombie, player.toPosition[1] + 1, player.toPosition[0] - 1)) { //If the destination tile is unoccupied
+                if (!isOccupied(player, map, zombie, player.toPosition[1] + 1, player.toPosition[0] - 1, unpassableTiles)) { //If the destination tile is unoccupied
                     player.toPosition[0] -= 1; //Move the player's image down and to the left
                     player.toPosition[1] += 1;
                 }
             } else if (controls[83] && controls[68]) { //If the player has moved down and to the right
                 player.direction = "down-right"; //Set the player's direction accordingly
-                if (!isOccupied(player, map, zombie, player.toPosition[1] + 1, player.toPosition[0] + 1)) { //If the destination tile is unoccupied
+                if (!isOccupied(player, map, zombie, player.toPosition[1] + 1, player.toPosition[0] + 1, unpassableTiles)) { //If the destination tile is unoccupied
                     player.toPosition[0] += 1; //Move the player's image down and to the right
                     player.toPosition[1] += 1;
                 }
             } else if (controls[87]) { //If the player has moved up
                 player.direction = "up"; //Set the player's direction accordingly
-                if (!isOccupied(player, map, zombie, player.toPosition[1] - 1, player.toPosition[0])) { //If the destination tile is unoccupied
+                if (!isOccupied(player, map, zombie, player.toPosition[1] - 1, player.toPosition[0], unpassableTiles)) { //If the destination tile is unoccupied
                     player.toPosition[1] -= 1; //Move the player's image up
                 }
-            } else if (controls[83]) { //If the player has moved down
+            } else if (controls[83]) { //If the player has moved downwwwww
                 player.direction = "down"; //Set the player's direction accordingly
-                if (!isOccupied(player, map, zombie, player.toPosition[1] + 1, player.toPosition[0])) { //If the destination tile is unoccupied
+                if (!isOccupied(player, map, zombie, player.toPosition[1] + 1, player.toPosition[0], unpassableTiles)) { //If the destination tile is unoccupied
                     player.toPosition[1] += 1; //Move the player's image down
                 }
             } else if (controls[65]) { //If the player has moved left
                 player.direction = "left"; //Set the player's direction accordingly
-                if (!isOccupied(player, map, zombie, player.toPosition[1], player.toPosition[0] - 1)) { //If the destination tile is unoccupied
+                if (!isOccupied(player, map, zombie, player.toPosition[1], player.toPosition[0] - 1, unpassableTiles)) { //If the destination tile is unoccupied
                     player.toPosition[0] -= 1; //Move the player's image to the left
                 }          
             } else if (controls[68]) { //If the player has moved right
                 player.direction = "right"; //Set the player's direction accordingly
-                if (!isOccupied(player, map, zombie, player.toPosition[1], player.toPosition[0] + 1)) { //If the destination tile is unoccupied
+                if (!isOccupied(player, map, zombie, player.toPosition[1], player.toPosition[0] + 1, unpassableTiles)) { //If the destination tile is unoccupied
                     player.toPosition[0] += 1; //Move the player's image to the right
                 }
             }
@@ -283,7 +294,6 @@ function displayGame() {
             for (let j = startCol; j < endCol; j++) {
                 const x = j * tileWidth;
                 const y = i * tileHeight;
-                // Use the preloaded image
                 ctx.drawImage(tileImages[map[i][j]], camera.positionX + x, camera.positionY + y);
             }
         }
@@ -370,7 +380,7 @@ function displayGame() {
         }
 
         for (let i = 0; i < projectiles.length; i++) {
-            if (projectiles[i].toPosition[0] <= 0 || projectiles[i].toPosition[1] <= 0 || projectiles[i].toPosition[0] >= 39 || projectiles[i].toPosition[1] >= 39 || map[projectiles[i].toPosition[1]][projectiles[i].toPosition[0]] == 0) {
+            if (unpassableTiles.includes(map[projectiles[i].toPosition[1]][projectiles[i].toPosition[0]])) {
                 let index = projectiles.indexOf(projectiles[i]); 
                 if (index > -1) { 
                     projectiles.splice(index, 1);

@@ -1,4 +1,14 @@
 //Firebase config is usually here but only I get to see it
+const firebaseConfig = {
+    apiKey: "AIzaSyCSbCntLC7jgeoNm2WnyGT6heDKO0Q0fxs",
+    authDomain: "zombieisland-9e620.firebaseapp.com",
+    databaseURL: "https://zombieisland-9e620-default-rtdb.europe-west1.firebasedatabase.app",
+    projectId: "zombieisland-9e620",
+    storageBucket: "zombieisland-9e620.firebasestorage.app",
+    messagingSenderId: "712542178570",
+    appId: "1:712542178570:web:968006b772725a38b87ef3",
+    measurementId: "G-BTK92JL0SG"
+};
 
 firebase.initializeApp(firebaseConfig);
 const auth = firebase.auth();
