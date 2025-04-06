@@ -13,44 +13,32 @@ export class Zombie {
         this.weapon = weapon;
     }
 
-    move(x, y) { 
-        this.fromPosition = [x, y]; // Update the starting position
-        this.toPosition = [x, y]; // Update the target position
-        this.position = [((40 * x) + ((40 - this.size[0]) / 2)), ((40 * y) + ((40 - this.size[1]) / 2))]; //Set the zombie's position and times by 40 to convert it to pixel posiiton
+    move(x, y) {
+        this.fromPosition = [x, y];
+        this.toPosition = [x, y];
+        this.position = [(x * 40), (y * 40)];
     }
 
-    updatePosition(time) { 
-        if (this.fromPosition[0] == this.toPosition[0] && this.fromPosition[1] == this.toPosition[1]) { //If the zombie is where they need to be
-            return false; //Zombie can move
-        } 
-
-        if ((time - this.timeMoved) >= this.delayMove) { //If enough time has passed to let the zombie move
-            this.move(this.toPosition[0], this.toPosition[1]); //Move the zombie
-        } else { //Calculate the position while zombie is moving
-            this.position[0] = (this.fromPosition[0] * 40) + ((40 - this.size[0]) / 2);
-            this.position[1] = (this.fromPosition[1] * 40) + ((40 - this.size[1]) / 2);
-
-            if (this.toPosition[0] != this.fromPosition[0]) { //Calculate X coordinate
-                let distance = (40 / this.delayMove) * (time - this.timeMoved);
-                if (this.toPosition[0] < this.fromPosition[0]) {
-                    this.position[0] -= distance;
-                } else {
-                    this.position[0] += distance;
-                }
-            }
-            
-            if (this.toPosition[1] != this.fromPosition[1]) { //Calculate Y coordinate
-                let distance = (40 / this.delayMove) * (time - this.timeMoved);
-                if (this.toPosition[1] < this.fromPosition[1]) {
-                    this.position[1] -= distance;
-                } else {
-                    this.position[1] += distance;
-                }
-            } 
-            
-            this.position[0] = Math.round(this.position[0]); //Round the coordinates to a full number
-            this.position[1] = Math.round(this.position[1]);
+    updatePosition(time) {
+        if (this.fromPosition[0] === this.toPosition[0] && this.fromPosition[1] === this.toPosition[1]) {
+            return false;
         }
-        return true; //zombie can't move
+
+        if ((time - this.timeMoved) >= this.delayMove) {
+            this.fromPosition = [...this.toPosition];
+            this.position = [(this.fromPosition[0] * 40), (this.fromPosition[1] * 40)];
+        } else {
+            const progress = (time - this.timeMoved) / this.delayMove;
+            
+            // Calculate smooth movement between tiles
+            const startX = this.fromPosition[0] * 40;
+            const startY = this.fromPosition[1] * 40;
+            const endX = this.toPosition[0] * 40;
+            const endY = this.toPosition[1] * 40;
+
+            this.position[0] = Math.round(startX + (endX - startX) * progress);
+            this.position[1] = Math.round(startY + (endY - startY) * progress);
+        }
+        return true;
     }
 }

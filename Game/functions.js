@@ -1,29 +1,67 @@
 import { Zombie } from "./classes/zombie.js";
 import { Weapon } from "./classes/weapon.js";
 
-export function spawnZombies(zombieAmount, zombie, spawnCoordinates, tileWidth, tileHeight, map, player, unpassableTiles) { //A function to spawn zombies
-    for (let i = 0; i < zombieAmount; i++) { //For each zombie requested
-        let spawn = [spawnCoordinates[Math.floor(Math.random() * spawnCoordinates.length)], spawnCoordinates[Math.floor(Math.random() * spawnCoordinates.length)]]; //Randomly generate spawn coordinates
-        let x = spawn[0] / tileWidth; //Get x and y coordinates and divide by the size of each tile so the coordinates can be used on the 2D array
-        let y = spawn[1] / tileHeight;
+export async function spawnZombies(zombie, spawnCoordinates, tileWidth, tileHeight, map, player, unpassableTiles) {
+    try {
+        const response = await fetch("https://zombieisland-9e620-default-rtdb.europe-west1.firebasedatabase.app/enemies.json");
+        const enemies = await response.json();
 
-        if (!isOccupied(player, map, zombie, player.toPosition[1] + 1, player.toPosition[0], unpassableTiles)) { //If the spawn coordinate is on a passable tile
-            let zombieFromPosition = [spawn[0] / tileHeight, spawn[1] / tileWidth]; //Set the zombie's spawn coordinates
-            let zombieToPosition = [spawn[0] / tileHeight, spawn[1] / tileWidth];
-            const images = {
-                "up": "/Game/assets/zombie/up.png", //A hash table to store the zombie's images for each direction
-                "up-right": "/Game/assets/zombie/up-right.png",
-                "right": "/Game/assets/zombie/right.png",
-                "down-right": "/Game/assets/zombie/down-right.png",
-                "down": "/Game/assets/zombie/down.png",
-                "down-left": "/Game/assets/zombie/down-left.png",
-                "left": "/Game/assets/zombie/left.png",
-                "up-left": "/Game/assets/zombie/up-left.png"
+        if (enemies) {
+            // Create a map of existing zombies for quick lookup
+            const existingZombies = new Map();
+            zombie.forEach(z => {
+                const key = `${z.fromPosition[0]},${z.fromPosition[1]}`;
+                existingZombies.set(key, z);
+            });
+
+            for (const key in enemies) {
+                const enemyData = enemies[key];
+                const posKey = `${enemyData.fromPosition[0]},${enemyData.fromPosition[1]}`;
+
+                if (existingZombies.has(posKey)) {
+                    // Update existing zombie
+                    const existingZombie = existingZombies.get(posKey);
+                    
+                    // If toPosition has changed, update it and set timeMoved
+                    if (existingZombie.toPosition[0] !== enemyData.toPosition[0] || 
+                        existingZombie.toPosition[1] !== enemyData.toPosition[1]) {
+                        // Keep the current fromPosition and position
+                        existingZombie.toPosition = [...enemyData.toPosition];
+                        existingZombie.timeMoved = Date.now();
+                    }
+
+                    existingZombie.health = enemyData.health;
+                    existingZombie.direction = enemyData.direction;
+                    existingZombies.delete(posKey);
+                } else {
+                    // Create new zombie
+                    const newZombie = new Zombie(
+                        enemyData.damage,
+                        enemyData.health,
+                        Date.now(),
+                        [40, 40],
+                        [(enemyData.fromPosition[0] * 40), (enemyData.fromPosition[1] * 40)],
+                        [...enemyData.fromPosition],
+                        [...enemyData.toPosition],
+                        100, // faster movement
+                        enemyData.images,
+                        enemyData.direction,
+                        enemyData.weapon
+                    );
+                    zombie.push(newZombie);
+                }
             }
 
-            const fist = new Weapon("zombie-fist", 10, "meelee", 0, 0)
-            zombie.push(new Zombie(0.03, 100, 0, [tileWidth, tileHeight], spawn, zombieFromPosition, zombieToPosition, 350, images, "up", fist)) //Make a new zombie
+            // Remove zombies that no longer exist in Firebase
+            for (const [key, z] of existingZombies) {
+                const index = zombie.indexOf(z);
+                if (index > -1) {
+                    zombie.splice(index, 1);
+                }
+            }
         }
+    } catch (error) {
+        console.error("Failed to fetch enemies from Firebase:", error);
     }
 }
 
@@ -36,9 +74,10 @@ export function isOccupied(player, map, zombie, x, y, unpassableTiles) { //Check
         return true; //Tile is occupied
     }
 
-    for (let i = 0; i < zombie.length; i++) { //For every zombie
-        if (zombie[i].toPosition[1] == x && zombie[i].toPosition[0] == y) { //If the zombie is occupying the tile
-            return true; //Tile is occupied
+    // Only check if zombie is currently at this position, no need to check toPosition
+    for (let i = 0; i < zombie.length; i++) {
+        if (zombie[i].fromPosition[1] == x && zombie[i].fromPosition[0] == y) {
+            return true;
         }
     }
     return false; //Tile is not occupied
@@ -51,7 +90,7 @@ export function resetGame(player, round) {
     round = 0
 }
 
-export async function saveProgress(gold, level, inventory) {
+export async function saveProgress(player) {
     const user = auth.currentUser;
 
     if (!user) {
@@ -60,9 +99,20 @@ export async function saveProgress(gold, level, inventory) {
 
     try {
         await database.ref('users/' + user.uid).update({
-            gold: gold,
-            level: level,
-            inventory: inventory
+            score: player.score,
+            health: player.health, 
+            timeMoved: player.timeMoved, 
+            size: player.size, 
+            position: player.position,
+            fromPosition: player.fromPosition, 
+            toPosition: player.toPosition, 
+            delayMove: player.delayMove, 
+            images: player.images,
+            direction: player.direction, 
+            damage: player.damage, 
+            inventory: player.inventory,
+            weapon: player.weapon,
+            ammo: player.ammo
         });
 
     } catch (error) {
