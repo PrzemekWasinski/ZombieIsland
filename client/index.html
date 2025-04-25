@@ -3,68 +3,11 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>2D MMORPG</title>
-  <style>
-    body { margin: 0; padding: 0; }
-    canvas { background: #111; display: block; margin: 0 auto; }
-  </style>
+  <title>Zombie Island</title>
+  <link rel="stylesheet" href="./styles.css">
 </head>
 <body>
-  <canvas id="game" width="800" height="600"></canvas>
-  <script>
-    const socket = new WebSocket('wss://ws.zombieisland.online/');
-
-    socket.onopen = () => {
-      console.log("Connected to server");
-    };
-
-    const canvas = document.getElementById('game');
-    const ctx = canvas.getContext('2d');
-
-    let playerId = null;
-    let players = {};
-
-    socket.onmessage = (event) => {
-      const msg = JSON.parse(event.data);
-      if (msg.type === 'init') {
-        playerId = msg.id;
-        players = msg.players;
-      } else if (msg.type === 'join') {
-        players[msg.player.id] = msg.player;
-      } else if (msg.type === 'update') {
-        if (players[msg.id]) {
-          players[msg.id].x = msg.x;
-          players[msg.id].y = msg.y;
-        }
-      } else if (msg.type === 'leave') {
-        delete players[msg.id];
-      }
-    };
-
-    window.addEventListener('keydown', (e) => {
-      let dir = null;
-      if (e.key === 'ArrowUp') dir = 'up';
-      else if (e.key === 'ArrowDown') dir = 'down';
-      else if (e.key === 'ArrowLeft') dir = 'left';
-      else if (e.key === 'ArrowRight') dir = 'right';
-      if (dir) socket.send(JSON.stringify({ type: 'move', dir }));
-    });
-
-    function draw() {
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-      for (const id in players) {
-        const p = players[id];
-        ctx.fillStyle = p.color || 'white';
-        ctx.fillRect(p.x, p.y, 20, 20);
-        if (id == playerId) {
-          ctx.strokeStyle = 'white';
-          ctx.strokeRect(p.x, p.y, 20, 20);
-        }
-      }
-      requestAnimationFrame(draw);
-    }
-
-    draw();
-  </script>
+  <canvas id="game" width="1891" height="1037"></canvas>
 </body>
+<script src="./JS/game.js"></script>
 </html>
