@@ -1,70 +1,70 @@
-import { loadImages, tileImages } from "./tileSources.js";
+import { loadImages } from "./images.js";
+import { drawMap, drawPlayer, drawEnemy } from "./functions.js"
 
 const socket = new WebSocket('wss://ws.zombieisland.online/');
-
-socket.onopen = () => {
-  console.log("Connected to server");
-};
+socket.onopen = () => { console.log("Connected to server"); };
 
 const canvas = document.getElementById('game');
 const ctx = canvas.getContext('2d');
-const tileSize = 61;
+const tileSize = 61; //Tile size in pixels
 
-let playerId = null;
-let players = {};
-let enemies = {}
+let playerId = null; //Your player ID
+let players = {}; //All players
+let enemies = {}; //All enemies
+let lastFrameTime = performance.now(); //Last frame time
+let frameCount = 0;  //Frames counted
+let lastFpsUpdate = 0; //Last FPS check
+let currentFps = 0;  //Current FPS
 
-//Messages received from the server
+const TARGET_FPS = 60; //Target frames per second
+const FRAME_TIME = 1000 / TARGET_FPS; //Time per frame
+const INTERPOLATION_SPEED = 10.5; //Movement speed
+
 socket.onmessage = (event) => {
   const msg = JSON.parse(event.data);
+  console.log(msg.type)
 
-  if (msg.type === 'init') {
+  if (msg.type === 'init') { //Initial game setup
     playerId = msg.id;
     players = msg.players;
-    
-    //set pixel positions if not set
     for (const id in players) {
       const player = players[id];
-      if (!player.pixelX) player.pixelX = player.mapX * tileSize;
-      if (!player.pixelY) player.pixelY = player.mapY * tileSize;
-      if (!player.targetX) player.targetX = player.pixelX;
-      if (!player.targetY) player.targetY = player.pixelY;
+      player.pixelX = Number(player.pixelX) || Number(player.mapX || 42) * tileSize;
+      player.pixelY = Number(player.pixelY) || Number(player.mapY || 46) * tileSize;
+      player.targetX = Number(player.targetX) || player.pixelX;
+      player.targetY = Number(player.targetY) || player.pixelY;
     }
-    
-  } else if (msg.type === 'join') {
+
+  } else if (msg.type === 'join') { //New player joined
     players[msg.player.id] = msg.player;
-    
-    //Set pixel positions for new players
     const player = players[msg.player.id];
     if (!player.pixelX) player.pixelX = player.mapX * tileSize;
     if (!player.pixelY) player.pixelY = player.mapY * tileSize;
     if (!player.targetX) player.targetX = player.pixelX;
     if (!player.targetY) player.targetY = player.pixelY;
-    
-  } else if (msg.type === 'update') {
+
+  } else if (msg.type === 'update') { //Player update
     if (!players[msg.id]) {
       return;
+    } //Skip if invalid player
+    const player = players[msg.id];
+    player.health = Number(msg.health) || 100;
+    player.mapX = Number(msg.mapX) || 42;
+    player.mapY = Number(msg.mapY) || 46;
+    player.pixelX = Number(msg.pixelX) || player.mapX * tileSize;
+    player.pixelY = Number(msg.pixelY) || player.mapY * tileSize;
+    player.targetX = Number(msg.targetX) || player.pixelX;
+    player.targetY = Number(msg.targetY) || player.pixelY;
+
+    if (msg.id === playerId && msg.map) { //Update your map
+      player.map = msg.map;
     }
-    
-    //Update player map position and target pixel position
-    players[msg.id].health = msg.health;
-    players[msg.id].mapX = msg.mapX;
-    players[msg.id].mapY = msg.mapY;
-    players[msg.id].targetX = msg.targetX !== undefined ? msg.targetX : msg.mapX * tileSize;
-    players[msg.id].targetY = msg.targetY !== undefined ? msg.targetY : msg.mapY * tileSize;
-    
-    //If this is the current player, update the map too
-    if (msg.id === playerId && msg.map) {
-      players[playerId].map = msg.map;
-    }
-  } else if (msg.type === 'zombie') {
-    // Make sure we have an entry for this zombie
+
+  } else if (msg.type === 'enemy') { //enemy update
     if (!enemies) {
       enemies = {};
     }
-    
-    // Create or update the zombie
-    if (!enemies[msg.id]) {
+    if (!enemies[msg.id]) { //New enemy
       enemies[msg.id] = {
         id: msg.id,
         mapX: msg.mapX,
@@ -72,181 +72,117 @@ socket.onmessage = (event) => {
         pixelX: msg.pixelX || msg.mapX * tileSize,
         pixelY: msg.pixelY || msg.mapY * tileSize,
         targetX: msg.targetX || msg.mapX * tileSize,
-        targetY: msg.targetY || msg.mapY * tileSize
+        targetY: msg.targetY || msg.mapY * tileSize,
+        health: msg.health
       };
-      console.log(`New zombie ${msg.id} at ${msg.mapX}, ${msg.mapY}`);
-    } else {
-      // Update existing zombie
-      enemies[msg.id].mapX = msg.mapX;
-      enemies[msg.id].mapY = msg.mapY;
-      enemies[msg.id].pixelX = msg.pixelX;
-      enemies[msg.id].pixelY = msg.pixelY;
-      enemies[msg.id].targetX = msg.targetX;
-      enemies[msg.id].targetY = msg.targetY;
+    } else { //Existing enemy
+      const enemy = enemies[msg.id];
+      enemy.mapX = msg.mapX;
+      enemy.mapY = msg.mapY;
+      enemy.pixelX = msg.pixelX;
+      enemy.pixelY = msg.pixelY;
+      enemy.targetX = msg.targetX;
+      enemy.targetY = msg.targetY;
+      enemy.health = msg.health;
     }
-  } else if (msg.type === 'leave') {
+  } else if (msg.type === 'leave') { //Player left
     delete players[msg.id];
   }
 };
 
 const keysHeld = {};
-const controls = {
-  "w": "up",
+const controls = { //Keybindings
+  "w": "up", 
   "W": "up",
-  "a": "left",
+  "a": "left", 
   "A": "left",
-  "s": "down",
+  "s": "down", 
   "S": "down",
-  "d": "right",
+  "d": "right", 
   "D": "right",
   " ": "attack"
-}
+};
 
-//Handle keyboard input for player movement
-window.addEventListener('keydown', (event) => {
+window.addEventListener('keydown', (event) => { //Key pressed
   const key = controls[event.key];
-  if (key) {
+  if (key && !keysHeld[key]) {
     keysHeld[key] = true;
+    socket.send(JSON.stringify({
+      type: 'keydown',
+      dir: key,
+      pressed: true
+    }));
   }
 });
 
-window.addEventListener('keyup', (event) => {
+window.addEventListener('keyup', (event) => { //Key released
   const key = controls[event.key];
   if (key) {
     keysHeld[key] = false;
+    socket.send(JSON.stringify({
+      type: 'keydown',
+      dir: key,
+      pressed: false
+    }));
   }
 });
 
-setInterval(() => {
-  for (let dir in keysHeld) {
-    if (keysHeld[dir]) {
-      socket.send(JSON.stringify({
-        type: 'move',
-        dir
-      }));
-    }
-  }
-}, 1);
-
-//Function to draw all players on the canvas
-let lastFrameTime = performance.now();
-
-function tileTransition(start, end, time) {
+function tileTransition(start, end, time) { //Smooth movement
   return start + (end - start) * time;
 }
 
-function draw(currentTime) {
-  const updateTime = (currentTime - lastFrameTime) / 4000; 
+function draw(currentTime) { //Main game loop
+  frameCount++;
+  if (currentTime - lastFpsUpdate >= 1000) { //Update FPS counter
+    currentFps = frameCount;
+    frameCount = 0;
+    lastFpsUpdate = currentTime;
+    console.log(currentFps)
+  }
+  
+  const deltaTime = Math.min(0.1, (currentTime - lastFrameTime) / 1000);
   lastFrameTime = currentTime;
-
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-  if (!playerId || !players[playerId]?.map) {
+  ctx.clearRect(0, 0, canvas.width, canvas.height); //Clear screen
+  
+  if (!playerId || !players[playerId]) { //Skip if not initialized
     requestAnimationFrame(draw);
     return;
   }
-
-  // Changing numbers here wont make you move faster, itll only make the tile transition faster and making it lower will make character movements delayed
-  for (const id in players) { 
+  
+  const currentPlayer = players[playerId];
+  const time = Math.min(1, deltaTime * INTERPOLATION_SPEED); //Movement smoothing
+  
+  for (const id in players) { //Update player positions
     const player = players[id];
-
-    const time = Math.min(1, updateTime * 10.5); 
-
     player.pixelX = tileTransition(player.pixelX, player.targetX, time);
     player.pixelY = tileTransition(player.pixelY, player.targetY, time);
   }
   
-  // Update zombie positions with smooth transitions
-  for (const id in enemies) {
-    const zombie = enemies[id];
-    const time = Math.min(1, updateTime * 10.5);
-    
-    zombie.pixelX = tileTransition(zombie.pixelX, zombie.targetX, time);
-    zombie.pixelY = tileTransition(zombie.pixelY, zombie.targetY, time);
+  for (const id in enemies) { //Update enemy positions
+    const enemy = enemies[id];
+    enemy.pixelX = tileTransition(enemy.pixelX, enemy.targetX, time);
+    enemy.pixelY = tileTransition(enemy.pixelY, enemy.targetY, time);
   }
-
-  const currentPlayer = players[playerId];
-  const map = currentPlayer.map;
-
-  const offsetX = (currentPlayer.mapX * tileSize) - currentPlayer.pixelX;
-  const offsetY = (currentPlayer.mapY * tileSize) - currentPlayer.pixelY;
-  // Map loading will be choppy if display is set to 59.94hz. Tested and works on: 60hz, 75hz
-  if (map) {
-    for (let y = 0; y < map.length; y++) {
-      for (let x = 0; x < map[y].length; x++) {
-        const tile = map[y][x];
-        const img = tileImages[tile];
-        if (img && img.complete) {
-          const tileX = x * tileSize + offsetX;
-          const tileY = y * tileSize + offsetY;
-          ctx.drawImage(img, tileX - 122, tileY - 122, tileSize, tileSize);
-        }
-      }
+  
+  drawMap(currentPlayer); //Draw surrounding area
+  
+  for (const id in players) { //Draw other players
+    if (id !== playerId) {
+      drawPlayer(players[id], false, currentPlayer);
     }
   }
-
-  // Draw players
-  for (const id in players) {
-    const player = players[id];
-    ctx.fillStyle = id === playerId ? 'white' : (player.color || 'red');
-
-    if (id == playerId) {
-      ctx.fillRect(
-        (canvas.width - tileSize) / 2,
-        (canvas.height - tileSize) / 2,
-        tileSize,
-        tileSize
-      );
-      ctx.fillStyle = "rgb(0, 0, 0)"
-      ctx.fillRect(((canvas.width - tileSize) / 2) + 4, ((canvas.height - tileSize) / 2) + 65, 52, 10)
-
-      if (player.health > 0) {
-        ctx.fillStyle = "rgb(255, 0, 0)"
-        ctx.fillRect(((canvas.width - tileSize) / 2) + 5, ((canvas.height - tileSize) / 2) + 66, Math.round(player.health / 2), 8)
-      }
-
-    } else {
-      const relativeX = player.pixelX - currentPlayer.pixelX;
-      const relativeY = player.pixelY - currentPlayer.pixelY;
-
-      const screenX = (canvas.width - tileSize) / 2 + relativeX;
-      const screenY = (canvas.height - tileSize) / 2 + relativeY;
-
-      if (
-        screenX > -tileSize && screenX < canvas.width &&
-        screenY > -tileSize && screenY < canvas.height
-      ) {
-        ctx.fillRect(screenX, screenY, tileSize, tileSize);
-      }
-    }
+  
+  if (players[playerId]) { //Draw you (on top)
+    drawPlayer(currentPlayer, true, currentPlayer);
   }
 
-  // Draw zombies with green color or zombie image
-  for (const id in enemies) {
-    const zombie = enemies[id];
-    
-    // Apply same movement logic to zombie positions for smooth animation
-    const relativeX = zombie.pixelX - currentPlayer.pixelX;
-    const relativeY = zombie.pixelY - currentPlayer.pixelY;
-
-    const screenX = (canvas.width - tileSize) / 2 + relativeX;
-    const screenY = (canvas.height - tileSize) / 2 + relativeY;
-
-    if (
-      screenX > -tileSize && screenX < canvas.width &&
-      screenY > -tileSize && screenY < canvas.height
-    ) {
-      // Draw zombie (green rectangle)
-      ctx.fillStyle = 'green';
-      ctx.fillRect(screenX, screenY, tileSize, tileSize);
-    }
+  for (const id in enemies) { //Draw enemies
+    drawEnemy(enemies[id], currentPlayer);
   }
-
- 
-
-  requestAnimationFrame(draw);
+  
+  requestAnimationFrame(draw)
 }
 
-loadImages(() => {
-  requestAnimationFrame(draw); 
+loadImages(() => { //Start game when images load
+  requestAnimationFrame(draw);
 });

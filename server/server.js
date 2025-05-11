@@ -1,349 +1,369 @@
-const http = require('http');
-const WebSocket = require('ws');
-const map = require("./map.js")
+import { WebSocketServer } from "ws";
+import http from "http";
+import config from "./config.js";
 
 const server = http.createServer();
-const wss = new WebSocket.Server({ server });
+const wss = new WebSocketServer({ server });
 
-server.listen(8080, () => {
-  console.log('WebSocket server running');
+server.listen(8080, () => { 
+  console.log("WebSocket server running"); 
 });
 
-let players = {};
-let nextId = 1;
+function broadcast(data) { //Send data to all clients
+  const msg = JSON.stringify(data);
+  for (const client of wss.clients) {
+    client.send(msg); 
+  }
+}
 
-let enemies = {};
+const { MOVE_SPEED, TILE_SIZE, CANVAS_HEIGHT, CANVAS_WIDTH, VISIBLE_TILES_X, VISIBLE_TILES_Y, PASSABLE_TILES, MAP } = config;
 
-const passable_tiles = [6, 7, 8, 9, 13, 15, 22, 23, 24, 25, 27, 28, 29, 31, 38, 40];
+let players = {}; //All connected players
+let nextId = 1; //Next player ID
+let enemies = {}; //All enemies
 
-const TILE_SIZE = 61; 
-const MOVE_SPEED = 5; 
-
-function initializeZombies() {
-  console.log("Initializing zombies");
-  
-  for (let i = 1; i < 11; i++) {
+function initialiseEnemies(enemies, amount) { //Create initial enemies
+  for (let i = 1; i < amount; i++) {
     let x, y;
-
-    x = Math.floor(Math.random() * map[0].length);
-    y = Math.floor(Math.random() * map.length);
-    
-    if (!passable_tiles.includes(map[y][x])) {
-      continue
-    }
-    
-    enemies[i] = {
+    x = Math.floor(Math.random() * MAP[0].length); //Random X position
+    y = Math.floor(Math.random() * MAP.length);    //Random Y position
+    if (!PASSABLE_TILES.includes(MAP[y][x])) { 
+        continue; //Skip if not walkable
+    } 
+    enemies[i] = { //Create new enemies
       id: i,
       mapX: x,
       mapY: y,
       pixelX: x * TILE_SIZE,
       pixelY: y * TILE_SIZE,
       targetX: x * TILE_SIZE,
-      targetY: y * TILE_SIZE
+      targetY: y * TILE_SIZE,
+      movingX: 0,
+      movingY: 0,
+      health: 100
     };
   }
 }
 
-initializeZombies();
-
-function broadcast(data) {
-  const msg = JSON.stringify(data); //Convert data to a JSON string
-  for (const client of wss.clients) {
-    //Check if the client connection is open
-    if (client.readyState === WebSocket.OPEN) {
-      client.send(msg); //Send the message
-    }
-  }
-}
-
-//Event listener is triggered when a new WebSocket connection is established
-wss.on('connection', (ws) => {
+initialiseEnemies(enemies, 100);
+console.log(Object.keys(enemies).length)
+wss.on('connection', (ws) => { //New player connected
   const id = nextId++;
-
-  players[id] = {
+  ws.playerId = id;
+  players[id] = { //Initialize player
     id,
     mapX: 42,
     mapY: 46,
-    pixelX: 42 * TILE_SIZE, //Set initial pixel position
-    pixelY: 46 * TILE_SIZE, //Set initial pixel position
-    targetX: 42 * TILE_SIZE, // arget pixel position
-    targetY: 46 * TILE_SIZE, //Target pixel position
+    pixelX: 42 * TILE_SIZE,
+    pixelY: 46 * TILE_SIZE,
+    targetX: 42 * TILE_SIZE,
+    targetY: 46 * TILE_SIZE,
     health: 100,
     map: getMap(46, 42),
-    color: '#' + Math.floor(Math.random() * 16777215).toString(16)
+    color: '#' + Math.floor(Math.random() * 16777215).toString(16),
+    movingUp: false,
+    movingDown: false,
+    movingLeft: false,
+    movingRight: false,
+    speed: MOVE_SPEED,
+    lastMapX: 42,
+    lastMapY: 46
   };
 
   console.log(`Player ${id} connected.`);
-
-  //Send an initial message to the newly connected player with their ID and all current players
   ws.send(JSON.stringify({ 
     type: 'init', 
     id, 
     players 
-  }));
+  })); //Send init data
 
-  //Notify all other players that a new player has joined
   broadcast({ 
     type: 'join', 
     player: players[id] 
-  });
+  }); //Notify others
 
-  //Handle incoming messages from this client
-  ws.on('message', (message) => {
+  ws.on('message', (message) => { //Handle incoming messages
     const msg = JSON.parse(message);
-  
-    if (msg.type === 'move') {
+    if (msg.type === 'keydown') { //Movement message
       const player = players[id];
-      if (!player) {
-        return;
+      if (!player) { 
+        return; 
       }
-      
-      const distanceToTarget = Math.sqrt(
-        Math.pow(player.pixelX - player.targetX, 2) + 
-        Math.pow(player.pixelY - player.targetY, 2)
-      );
-      
-      //Allow movement if player is within a few pixels of target
-      if (distanceToTarget <= MOVE_SPEED * 2) {
-        let newMapX = player.mapX;
-        let newMapY = player.mapY;
-        
-        //Calculate new position based on direction
-        if (msg.dir === 'up') {
-          newMapY -= 1;
-        } else if (msg.dir === 'down') {
-          newMapY += 1;
-        } else if (msg.dir === 'left') {
-          newMapX -= 1;
-        } else if (msg.dir === 'right') {
-          newMapX += 1;
-        }
-        
-        //Check if the new position is passable
-        if (newMapY >= 0 && newMapY < map.length && 
-            newMapX >= 0 && newMapX < map[0].length && 
-            passable_tiles.includes(map[newMapY][newMapX])) {
-          
-          //Update map position
-          player.mapX = newMapX;
-          player.mapY = newMapY;
-          
-          //Set target pixel position
-          player.targetX = player.mapX * TILE_SIZE;
-          player.targetY = player.mapY * TILE_SIZE;
-          
-          //Get map for current player
-          let playerMap = getMap(player.mapY, player.mapX);
-          
-          //Send updated position to the current player with map
-          ws.send(JSON.stringify({ 
-            type: 'update', 
-            id: id,
-            mapX: player.mapX,
-            mapY: player.mapY,
-            pixelX: player.pixelX,
-            pixelY: player.pixelY,
-            targetX: player.targetX,
-            targetY: player.targetY,
-            map: playerMap
-          }));
-          
-          //Broadcast position to all other clients without map
-          for (const client of wss.clients) {
-            if (client !== ws && client.readyState === WebSocket.OPEN) {
-              client.send(JSON.stringify({ 
-                type: 'update', 
-                id: id,
-                mapX: player.mapX,
-                mapY: player.mapY,
-                pixelX: player.pixelX,
-                pixelY: player.pixelY,
-                targetX: player.targetX,
-                targetY: player.targetY
-              }));
-            }
+
+      if (msg.dir === 'up') { player.movingUp = msg.pressed; }
+      else if (msg.dir === 'down') { player.movingDown = msg.pressed; }
+      else if (msg.dir === 'left') { player.movingLeft = msg.pressed; }
+      else if (msg.dir === 'right') { player.movingRight = msg.pressed; }
+      else if (msg.dir === 'attack') { 
+        let hasUpdated = false;
+
+        for (const enemyID in enemies) {
+          const enemy = enemies[enemyID];
+          const dx = Math.abs(player.pixelX - enemy.pixelX);
+          const dy = Math.abs(player.pixelY - enemy.pixelY);
+
+          if (dx < TILE_SIZE * 1.2 && dy < TILE_SIZE * 1.2) { //If enemy in range
+            enemy.health = Math.max(0, enemy.health - 3); //Damage enemy
+            hasUpdated = true;
+          }
+
+          if (hasUpdated) {
+            broadcast({ 
+              type: 'enemy', 
+              id: enemy.id, 
+              mapX: enemy.mapX, 
+              mapY: enemy.mapY,
+              pixelX: enemy.pixelX, 
+              pixelY: enemy.pixelY, 
+              targetX: enemy.targetX,
+              targetY: enemy.targetY, 
+              health: enemy.health 
+            });
           }
         }
       }
     }
   });
 
-  //Handle the event when the client disconnects
-  ws.on('close', () => {
+  ws.on('close', () => { //Player disconnected
     console.log(`Player ${id} disconnected.`);
-    delete players[id]; 
+    delete players[id];
+
     broadcast({ 
       type: 'leave', 
       id 
-    }); 
+    });
   });
 });
 
-
-setInterval(() => {
-  // Move players towards their target position
-  for (const id in players) {
+setInterval(() => { //Game loop 50 times per second
+  for (const id in players) { //Update all players
     const player = players[id];
+    const currentTileX = Math.floor(player.pixelX / TILE_SIZE);
+    const currentTileY = Math.floor(player.pixelY / TILE_SIZE);
+    let velocityX = 0;
+    let velocityY = 0;
     
-    // Move players towards their target position
-    if (player.pixelX < player.targetX) {
-      player.pixelX = Math.min(player.pixelX + MOVE_SPEED, player.targetX);
-    } else if (player.pixelX > player.targetX) {
-      player.pixelX = Math.max(player.pixelX - MOVE_SPEED, player.targetX);
+    if (player.movingUp) velocityY = -player.speed;
+    else if (player.movingDown) velocityY = player.speed;
+    if (player.movingLeft) velocityX = -player.speed;
+    else if (player.movingRight) velocityX = player.speed;
+    
+    if (velocityX !== 0 && velocityY !== 0) { //Normalize diagonal speed
+      const normalizer = 1 / Math.sqrt(2);
+      velocityX *= normalizer;
+      velocityY *= normalizer;
     }
     
-    if (player.pixelY < player.targetY) {
-      player.pixelY = Math.min(player.pixelY + MOVE_SPEED, player.targetY);
-    } else if (player.pixelY > player.targetY) {
-      player.pixelY = Math.max(player.pixelY - MOVE_SPEED, player.targetY);
-    }
-    for (const zombieId in enemies) {
-      const zombie = enemies[zombieId]
-
-      if (
-        player.mapX == zombie.mapX + 1 && player.mapY == zombie.mapY ||
-        player.mapX == zombie.mapX - 1 && player.mapY == zombie.mapY ||
-        player.mapX == zombie.mapX && player.mapY == zombie.mapY + 1 ||
-        player.mapX == zombie.mapX && player.mapY == zombie.mapY - 1
-      ) {
-        player.health -= 0.03
+    let newPixelX = player.pixelX + velocityX;
+    let newPixelY = player.pixelY + velocityY;
+    const newTileX = Math.floor(newPixelX / TILE_SIZE);
+    const newTileY = Math.floor(newPixelY / TILE_SIZE);
+    
+    if (newTileX !== currentTileX) { //Check horizontal collision
+      const checkX = newTileX;
+      const checkY = currentTileY;
+      if (checkY < 0 || checkY >= MAP.length || checkX < 0 || checkX >= MAP[0].length || 
+          !PASSABLE_TILES.includes(MAP[checkY][checkX])) {
+        newPixelX = velocityX > 0 ? currentTileX * TILE_SIZE + TILE_SIZE - 1 : currentTileX * TILE_SIZE;
       }
-
+    }
+    
+    if (newTileY !== currentTileY) { //Check vertical collision
+      const checkX = currentTileX;
+      const checkY = newTileY;
+      if (checkY < 0 || checkY >= MAP.length || checkX < 0 || checkX >= MAP[0].length || 
+          !PASSABLE_TILES.includes(MAP[checkY][checkX])) {
+        newPixelY = velocityY > 0 ? currentTileY * TILE_SIZE + TILE_SIZE - 1 : currentTileY * TILE_SIZE;
+      }
+    }
+    
+    if (newTileX !== currentTileX && newTileY !== currentTileY) { //Check diagonal collision
+      const checkX = newTileX;
+      const checkY = newTileY;
+      if (checkY < 0 || checkY >= MAP.length || checkX < 0 || checkX >= MAP[0].length || 
+          !PASSABLE_TILES.includes(MAP[checkY][checkX])) {
+        newPixelX = player.pixelX;
+        newPixelY = player.pixelY;
+      }
+    }
+    
+    if (newPixelX !== player.pixelX || newPixelY !== player.pixelY) { //Update position if moved
+      player.pixelX = newPixelX;
+      player.pixelY = newPixelY;
+      player.mapX = Math.floor(player.pixelX / TILE_SIZE);
+      player.mapY = Math.floor(player.pixelY / TILE_SIZE);
+      player.targetX = player.pixelX;
+      player.targetY = player.pixelY;
+      
+      let sendMap = false;
+      if (player.mapX !== player.lastMapX || player.mapY !== player.lastMapY) { //Tile changed
+        player.map = getMap(player.mapY, player.mapX);
+        player.lastMapX = player.mapX;
+        player.lastMapY = player.mapY;
+        sendMap = true;
+      }
+      
+      const ws_client = Array.from(wss.clients).find(client => client.playerId === player.id);
+      if (ws_client) {
+        ws_client.send(JSON.stringify({ 
+          type: 'update', 
+          id: player.id, 
+          mapX: player.mapX,
+          mapY: player.mapY, 
+          pixelX: player.pixelX, 
+          pixelY: player.pixelY, 
+          targetX: player.targetX,
+          targetY: player.targetY, 
+          health: player.health, 
+          map: sendMap ? 
+          player.map : undefined 
+        }));
+      }
+      
       broadcast({ 
         type: 'update', 
-        id: player.id,
-        mapX: player.mapX,
+        id: player.id, 
+        mapX: player.mapX, 
         mapY: player.mapY,
-        pixelX: player.pixelX,
-        pixelY: player.pixelY,
+        pixelX: player.pixelX, 
+        pixelY: player.pixelY, 
         targetX: player.targetX,
-        targetY: player.targetY,
-        health: player.health
-      });
+        targetY: player.targetY, 
+        health: player.health 
+      }, ws_client);
+    }
+    
+    for (const enemyID in enemies) { //Check enemy collisions
+      const enemy = enemies[enemyID];
+      const dx = Math.abs(player.pixelX - enemy.pixelX);
+      const dy = Math.abs(player.pixelY - enemy.pixelY);
+      if (dx < TILE_SIZE * 0.8 && dy < TILE_SIZE * 0.8) { //If too close to enemy
+        player.health = Math.max(0, player.health - 0.25); //Take damage
+        broadcast({ 
+          type: 'update', 
+          id: player.id, 
+          mapX: player.mapX,
+          mapY: player.mapY,
+          pixelX: player.pixelX,
+          pixelY: player.pixelY, 
+          targetX: player.targetX,
+          targetY: player.targetY, 
+          health: player.health 
+        });
+      }
     }
   }
   
-  // Move zombies randomly with improved logic
-  for (const zombieId in enemies) {
-    const zombie = enemies[zombieId];
-    
-    // Move zombies towards their target position
-    if (zombie.pixelX < zombie.targetX) {
-      zombie.pixelX = Math.min(zombie.pixelX + MOVE_SPEED * 0.5, zombie.targetX);
-    } else if (zombie.pixelX > zombie.targetX) {
-      zombie.pixelX = Math.max(zombie.pixelX - MOVE_SPEED * 0.5, zombie.targetX);
+  for (const enemyID in enemies) { //Update all enemies
+    const enemy = enemies[enemyID];
+    if (Math.random() < 0.01) { //1% chance to change direction
+      const directions = ['up', 'down', 'left', 'right', 'none'];
+      const randomDir = directions[Math.floor(Math.random() * directions.length)];
+      enemy.movingUp = false;
+      enemy.movingDown = false;
+      enemy.movingLeft = false;
+      enemy.movingRight = false;
+      if (randomDir === 'up') enemy.movingUp = true;
+      else if (randomDir === 'down') enemy.movingDown = true;
+      else if (randomDir === 'left') enemy.movingLeft = true;
+      else if (randomDir === 'right') enemy.movingRight = true;
     }
     
-    if (zombie.pixelY < zombie.targetY) {
-      zombie.pixelY = Math.min(zombie.pixelY + MOVE_SPEED * 0.5, zombie.targetY);
-    } else if (zombie.pixelY > zombie.targetY) {
-      zombie.pixelY = Math.max(zombie.pixelY - MOVE_SPEED * 0.5, zombie.targetY);
+    let velocityX = 0;
+    let velocityY = 0;
+    if (enemy.movingUp) velocityY = -1.5;
+    else if (enemy.movingDown) velocityY = 1.5;
+    if (enemy.movingLeft) velocityX = -1.5;
+    else if (enemy.movingRight) velocityX = 1.5;
+    
+    if (velocityX !== 0 && velocityY !== 0) { //Normalize diagonal speed
+      const normalizer = 1 / Math.sqrt(2);
+      velocityX *= normalizer;
+      velocityY *= normalizer;
     }
     
-    // Check if zombie is at or close to its target
-    const distanceToTarget = Math.sqrt(
-      Math.pow(zombie.pixelX - zombie.targetX, 2) + 
-      Math.pow(zombie.pixelY - zombie.targetY, 2)
-    );
+    let newPixelX = enemy.pixelX + velocityX;
+    let newPixelY = enemy.pixelY + velocityY;
+    const currentTileX = Math.floor(enemy.pixelX / TILE_SIZE);
+    const currentTileY = Math.floor(enemy.pixelY / TILE_SIZE);
+    const newTileX = Math.floor(newPixelX / TILE_SIZE);
+    const newTileY = Math.floor(newPixelY / TILE_SIZE);
     
-    // Only try to move if we're close to the target position
-    if (distanceToTarget <= MOVE_SPEED) {
-      // Try all directions in a random order
-      const directions = ['up', 'down', 'left', 'right'];
-      // Shuffle array for true randomness
-      for (let i = directions.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [directions[i], directions[j]] = [directions[j], directions[i]];
-      }
-      
-      let moved = false;
-      
-      // Try each direction until we find a valid move
-      for (const randomDir of directions) {
-        if (moved) {
-          break;
-        }
-        
-        let newMapX = zombie.mapX;
-        let newMapY = zombie.mapY;
-        
-        // Calculate new position based on direction
-        if (randomDir === 'up') {
-          newMapY -= 1;
-        } else if (randomDir === 'down') {
-          newMapY += 1;
-        } else if (randomDir === 'left') {
-          newMapX -= 1;
-        } else if (randomDir === 'right') {
-          newMapX += 1;
-        }
-        
-        // Check if the new position is passable
-        if (newMapY >= 0 && newMapY < map.length && 
-            newMapX >= 0 && newMapX < map[0].length && 
-            passable_tiles.includes(map[newMapY][newMapX])) {
-          
-          // Update map position
-          zombie.mapX = newMapX;
-          zombie.mapY = newMapY;
-          
-          // Set target pixel position
-          zombie.targetX = zombie.mapX * TILE_SIZE;
-          zombie.targetY = zombie.mapY * TILE_SIZE;
-    
-          moved = true;
-        }
+    if (newTileX !== currentTileX) { //Check horizontal collision
+      const checkX = newTileX;
+      const checkY = currentTileY;
+      if (checkY < 0 || checkY >= MAP.length || checkX < 0 || checkX >= MAP[0].length || 
+          !PASSABLE_TILES.includes(MAP[checkY][checkX])) {
+        newPixelX = velocityX > 0 ? currentTileX * TILE_SIZE + TILE_SIZE - 1 : currentTileX * TILE_SIZE;
+        enemy.movingLeft = false;
+        enemy.movingRight = false;
       }
     }
     
-    // Broadcast zombie positions to all clients
-    broadcast({ 
-      type: 'zombie', 
-      id: zombie.id,
-      mapX: zombie.mapX,
-      mapY: zombie.mapY,
-      pixelX: zombie.pixelX,
-      pixelY: zombie.pixelY,
-      targetX: zombie.targetX,
-      targetY: zombie.targetY
-    });
+    if (newTileY !== currentTileY) { //Check vertical collision
+      const checkX = currentTileX;
+      const checkY = newTileY;
+      if (checkY < 0 || checkY >= MAP.length || checkX < 0 || checkX >= MAP[0].length || !PASSABLE_TILES.includes(MAP[checkY][checkX])) {
+        newPixelY = velocityY > 0 ? currentTileY * TILE_SIZE + TILE_SIZE - 1 : currentTileY * TILE_SIZE;
+        enemy.movingUp = false;
+        enemy.movingDown = false;
+      }
+    }
+    
+    if (newTileX !== currentTileX && newTileY !== currentTileY) { //Check diagonal collision
+      const checkX = newTileX;
+      const checkY = newTileY;
+      if (checkY < 0 || checkY >= MAP.length || checkX < 0 || checkX >= MAP[0].length || !PASSABLE_TILES.includes(MAP[checkY][checkX])) {
+        newPixelX = enemy.pixelX;
+        newPixelY = enemy.pixelY;
+        enemy.movingUp = false;
+        enemy.movingDown = false;
+        enemy.movingLeft = false;
+        enemy.movingRight = false;
+      }
+    }
+    
+    if (newPixelX !== enemy.pixelX || newPixelY !== enemy.pixelY) { //Update enemy position
+      enemy.pixelX = newPixelX;
+      enemy.pixelY = newPixelY;
+      enemy.mapX = Math.floor(enemy.pixelX / TILE_SIZE);
+      enemy.mapY = Math.floor(enemy.pixelY / TILE_SIZE);
+      enemy.targetX = enemy.pixelX;
+      enemy.targetY = enemy.pixelY;
+
+      broadcast({ 
+        type: "enemy", 
+        id: enemy.id, 
+        mapX: enemy.mapX, 
+        mapY: enemy.mapY,
+        pixelX: enemy.pixelX, 
+        pixelY: enemy.pixelY, 
+        targetX: enemy.targetX,
+        targetY: enemy.targetY, 
+        health: enemy.health 
+      });
+
+      console.log(`Sent ${enemy.id}, ${enemy.mapX} ${enemy.mapY} ${enemy.pixelX} ${enemy.pixelY} ${enemy.targetX} ${enemy.targetY} ${enemy.health} to "enemy"`)
+    }
   }
 }, 20);
 
-//Calculating player's surrounding area
+if (VISIBLE_TILES_X % 2 === 0) VISIBLE_TILES_X -= 1; //Make odd
+if (VISIBLE_TILES_Y % 2 === 0) VISIBLE_TILES_Y -= 1; //Make odd
 
-const CANVAS_WIDTH = 1891;
-const CANVAS_HEIGHT = 1037;
+const halfY = Math.floor(VISIBLE_TILES_Y / 2); //Half visible Y
+const halfX = Math.floor(VISIBLE_TILES_X / 2); //Half visible X
 
-// Calculate the number of visible tiles
-let VISIBLE_TILES_X = Math.ceil(CANVAS_WIDTH / TILE_SIZE);
-let VISIBLE_TILES_Y = Math.ceil(CANVAS_HEIGHT / TILE_SIZE);
-
-// Ensure both values are odd (this ensures the player is centered)
-if (VISIBLE_TILES_X % 2 === 0) VISIBLE_TILES_X -= 1; // Ensure odd width
-if (VISIBLE_TILES_Y % 2 === 0) VISIBLE_TILES_Y -= 1; // Ensure odd height
-
-console.log(`Visible tiles (X): ${VISIBLE_TILES_X}`); // Should be 31
-console.log(`Visible tiles (Y): ${VISIBLE_TILES_Y}`); // Should be 17
-
-const halfY = Math.floor(VISIBLE_TILES_Y / 2);
-const halfX = Math.floor(VISIBLE_TILES_X / 2);
-
-function getMap(mapY, mapX) {
+function getMap(mapY, mapX) { //Get visible map area
   const output = [];
   for (let i = mapY - halfY - 2; i <= mapY + halfY + 2; i++) {
     const row = [];
     for (let j = mapX - halfX - 2; j <= mapX + halfX + 2; j++) {
-      try {
-        row.push(map[i][j]);
-      } catch {
-        row.push(-1); // Fallback for out-of-bounds tiles
-      }
+      try { row.push(MAP[i][j]); }
+      catch { row.push(-1); } //Out of bounds
     }
     output.push(row);
   }
   return output;
 }
-
-
-
