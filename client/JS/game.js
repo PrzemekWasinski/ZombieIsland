@@ -133,6 +133,13 @@ function tileTransition(start, end, time) { //Smooth movement
 }
 
 function draw(currentTime) { //Main game loop
+  for (const enemyID in enemies) {
+    const enemy = enemies[enemyID];
+
+    if (Math.floor(enemy.health) < 1) {
+      delete enemies[enemyID]
+    }
+  }
   frameCount++;
   if (currentTime - lastFpsUpdate >= 1000) { //Update FPS counter
     currentFps = frameCount;

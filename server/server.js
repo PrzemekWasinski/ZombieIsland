@@ -16,22 +16,21 @@ function broadcast(data) { //Send data to all clients
   }
 }
 
-const { MOVE_SPEED, TILE_SIZE, CANVAS_HEIGHT, CANVAS_WIDTH, VISIBLE_TILES_X, VISIBLE_TILES_Y, PASSABLE_TILES, MAP } = config;
+const { MOVE_SPEED, TILE_SIZE, VISIBLE_TILES_X, VISIBLE_TILES_Y, PASSABLE_TILES, PLAYER_SPAWN, MAP, MAX_ENEMIES } = config;
 
 let players = {}; //All connected players
 let nextId = 1; //Next player ID
 let enemies = {}; //All enemies
+let enemyNextID = 1
 
-function initialiseEnemies(enemies, amount) { //Create initial enemies
-  for (let i = 1; i < amount; i++) {
-    let x, y;
-    x = Math.floor(Math.random() * MAP[0].length); //Random X position
-    y = Math.floor(Math.random() * MAP.length);    //Random Y position
-    if (!PASSABLE_TILES.includes(MAP[y][x])) { 
-        continue; //Skip if not walkable
-    } 
-    enemies[i] = { //Create new enemies
-      id: i,
+function spawnEnemy(enemies) {
+  let x, y;
+  x = Math.floor(Math.random() * MAP[0].length);
+  y = Math.floor(Math.random() * MAP.length);
+
+  if (PASSABLE_TILES.includes(MAP[y][x])) { 
+    enemies[enemyNextID] = { //Create new enemies
+      id: enemyNextID,
       mapX: x,
       mapY: y,
       pixelX: x * TILE_SIZE,
@@ -42,32 +41,32 @@ function initialiseEnemies(enemies, amount) { //Create initial enemies
       movingY: 0,
       health: 100
     };
+
+    enemyNextID++;
   }
 }
 
-initialiseEnemies(enemies, 100);
-console.log(Object.keys(enemies).length)
 wss.on('connection', (ws) => { //New player connected
   const id = nextId++;
   ws.playerId = id;
   players[id] = { //Initialize player
     id,
-    mapX: 42,
-    mapY: 46,
-    pixelX: 42 * TILE_SIZE,
-    pixelY: 46 * TILE_SIZE,
-    targetX: 42 * TILE_SIZE,
-    targetY: 46 * TILE_SIZE,
+    mapX: PLAYER_SPAWN[0],
+    mapY: PLAYER_SPAWN[1],
+    pixelX: PLAYER_SPAWN[0] * TILE_SIZE,
+    pixelY: PLAYER_SPAWN[1] * TILE_SIZE,
+    targetX: PLAYER_SPAWN[0] * TILE_SIZE,
+    targetY: PLAYER_SPAWN[1] * TILE_SIZE,
     health: 100,
-    map: getMap(46, 42),
+    map: getMap(PLAYER_SPAWN[1], PLAYER_SPAWN[0]),
     color: '#' + Math.floor(Math.random() * 16777215).toString(16),
     movingUp: false,
     movingDown: false,
     movingLeft: false,
     movingRight: false,
     speed: MOVE_SPEED,
-    lastMapX: 42,
-    lastMapY: 46
+    lastMapX: PLAYER_SPAWN[0],
+    lastMapY: PLAYER_SPAWN[1]
   };
 
   console.log(`Player ${id} connected.`);
@@ -141,12 +140,12 @@ setInterval(() => { //Game loop 50 times per second
     const player = players[id];
 
     if (Math.floor(player.health) < 1) {
-      player.mapX = 42
-      player.mapY = 46
-      player.pixelX = 42 * 61
-      player.pixelY = 46 * 61
-      player.targetX = 42 * 61
-      player.targetY = 42 * 61
+      player.mapX = PLAYER_SPAWN[0]
+      player.mapY = PLAYER_SPAWN[1]
+      player.pixelX = PLAYER_SPAWN[0] * TILE_SIZE
+      player.pixelY = PLAYER_SPAWN[1] * TILE_SIZE
+      player.targetX = PLAYER_SPAWN[0] * TILE_SIZE
+      player.targetY = PLAYER_SPAWN[0] * TILE_SIZE
       player.health = 100
     } else {
       const currentTileX = Math.floor(player.pixelX / TILE_SIZE);
@@ -244,6 +243,18 @@ setInterval(() => { //Game loop 50 times per second
         health: player.health 
       }, ws_client);
     }
+
+    for (const enemyID in enemies) { //Quick loop that removes dead zombies
+      if (Math.floor(enemies[enemyID].health) < 1) {
+        delete enemies[enemyID];
+      }
+    }
+
+    let enemiesNeeded = MAX_ENEMIES - Object.keys(enemies).length;
+    for (let i = 0; i < enemiesNeeded; i++) {
+      spawnEnemy(enemies);
+    }
+    console.log(Object.keys(enemies).length)
     
     for (const enemyID in enemies) { //Check enemy collisions
       const enemy = enemies[enemyID];
