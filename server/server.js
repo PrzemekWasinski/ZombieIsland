@@ -139,63 +139,74 @@ wss.on('connection', (ws) => { //New player connected
 setInterval(() => { //Game loop 50 times per second
   for (const id in players) { //Update all players
     const player = players[id];
-    const currentTileX = Math.floor(player.pixelX / TILE_SIZE);
-    const currentTileY = Math.floor(player.pixelY / TILE_SIZE);
-    let velocityX = 0;
-    let velocityY = 0;
-    
-    if (player.movingUp) velocityY = -player.speed;
-    else if (player.movingDown) velocityY = player.speed;
-    if (player.movingLeft) velocityX = -player.speed;
-    else if (player.movingRight) velocityX = player.speed;
-    
-    if (velocityX !== 0 && velocityY !== 0) { //Normalize diagonal speed
-      const normalizer = 1 / Math.sqrt(2);
-      velocityX *= normalizer;
-      velocityY *= normalizer;
-    }
-    
-    let newPixelX = player.pixelX + velocityX;
-    let newPixelY = player.pixelY + velocityY;
-    const newTileX = Math.floor(newPixelX / TILE_SIZE);
-    const newTileY = Math.floor(newPixelY / TILE_SIZE);
-    
-    if (newTileX !== currentTileX) { //Check horizontal collision
-      const checkX = newTileX;
-      const checkY = currentTileY;
-      if (checkY < 0 || checkY >= MAP.length || checkX < 0 || checkX >= MAP[0].length || 
-          !PASSABLE_TILES.includes(MAP[checkY][checkX])) {
-        newPixelX = velocityX > 0 ? currentTileX * TILE_SIZE + TILE_SIZE - 1 : currentTileX * TILE_SIZE;
-      }
-    }
-    
-    if (newTileY !== currentTileY) { //Check vertical collision
-      const checkX = currentTileX;
-      const checkY = newTileY;
-      if (checkY < 0 || checkY >= MAP.length || checkX < 0 || checkX >= MAP[0].length || 
-          !PASSABLE_TILES.includes(MAP[checkY][checkX])) {
-        newPixelY = velocityY > 0 ? currentTileY * TILE_SIZE + TILE_SIZE - 1 : currentTileY * TILE_SIZE;
-      }
-    }
-    
-    if (newTileX !== currentTileX && newTileY !== currentTileY) { //Check diagonal collision
-      const checkX = newTileX;
-      const checkY = newTileY;
-      if (checkY < 0 || checkY >= MAP.length || checkX < 0 || checkX >= MAP[0].length || 
-          !PASSABLE_TILES.includes(MAP[checkY][checkX])) {
-        newPixelX = player.pixelX;
-        newPixelY = player.pixelY;
-      }
-    }
-    
-    if (newPixelX !== player.pixelX || newPixelY !== player.pixelY) { //Update position if moved
-      player.pixelX = newPixelX;
-      player.pixelY = newPixelY;
-      player.mapX = Math.floor(player.pixelX / TILE_SIZE);
-      player.mapY = Math.floor(player.pixelY / TILE_SIZE);
-      player.targetX = player.pixelX;
-      player.targetY = player.pixelY;
+
+    if (Math.floor(player.health) < 1) {
+      player.mapX = 42
+      player.mapY = 46
+      player.pixelX = 42 * 61
+      player.pixelY = 46 * 61
+      player.targetX = 42 * 61
+      player.targetY = 42 * 61
+      player.health = 100
+    } else {
+      const currentTileX = Math.floor(player.pixelX / TILE_SIZE);
+      const currentTileY = Math.floor(player.pixelY / TILE_SIZE);
+      let velocityX = 0;
+      let velocityY = 0;
       
+      if (player.movingUp) velocityY = -player.speed;
+      else if (player.movingDown) velocityY = player.speed;
+      if (player.movingLeft) velocityX = -player.speed;
+      else if (player.movingRight) velocityX = player.speed;
+      
+      if (velocityX !== 0 && velocityY !== 0) { //Normalize diagonal speed
+        const normalizer = 1 / Math.sqrt(2);
+        velocityX *= normalizer;
+        velocityY *= normalizer;
+      }
+      
+      let newPixelX = player.pixelX + velocityX;
+      let newPixelY = player.pixelY + velocityY;
+      const newTileX = Math.floor(newPixelX / TILE_SIZE);
+      const newTileY = Math.floor(newPixelY / TILE_SIZE);
+      
+      if (newTileX !== currentTileX) { //Check horizontal collision
+        const checkX = newTileX;
+        const checkY = currentTileY;
+        if (checkY < 0 || checkY >= MAP.length || checkX < 0 || checkX >= MAP[0].length || 
+            !PASSABLE_TILES.includes(MAP[checkY][checkX])) {
+          newPixelX = velocityX > 0 ? currentTileX * TILE_SIZE + TILE_SIZE - 1 : currentTileX * TILE_SIZE;
+        }
+      }
+      
+      if (newTileY !== currentTileY) { //Check vertical collision
+        const checkX = currentTileX;
+        const checkY = newTileY;
+        if (checkY < 0 || checkY >= MAP.length || checkX < 0 || checkX >= MAP[0].length || 
+            !PASSABLE_TILES.includes(MAP[checkY][checkX])) {
+          newPixelY = velocityY > 0 ? currentTileY * TILE_SIZE + TILE_SIZE - 1 : currentTileY * TILE_SIZE;
+        }
+      }
+      
+      if (newTileX !== currentTileX && newTileY !== currentTileY) { //Check diagonal collision
+        const checkX = newTileX;
+        const checkY = newTileY;
+        if (checkY < 0 || checkY >= MAP.length || checkX < 0 || checkX >= MAP[0].length || 
+            !PASSABLE_TILES.includes(MAP[checkY][checkX])) {
+          newPixelX = player.pixelX;
+          newPixelY = player.pixelY;
+        }
+      }
+      
+      if (newPixelX !== player.pixelX || newPixelY !== player.pixelY) { //Update position if moved
+        player.pixelX = newPixelX;
+        player.pixelY = newPixelY;
+        player.mapX = Math.floor(player.pixelX / TILE_SIZE);
+        player.mapY = Math.floor(player.pixelY / TILE_SIZE);
+        player.targetX = player.pixelX;
+        player.targetY = player.pixelY;
+      }
+        
       let sendMap = false;
       if (player.mapX !== player.lastMapX || player.mapY !== player.lastMapY) { //Tile changed
         player.map = getMap(player.mapY, player.mapX);
@@ -258,24 +269,34 @@ setInterval(() => { //Game loop 50 times per second
   for (const enemyID in enemies) { //Update all enemies
     const enemy = enemies[enemyID];
     if (Math.random() < 0.01) { //1% chance to change direction
-      const directions = ['up', 'down', 'left', 'right', 'none'];
+      const directions = ["up", "down", "left", "right", "up-right", "up-left", "down-right", "down-left", "none"];
       const randomDir = directions[Math.floor(Math.random() * directions.length)];
+
       enemy.movingUp = false;
       enemy.movingDown = false;
       enemy.movingLeft = false;
       enemy.movingRight = false;
-      if (randomDir === 'up') enemy.movingUp = true;
-      else if (randomDir === 'down') enemy.movingDown = true;
-      else if (randomDir === 'left') enemy.movingLeft = true;
-      else if (randomDir === 'right') enemy.movingRight = true;
+      enemy.movingUpRight = false;
+      enemy.movingUpLeft = false;
+      enemy.movingDownRight = false;
+      enemy.movingDownleft = false;
+
+      if (randomDir === "up") enemy.movingUp = true;
+      else if (randomDir === "down") enemy.movingDown = true;
+      else if (randomDir === "left") enemy.movingLeft = true;
+      else if (randomDir === "right") enemy.movingRight = true;
+      else if (randomDir === "up-right") enemy.movingUpRight = true;
+      else if (randomDir === "up-left") enemy.movingUpLeft = true;
+      else if (randomDir === "down-right") enemy.movingDownRight = true;
+      else if (randomDir === "down-left") enemy.movingDownleft = true;
     }
     
     let velocityX = 0;
     let velocityY = 0;
-    if (enemy.movingUp) velocityY = -1.5;
-    else if (enemy.movingDown) velocityY = 1.5;
-    if (enemy.movingLeft) velocityX = -1.5;
-    else if (enemy.movingRight) velocityX = 1.5;
+    if (enemy.movingUp || enemy.movingUpLeft || enemy.movingUpRight) velocityY = -1.5;
+    else if (enemy.movingDown || enemy.movingDownRight || enemy.movingDownleft) velocityY = 1.5;
+    if (enemy.movingLeft || enemy.movingDownleft || enemy.movingUpRight) velocityX = -1.5;
+    else if (enemy.movingRight || enemy.movingDownRight || enemy.movingUpRight) velocityX = 1.5;
     
     if (velocityX !== 0 && velocityY !== 0) { //Normalize diagonal speed
       const normalizer = 1 / Math.sqrt(2);
@@ -298,6 +319,10 @@ setInterval(() => { //Game loop 50 times per second
         newPixelX = velocityX > 0 ? currentTileX * TILE_SIZE + TILE_SIZE - 1 : currentTileX * TILE_SIZE;
         enemy.movingLeft = false;
         enemy.movingRight = false;
+        enemy.movingUpLeft = false;
+        enemy.movingUpRight = false;
+        enemy.movingDownRight = false;
+        enemy.movingDownleft = false;
       }
     }
     
@@ -308,6 +333,10 @@ setInterval(() => { //Game loop 50 times per second
         newPixelY = velocityY > 0 ? currentTileY * TILE_SIZE + TILE_SIZE - 1 : currentTileY * TILE_SIZE;
         enemy.movingUp = false;
         enemy.movingDown = false;
+        enemy.movingUpLeft = false;
+        enemy.movingUpRight = false;
+        enemy.movingDownRight = false;
+        enemy.movingDownleft = false;
       }
     }
     
@@ -321,6 +350,10 @@ setInterval(() => { //Game loop 50 times per second
         enemy.movingDown = false;
         enemy.movingLeft = false;
         enemy.movingRight = false;
+        enemy.movingUpLeft = false;
+        enemy.movingUpRight = false;
+        enemy.movingDownRight = false;
+        enemy.movingDownleft = false;
       }
     }
     
@@ -343,8 +376,6 @@ setInterval(() => { //Game loop 50 times per second
         targetY: enemy.targetY, 
         health: enemy.health 
       });
-
-      console.log(`Sent ${enemy.id}, ${enemy.mapX} ${enemy.mapY} ${enemy.pixelX} ${enemy.pixelY} ${enemy.targetX} ${enemy.targetY} ${enemy.health} to "enemy"`)
     }
   }
 }, 20);

@@ -11,6 +11,7 @@ const tileSize = 61; //Tile size in pixels
 let playerId = null; //Your player ID
 let players = {}; //All players
 let enemies = {}; //All enemies
+
 let lastFrameTime = performance.now(); //Last frame time
 let frameCount = 0;  //Frames counted
 let lastFpsUpdate = 0; //Last FPS check
@@ -137,7 +138,6 @@ function draw(currentTime) { //Main game loop
     currentFps = frameCount;
     frameCount = 0;
     lastFpsUpdate = currentTime;
-    console.log(currentFps)
   }
   
   const deltaTime = Math.min(0.1, (currentTime - lastFrameTime) / 1000);
@@ -164,7 +164,7 @@ function draw(currentTime) { //Main game loop
     enemy.pixelY = tileTransition(enemy.pixelY, enemy.targetY, time);
   }
   
-  drawMap(currentPlayer); //Draw surrounding area
+  drawMap(currentPlayer); //Draw surrounding areas
   
   for (const id in players) { //Draw other players
     if (id !== playerId) {
