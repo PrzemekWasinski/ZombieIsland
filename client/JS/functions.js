@@ -53,14 +53,15 @@ export function drawPlayer(player, isCurrentPlayer, currentPlayer) { //Draw play
     }
   }
   
-  ctx.fillStyle = isCurrentPlayer ? 'white' : (player.color || 'red');
+  ctx.fillStyle = "white"
   ctx.fillRect(screenX, screenY, tileSize, tileSize);
   
-  if (player.health > 0) { //Draw health if alive
-    tempRect.x = screenX + healthBarBg.x;
-    tempRect.y = screenY + healthBarBg.y;
-    ctx.fillStyle = "rgb(0, 0, 0)";
-    ctx.fillRect(tempRect.x, tempRect.y, healthBarBg.width, healthBarBg.height);
+  tempRect.x = screenX + healthBarBg.x;
+  tempRect.y = screenY + healthBarBg.y;
+  ctx.fillStyle = "rgb(0, 0, 0)";
+  ctx.fillRect(tempRect.x, tempRect.y, healthBarBg.width, healthBarBg.height);
+
+  if (player.health > 0) { //Fill in health bar with player health
     healthBarFg.width = Math.round(player.health / 2);
     ctx.fillStyle = "rgb(255, 0, 0)";
     ctx.fillRect(
@@ -70,6 +71,12 @@ export function drawPlayer(player, isCurrentPlayer, currentPlayer) { //Draw play
       healthBarFg.height
     );
   }
+
+  ctx.fillStyle = "rgb(255, 255, 255)" //Write player name and level
+  ctx.font = "18px Arial";
+  ctx.textAlign = "center"
+  ctx.fillText(`${player.username} lv.${player.level}`, screenX + 30, screenY - 10)
+  
 }
 
 export function drawEnemy(enemy, currentPlayer) { //Draw enemy
@@ -80,13 +87,13 @@ export function drawEnemy(enemy, currentPlayer) { //Draw enemy
   
   ctx.fillStyle = 'green';
   ctx.fillRect(screenX, screenY, tileSize, tileSize);
-  console.log("hi")
   
-  if (enemy.health > 0) { //Draw health if alive
-    tempRect.x = screenX + healthBarBg.x;
-    tempRect.y = screenY + healthBarBg.y;
-    ctx.fillStyle = "rgb(0, 0, 0)";
-    ctx.fillRect(tempRect.x, tempRect.y, healthBarBg.width, healthBarBg.height);
+  tempRect.x = screenX + healthBarBg.x;
+  tempRect.y = screenY + healthBarBg.y;
+  ctx.fillStyle = "rgb(0, 0, 0)";
+  ctx.fillRect(tempRect.x, tempRect.y, healthBarBg.width, healthBarBg.height);
+
+  if (enemy.health > 0) { //Fill in healthbar if alive
     healthBarFg.width = Math.round(enemy.health / 2);
     ctx.fillStyle = "rgb(255, 0, 0)";
     ctx.fillRect(
@@ -96,4 +103,10 @@ export function drawEnemy(enemy, currentPlayer) { //Draw enemy
       healthBarFg.height
     );
   }
+}
+
+export function isNearby(coord1, coord2) {
+  const dx = coord1[0] - coord2[0]; // X-axis difference
+  const dy = coord1[1] - coord2[1]; // Y-axis difference
+  return dx * dx + dy * dy <= 2500; // 50^2 = 2500
 }

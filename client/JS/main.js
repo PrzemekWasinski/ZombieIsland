@@ -1,8 +1,9 @@
 import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
 import { startGame } from './game.js';
+import { config } from './config.js';
 
 // Replace with your real project values:
-const supabase = createClient('https://rrfmavvwcgcglfmdftdq.supabase.co', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJyZm1hdnZ3Y2djZ2xmbWRmdGRxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDkwNDg3ODEsImV4cCI6MjA2NDYyNDc4MX0.q4wYUbtBl4eXaa1g75dgQ-EAuEItptUvOZgAHp6PW4k');
+const supabase = createClient(config.URL, config.API_KEY);
 
 const loginScreen = document.getElementById('login-screen');
 const registerScreen = document.getElementById('register-screen');
@@ -23,30 +24,51 @@ document.getElementById('go-login').onclick = (e) => {
 
 // Register
 document.getElementById('register-button').onclick = async () => {
-  const username = document.getElementById("register-username").value;  
-  const email = document.getElementById('register-email').value;
+  const username = document.getElementById("register-username").value.trim();
+  const email = document.getElementById('register-email').value.trim();
   const password = document.getElementById('register-password').value;
 
-  // Step 1: Sign up user
+  //Step 1: Check if username already exists
+  const { data: existingUser, error: fetchError } = await supabase
+    .from("Characters")
+    .select("username")
+    .eq("username", username)
+    .maybeSingle(); 
+
+  if (fetchError) {
+    console.error("Fetch error:", fetchError.message);
+    return alert("Something went wrong. Try again.");
+  }
+
+  if (existingUser) {
+    return alert("Username already exists. Choose a different one.");
+  }
+
+  //Step 2: Proceed to register new user
   const { data, error } = await supabase.auth.signUp({ email, password });
-  if (error) return alert(error.message);
+  if (error) {
+    console.error("Signup error:", error.message);
+    return alert(error.message);
+  }
 
   const user = data.user;
 
   if (user) {
+    //Step 3: Insert new character with unique username
     const { error: insertError } = await supabase.from('Characters').insert({
       id: user.id,
-      username: username, // or prompt for username
+      username: username,
       level: 1,
       gold: 0
     });
 
     if (insertError) {
-      console.error('Failed to insert character:', insertError);
+      console.error('Failed to insert character:', insertError.message);
+      return alert("Failed to create character.");
     }
   }
 
-  alert("Registered! You can now log in.");
+  alert("Registered successfully! You can now log in.");
   registerScreen.style.display = 'none';
   loginScreen.style.display = 'block';
 };

@@ -1,15 +1,22 @@
 import { loadImages } from "./images.js";
-import { drawMap, drawPlayer, drawEnemy } from "./functions.js"
+import { drawMap, drawPlayer, drawEnemy, isNearby } from "./functions.js"
 
 export function startGame({ userId, token }) {
   const socket = new WebSocket('wss://ws.zombieisland.online/');
-  socket.onopen = () => { console.log("Connected to server"); };
+  socket.onopen = () => { 
+    console.log("Connected to server"); 
+
+    socket.send(JSON.stringify({
+      type: "auth",
+      token
+    }));
+  };
 
   const canvas = document.getElementById('game');
   const ctx = canvas.getContext('2d');
   const tileSize = 61; //Tile size in pixels
 
-  let playerId = null; //Your player ID
+  let playerId = null; //player ID (not userID)
   let players = {}; //All players
   let enemies = {}; //All enemies
 
@@ -24,7 +31,6 @@ export function startGame({ userId, token }) {
 
   socket.onmessage = (event) => {
     const msg = JSON.parse(event.data);
-    console.log(msg.type)
 
     if (msg.type === 'init') { //Initial game setup
       playerId = msg.id;
@@ -57,6 +63,9 @@ export function startGame({ userId, token }) {
       player.pixelY = Number(msg.pixelY) || player.mapY * tileSize;
       player.targetX = Number(msg.targetX) || player.pixelX;
       player.targetY = Number(msg.targetY) || player.pixelY;
+      player.username = msg.username;
+      player.level = msg.level;
+      player.gold = msg.gold;
 
       if (msg.id === playerId && msg.map) { //Update your map
         player.map = msg.map;
@@ -134,6 +143,7 @@ export function startGame({ userId, token }) {
   }
 
   function draw(currentTime) { //Main game loop
+    console.log(Object.keys(enemies).length)
     for (const enemyID in enemies) {
       const enemy = enemies[enemyID];
 
@@ -159,6 +169,20 @@ export function startGame({ userId, token }) {
     
     const currentPlayer = players[playerId];
     const time = Math.min(1, deltaTime * INTERPOLATION_SPEED); //Movement smoothing
+
+    for (const id in enemies) { //Delete far away enemies and players
+      const enemy = enemies[id]
+      if (!isNearby([currentPlayer.mapX, currentPlayer.mapY], [enemy.mapX, enemy.mapY])) {
+        delete enemies[id]
+      }
+    }
+
+    for (const id in [players]) {
+      const player = [players][id]
+      if (!isNearby([currentPlayer.mapX, currentPlayer.mapY], [player.mapX, player.mapY])) {
+        delete [players][id]
+      }
+    }
     
     for (const id in players) { //Update player positions
       const player = players[id];
@@ -186,6 +210,7 @@ export function startGame({ userId, token }) {
     
     if (players[playerId]) { //Draw you (on top)
       drawPlayer(currentPlayer, true, currentPlayer);
+      console.log(players[playerId].level, players[playerId].username, players[playerId].gold)
     }
     
     requestAnimationFrame(draw)
