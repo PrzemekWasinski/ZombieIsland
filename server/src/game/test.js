@@ -1,7 +1,7 @@
 import { config } from "../config/config.js";
 
-const { ENEMY_SPAWNS} = config;
-
+const { ENEMY_SPAWNS } = config;
+console.log(ENEMY_SPAWNS[Object.keys(ENEMY_SPAWNS)[0]].enemyAmount)
 let locationData = {}
 for (let i = 0; i < Object.keys(ENEMY_SPAWNS).length; i++) {
     locationData[Object.keys(ENEMY_SPAWNS)[i]] = 0

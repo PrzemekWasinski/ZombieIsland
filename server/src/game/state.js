@@ -5,10 +5,10 @@ export let enemies = {}; //All enemies
 export let enemyNextID = 1 //Next enemy ID
 
 export function getNextId() {
-  return nextId++;
+	return nextId++;
 }
 
 export function getNextEnemyID() {
-    enemyNextID++;
-    return enemyNextID++;
+	enemyNextID++;
+	return enemyNextID++;
 }

@@ -44,58 +44,61 @@ export function startGame({ userId, token }) {
       }
 
     } else if (msg.type === 'join') { //New player joined
-      players[msg.player.id] = msg.player;
-      const player = players[msg.player.id];
-      if (!player.pixelX) player.pixelX = player.mapX * tileSize;
-      if (!player.pixelY) player.pixelY = player.mapY * tileSize;
-      if (!player.targetX) player.targetX = player.pixelX;
-      if (!player.targetY) player.targetY = player.pixelY;
+      if (isNearby([players[playerId].mapX, players[playerId.mapY]], [msg.player.mapX, msg.player.mapY])) {
+        players[msg.player.id] = msg.player;
+        const player = players[msg.player.id];
+        if (!player.pixelX) player.pixelX = player.mapX * tileSize;
+        if (!player.pixelY) player.pixelY = player.mapY * tileSize;
+        if (!player.targetX) player.targetX = player.pixelX;
+        if (!player.targetY) player.targetY = player.pixelY;
+      }
 
     } else if (msg.type === 'update') { //Player update
       if (!players[msg.id]) {
         return;
       } //Skip if invalid player
-      const player = players[msg.id];
-      player.health = Number(msg.health) || 100;
-      player.mapX = Number(msg.mapX) || 42;
-      player.mapY = Number(msg.mapY) || 46;
-      player.pixelX = Number(msg.pixelX) || player.mapX * tileSize;
-      player.pixelY = Number(msg.pixelY) || player.mapY * tileSize;
-      player.targetX = Number(msg.targetX) || player.pixelX;
-      player.targetY = Number(msg.targetY) || player.pixelY;
-      player.username = msg.username;
-      player.level = msg.level;
-      player.gold = msg.gold;
+	  if (isNearby([players[playerId].mapX, players[playerId].mapY], [msg.mapX, msg.mapY])) {
+		const player = players[msg.id];
+		player.health = Number(msg.health) || 100;
+		player.mapX = Number(msg.mapX) || 42;
+		player.mapY = Number(msg.mapY) || 46;
+		player.pixelX = Number(msg.pixelX) || player.mapX * tileSize;
+		player.pixelY = Number(msg.pixelY) || player.mapY * tileSize;
+		player.targetX = Number(msg.targetX) || player.pixelX;
+		player.targetY = Number(msg.targetY) || player.pixelY;
+		player.username = msg.username;
+		player.level = msg.level;
+		player.gold = msg.gold;
 
-      if (msg.id === playerId && msg.map) { //Update your map
-        player.map = msg.map;
-      }
+		if (msg.id === playerId && msg.map) { //Update your map
+			player.map = msg.map;
+		}
+	}
 
     } else if (msg.type === 'enemy') { //enemy update
-      if (!enemies) {
-        enemies = {};
-      }
-      if (!enemies[msg.id]) { //New enemy
-        enemies[msg.id] = {
-          id: msg.id,
-          mapX: msg.mapX,
-          mapY: msg.mapY,
-          pixelX: msg.pixelX || msg.mapX * tileSize,
-          pixelY: msg.pixelY || msg.mapY * tileSize,
-          targetX: msg.targetX || msg.mapX * tileSize,
-          targetY: msg.targetY || msg.mapY * tileSize,
-          health: msg.health
-        };
-      } else { //Existing enemy
-        const enemy = enemies[msg.id];
-        enemy.mapX = msg.mapX;
-        enemy.mapY = msg.mapY;
-        enemy.pixelX = msg.pixelX;
-        enemy.pixelY = msg.pixelY;
-        enemy.targetX = msg.targetX;
-        enemy.targetY = msg.targetY;
-        enemy.health = msg.health;
-      }
+		if (isNearby([msg.mapX, msg.mapY], [players[playerId].mapX, players[playerId].mapY])) {
+			if (!enemies[msg.id]) { //New enemy
+				enemies[msg.id] = {
+					id: msg.id,
+					mapX: msg.mapX,
+					mapY: msg.mapY,
+					pixelX: msg.pixelX || msg.mapX * tileSize,
+					pixelY: msg.pixelY || msg.mapY * tileSize,
+					targetX: msg.targetX || msg.mapX * tileSize,
+					targetY: msg.targetY || msg.mapY * tileSize,
+					health: msg.health
+				};
+			} else { //Existing enemy
+				const enemy = enemies[msg.id];
+				enemy.mapX = msg.mapX;
+				enemy.mapY = msg.mapY;
+				enemy.pixelX = msg.pixelX;
+				enemy.pixelY = msg.pixelY;
+				enemy.targetX = msg.targetX;
+				enemy.targetY = msg.targetY;
+				enemy.health = msg.health;
+			}
+		}
     } else if (msg.type === 'leave') { //Player left
       delete players[msg.id];
     }
@@ -143,7 +146,9 @@ export function startGame({ userId, token }) {
   }
 
   function draw(currentTime) { //Main game loop
-    console.log(Object.keys(enemies).length)
+    console.log(`Enemies loaded: ${Object.keys(enemies).length}`)
+	console.log(`Players loaded: ${Object.keys(players).length}`)
+
     for (const enemyID in enemies) {
       const enemy = enemies[enemyID];
 
@@ -210,7 +215,6 @@ export function startGame({ userId, token }) {
     
     if (players[playerId]) { //Draw you (on top)
       drawPlayer(currentPlayer, true, currentPlayer);
-      console.log(players[playerId].level, players[playerId].username, players[playerId].gold)
     }
     
     requestAnimationFrame(draw)

@@ -7,18 +7,30 @@ export function startGame(wss, TILE_SIZE, VISIBLE_TILES_X, VISIBLE_TILES_Y, PASS
         locationData[Object.keys(ENEMY_SPAWNS)[i]] = 0
     }
 
-    for (let i in ENEMY_SPAWNS) {
-        for (let j = 0; j < ENEMY_SPAWNS[i][2]; j++) {
-            spawnEnemy(enemies, PASSABLE_TILES, MAP, enemyNextID, TILE_SIZE, ENEMY_SPAWNS[i][0], ENEMY_SPAWNS[i][1], i, locationData)
+    for (let i = 0; i < Object.keys(ENEMY_SPAWNS).length; i++) {
+        let spawnData = ENEMY_SPAWNS[Object.keys(ENEMY_SPAWNS)[i]]
+        for (let j = 0; j < spawnData.enemyAmount; j++) {
+            spawnEnemy(enemies, PASSABLE_TILES, MAP, enemyNextID, TILE_SIZE, spawnData.topLeft, spawnData.bottomRight, i, locationData)
         }
     }
 
     setInterval(() => { //Game loop 50 times per second
-        for (let i = 0; i < Object.keys(ENEMY_SPAWNS).length; i++) {
-            let index = Object.keys(ENEMY_SPAWNS)[i]
+        const deadEnemies = Object.keys(enemies).filter(id => enemies[id].health <= 0);
+        for (const id of deadEnemies) {
+            const loc = enemies[id].location;
+            if (loc !== undefined && locationData[loc] !== undefined) {
+                locationData[loc]--;
+            }
+            delete enemies[id];
+        }
 
-            while (locationData[index] < ENEMY_SPAWNS[index][2]) {
-                locationData[index]++;
+        for (let i = 0; i < Object.keys(ENEMY_SPAWNS).length; i++) {
+            let key = Object.keys(ENEMY_SPAWNS)[i];
+            let spawnData = ENEMY_SPAWNS[key];
+
+            while (locationData[key] < spawnData.enemyAmount) {
+                spawnEnemy(enemies, PASSABLE_TILES, MAP, enemyNextID, TILE_SIZE, spawnData.topLeft, spawnData.bottomRight, i, locationData);
+                locationData[key]++;
             }
         }
 
@@ -38,51 +50,51 @@ export function startGame(wss, TILE_SIZE, VISIBLE_TILES_X, VISIBLE_TILES_Y, PASS
                 const currentTileY = Math.floor(player.pixelY / TILE_SIZE);
                 let velocityX = 0;
                 let velocityY = 0;
-                
+
                 if (player.movingUp) velocityY = -player.speed;
                 else if (player.movingDown) velocityY = player.speed;
                 if (player.movingLeft) velocityX = -player.speed;
                 else if (player.movingRight) velocityX = player.speed;
-                
+
                 if (velocityX !== 0 && velocityY !== 0) { //Normalize diagonal speed
                     const normalizer = 1 / Math.sqrt(2);
                     velocityX *= normalizer;
                     velocityY *= normalizer;
                 }
-            
+
                 let newPixelX = player.pixelX + velocityX;
                 let newPixelY = player.pixelY + velocityY;
                 const newTileX = Math.floor(newPixelX / TILE_SIZE);
                 const newTileY = Math.floor(newPixelY / TILE_SIZE);
-            
+
                 if (newTileX !== currentTileX) { //Check horizontal collision
                     const checkX = newTileX;
                     const checkY = currentTileY;
-                    if (checkY < 0 || checkY >= MAP.length || checkX < 0 || checkX >= MAP[0].length || 
+                    if (checkY < 0 || checkY >= MAP.length || checkX < 0 || checkX >= MAP[0].length ||
                         !PASSABLE_TILES.includes(MAP[checkY][checkX])) {
                         newPixelX = velocityX > 0 ? currentTileX * TILE_SIZE + TILE_SIZE - 1 : currentTileX * TILE_SIZE;
                     }
                 }
-            
+
                 if (newTileY !== currentTileY) { //Check vertical collision
                     const checkX = currentTileX;
                     const checkY = newTileY;
-                    if (checkY < 0 || checkY >= MAP.length || checkX < 0 || checkX >= MAP[0].length || 
+                    if (checkY < 0 || checkY >= MAP.length || checkX < 0 || checkX >= MAP[0].length ||
                         !PASSABLE_TILES.includes(MAP[checkY][checkX])) {
                         newPixelY = velocityY > 0 ? currentTileY * TILE_SIZE + TILE_SIZE - 1 : currentTileY * TILE_SIZE;
                     }
                 }
-            
+
                 if (newTileX !== currentTileX && newTileY !== currentTileY) { //Check diagonal collision
                     const checkX = newTileX;
                     const checkY = newTileY;
-                    if (checkY < 0 || checkY >= MAP.length || checkX < 0 || checkX >= MAP[0].length || 
+                    if (checkY < 0 || checkY >= MAP.length || checkX < 0 || checkX >= MAP[0].length ||
                         !PASSABLE_TILES.includes(MAP[checkY][checkX])) {
                         newPixelX = player.pixelX;
                         newPixelY = player.pixelY;
                     }
                 }
-            
+
                 if (newPixelX !== player.pixelX || newPixelY !== player.pixelY) { //Update position if moved
                     player.pixelX = newPixelX;
                     player.pixelY = newPixelY;
@@ -91,7 +103,7 @@ export function startGame(wss, TILE_SIZE, VISIBLE_TILES_X, VISIBLE_TILES_Y, PASS
                     player.targetX = player.pixelX;
                     player.targetY = player.pixelY;
                 }
-                
+
                 let sendMap = false;
                 if (player.mapX !== player.lastMapX || player.mapY !== player.lastMapY) { //Tile changed
                     player.map = getMap(player.mapY, player.mapX, MAP, VISIBLE_TILES_X, VISIBLE_TILES_Y);
@@ -99,36 +111,36 @@ export function startGame(wss, TILE_SIZE, VISIBLE_TILES_X, VISIBLE_TILES_Y, PASS
                     player.lastMapY = player.mapY;
                     sendMap = true;
                 }
-            
+
                 const ws_client = Array.from(wss.clients).find(client => client.playerId === player.id);
                 if (ws_client) {
-                    ws_client.send(JSON.stringify({ 
-                    type: "update", 
-                    id: player.id, 
-                    mapX: player.mapX,
-                    mapY: player.mapY, 
-                    pixelX: player.pixelX, 
-                    pixelY: player.pixelY, 
-                    targetX: player.targetX,
-                    targetY: player.targetY, 
-                    health: player.health, 
-                    map: sendMap ? 
-                    player.map : undefined,
-                    username: player.username,
-                    level: player.level,
-                    gold: player.gold
+                    ws_client.send(JSON.stringify({
+                        type: "update",
+                        id: player.id,
+                        mapX: player.mapX,
+                        mapY: player.mapY,
+                        pixelX: player.pixelX,
+                        pixelY: player.pixelY,
+                        targetX: player.targetX,
+                        targetY: player.targetY,
+                        health: player.health,
+                        map: sendMap ?
+                            player.map : undefined,
+                        username: player.username,
+                        level: player.level,
+                        gold: player.gold
                     }));
                 }
-            
-                broadcast({ 
-                    type: "update", 
-                    id: player.id, 
-                    mapX: player.mapX, 
+
+                broadcast({
+                    type: "update",
+                    id: player.id,
+                    mapX: player.mapX,
                     mapY: player.mapY,
-                    pixelX: player.pixelX, 
-                    pixelY: player.pixelY, 
+                    pixelX: player.pixelX,
+                    pixelY: player.pixelY,
                     targetX: player.targetX,
-                    targetY: player.targetY, 
+                    targetY: player.targetY,
                     health: player.health,
                     username: player.username,
                     level: player.level,
@@ -136,28 +148,21 @@ export function startGame(wss, TILE_SIZE, VISIBLE_TILES_X, VISIBLE_TILES_Y, PASS
                 }, wss, ws_client);
             }
 
-            for (const enemyID in enemies) { //Quick loop that removes dead zombies
-                if (Math.floor(enemies[enemyID].health) < 1) {
-                    locationData[enemies[enemyID].location]--;
-                    delete enemies[enemyID];
-                }
-            }
-        
             for (const enemyID in enemies) { //Check enemy collisions
                 const enemy = enemies[enemyID];
                 const dx = Math.abs(player.pixelX - enemy.pixelX);
                 const dy = Math.abs(player.pixelY - enemy.pixelY);
                 if (dx < TILE_SIZE * 0.8 && dy < TILE_SIZE * 0.8) { //If too close to enemy
                     player.health = Math.max(0, player.health - 0.25); //Take damage
-                    broadcast({ 
-                        type: "update", 
-                        id: player.id, 
+                    broadcast({
+                        type: "update",
+                        id: player.id,
                         mapX: player.mapX,
                         mapY: player.mapY,
                         pixelX: player.pixelX,
-                        pixelY: player.pixelY, 
+                        pixelY: player.pixelY,
                         targetX: player.targetX,
-                        targetY: player.targetY, 
+                        targetY: player.targetY,
                         health: player.health,
                         username: player.username,
                         gold: player.gold,
@@ -166,7 +171,7 @@ export function startGame(wss, TILE_SIZE, VISIBLE_TILES_X, VISIBLE_TILES_Y, PASS
                 }
             }
         }
-        
+
         for (const enemyID in enemies) { //Update all enemies
             const enemy = enemies[enemyID];
             let nearPLayer = false
@@ -201,31 +206,31 @@ export function startGame(wss, TILE_SIZE, VISIBLE_TILES_X, VISIBLE_TILES_Y, PASS
                 else if (randomDir === "down-right") enemy.movingDownRight = true;
                 else if (randomDir === "down-left") enemy.movingDownleft = true;
             }
-                
+
             let velocityX = 0;
             let velocityY = 0;
             if (enemy.movingUp || enemy.movingUpLeft || enemy.movingUpRight) velocityY = -1.5;
             else if (enemy.movingDown || enemy.movingDownRight || enemy.movingDownleft) velocityY = 1.5;
             if (enemy.movingLeft || enemy.movingDownleft || enemy.movingUpRight) velocityX = -1.5;
             else if (enemy.movingRight || enemy.movingDownRight || enemy.movingUpRight) velocityX = 1.5;
-            
+
             if (velocityX !== 0 && velocityY !== 0) { //Normalize diagonal speed
                 const normalizer = 1 / Math.sqrt(2);
                 velocityX *= normalizer;
                 velocityY *= normalizer;
             }
-            
+
             let newPixelX = enemy.pixelX + velocityX;
             let newPixelY = enemy.pixelY + velocityY;
             const currentTileX = Math.floor(enemy.pixelX / TILE_SIZE);
             const currentTileY = Math.floor(enemy.pixelY / TILE_SIZE);
             const newTileX = Math.floor(newPixelX / TILE_SIZE);
             const newTileY = Math.floor(newPixelY / TILE_SIZE);
-            
+
             if (newTileX !== currentTileX) { //Check horizontal collision
                 const checkX = newTileX;
                 const checkY = currentTileY;
-                if (checkY < 0 || checkY >= MAP.length || checkX < 0 || checkX >= MAP[0].length || 
+                if (checkY < 0 || checkY >= MAP.length || checkX < 0 || checkX >= MAP[0].length ||
                     !PASSABLE_TILES.includes(MAP[checkY][checkX])) {
                     newPixelX = velocityX > 0 ? currentTileX * TILE_SIZE + TILE_SIZE - 1 : currentTileX * TILE_SIZE;
                     enemy.movingLeft = false;
@@ -236,7 +241,7 @@ export function startGame(wss, TILE_SIZE, VISIBLE_TILES_X, VISIBLE_TILES_Y, PASS
                     enemy.movingDownleft = false;
                 }
             }
-            
+
             if (newTileY !== currentTileY) { //Check vertical collision
                 const checkX = currentTileX;
                 const checkY = newTileY;
@@ -250,7 +255,7 @@ export function startGame(wss, TILE_SIZE, VISIBLE_TILES_X, VISIBLE_TILES_Y, PASS
                     enemy.movingDownleft = false;
                 }
             }
-            
+
             if (newTileX !== currentTileX && newTileY !== currentTileY) { //Check diagonal collision
                 const checkX = newTileX;
                 const checkY = newTileY;
@@ -267,7 +272,7 @@ export function startGame(wss, TILE_SIZE, VISIBLE_TILES_X, VISIBLE_TILES_Y, PASS
                     enemy.movingDownleft = false;
                 }
             }
-            
+
             if (nearPLayer) {
                 if (newPixelX !== enemy.pixelX || newPixelY !== enemy.pixelY) { //Update enemy position
                     enemy.pixelX = newPixelX;
@@ -277,16 +282,16 @@ export function startGame(wss, TILE_SIZE, VISIBLE_TILES_X, VISIBLE_TILES_Y, PASS
                     enemy.targetX = enemy.pixelX;
                     enemy.targetY = enemy.pixelY;
 
-                    broadcast({ 
-                        type: "enemy", 
-                        id: enemy.id, 
-                        mapX: enemy.mapX, 
+                    broadcast({
+                        type: "enemy",
+                        id: enemy.id,
+                        mapX: enemy.mapX,
                         mapY: enemy.mapY,
-                        pixelX: enemy.pixelX, 
-                        pixelY: enemy.pixelY, 
+                        pixelX: enemy.pixelX,
+                        pixelY: enemy.pixelY,
                         targetX: enemy.targetX,
-                        targetY: enemy.targetY, 
-                        health: enemy.health 
+                        targetY: enemy.targetY,
+                        health: enemy.health
                     }, wss);
                 }
             }
