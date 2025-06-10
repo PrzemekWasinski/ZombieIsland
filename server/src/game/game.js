@@ -8,9 +8,10 @@ export function startGame(wss, TILE_SIZE, VISIBLE_TILES_X, VISIBLE_TILES_Y, PASS
     }
 
     for (let i = 0; i < Object.keys(ENEMY_SPAWNS).length; i++) {
-        let spawnData = ENEMY_SPAWNS[Object.keys(ENEMY_SPAWNS)[i]]
+        let key = Object.keys(ENEMY_SPAWNS)[i]
+        let spawnData = ENEMY_SPAWNS[key]
         for (let j = 0; j < spawnData.enemyAmount; j++) {
-            spawnEnemy(enemies, PASSABLE_TILES, MAP, enemyNextID, TILE_SIZE, spawnData.topLeft, spawnData.bottomRight, i, locationData)
+            spawnEnemy(enemies, PASSABLE_TILES, MAP, enemyNextID, TILE_SIZE, spawnData.topLeft, spawnData.bottomRight, key)
         }
     }
 
@@ -18,9 +19,7 @@ export function startGame(wss, TILE_SIZE, VISIBLE_TILES_X, VISIBLE_TILES_Y, PASS
         const deadEnemies = Object.keys(enemies).filter(id => enemies[id].health <= 0);
         for (const id of deadEnemies) {
             const loc = enemies[id].location;
-            if (loc !== undefined && locationData[loc] !== undefined) {
-                locationData[loc]--;
-            }
+            locationData[loc]--;
             delete enemies[id];
         }
 
@@ -29,7 +28,7 @@ export function startGame(wss, TILE_SIZE, VISIBLE_TILES_X, VISIBLE_TILES_Y, PASS
             let spawnData = ENEMY_SPAWNS[key];
 
             while (locationData[key] < spawnData.enemyAmount) {
-                spawnEnemy(enemies, PASSABLE_TILES, MAP, enemyNextID, TILE_SIZE, spawnData.topLeft, spawnData.bottomRight, i, locationData);
+                spawnEnemy(enemies, PASSABLE_TILES, MAP, enemyNextID, TILE_SIZE, spawnData.topLeft, spawnData.bottomRight, key);
                 locationData[key]++;
             }
         }
@@ -184,8 +183,29 @@ export function startGame(wss, TILE_SIZE, VISIBLE_TILES_X, VISIBLE_TILES_Y, PASS
                 }
             }
 
-            if (Math.random() < 0.01 && nearPLayer) { //1% chance to change direction
-                const directions = ["up", "down", "left", "right", "up-right", "up-left", "down-right", "down-left", "none"];
+            if (Math.random() < 0.01 && nearPLayer) {
+                const spawn = ENEMY_SPAWNS[enemy.location];
+                const topLeft = spawn.topLeft;
+                const bottomRight = spawn.bottomRight;
+
+                const canMoveUp = enemy.mapY - 1 >= topLeft[1];
+                const canMoveDown = enemy.mapY + 1 <= bottomRight[1];
+                const canMoveLeft = enemy.mapX - 1 >= topLeft[0];
+                const canMoveRight = enemy.mapX + 1 <= bottomRight[0];
+
+                // Only include valid directions
+                const directions = [];
+
+                if (canMoveUp) directions.push("up");
+                if (canMoveDown) directions.push("down");
+                if (canMoveLeft) directions.push("left");
+                if (canMoveRight) directions.push("right");
+                if (canMoveUp && canMoveRight) directions.push("up-right");
+                if (canMoveUp && canMoveLeft) directions.push("up-left");
+                if (canMoveDown && canMoveRight) directions.push("down-right");
+                if (canMoveDown && canMoveLeft) directions.push("down-left");
+                directions.push("none"); // Optional: allow standing still
+
                 const randomDir = directions[Math.floor(Math.random() * directions.length)];
 
                 enemy.movingUp = false;
@@ -222,6 +242,8 @@ export function startGame(wss, TILE_SIZE, VISIBLE_TILES_X, VISIBLE_TILES_Y, PASS
 
             let newPixelX = enemy.pixelX + velocityX;
             let newPixelY = enemy.pixelY + velocityY;
+
+            
             const currentTileX = Math.floor(enemy.pixelX / TILE_SIZE);
             const currentTileY = Math.floor(enemy.pixelY / TILE_SIZE);
             const newTileX = Math.floor(newPixelX / TILE_SIZE);
@@ -272,6 +294,19 @@ export function startGame(wss, TILE_SIZE, VISIBLE_TILES_X, VISIBLE_TILES_Y, PASS
                     enemy.movingDownleft = false;
                 }
             }
+            const spawn = ENEMY_SPAWNS[enemy.location];
+            const topLeft = spawn.topLeft;
+            const bottomRight = spawn.bottomRight;
+
+            const minX = topLeft[0] * TILE_SIZE;
+            const maxX = (bottomRight[0] + 1) * TILE_SIZE - 1;
+            const minY = topLeft[1] * TILE_SIZE;
+            const maxY = (bottomRight[1] + 1) * TILE_SIZE - 1;
+
+            if (newPixelX < minX) newPixelX = minX;
+            if (newPixelX > maxX) newPixelX = maxX;
+            if (newPixelY < minY) newPixelY = minY;
+            if (newPixelY > maxY) newPixelY = maxY;
 
             if (nearPLayer) {
                 if (newPixelX !== enemy.pixelX || newPixelY !== enemy.pixelY) { //Update enemy position

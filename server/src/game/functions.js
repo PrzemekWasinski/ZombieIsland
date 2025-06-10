@@ -39,10 +39,11 @@ export async function updateStats(key, newValue, supabase) {
 	}
 }
 
-export function spawnEnemy(enemies, PASSABLE_TILES, MAP, enemyNextID, TILE_SIZE, topLeft, bottomRight, spawnLocation, locationData) {
+export function spawnEnemy(enemies, PASSABLE_TILES, MAP, enemyNextID, TILE_SIZE, topLeft, bottomRight, spawnLocation) {
 	let x, y;
-	x = Math.floor(Math.random() * (topLeft[0] - bottomRight[0] + 1) + topLeft[0]);
-	y = Math.floor(Math.random() * (topLeft[1] - bottomRight[1] + 1) + topLeft[1]);
+	x = Math.floor(Math.random() * (bottomRight[0] - topLeft[0] + 1) + topLeft[0]);
+	y = Math.floor(Math.random() * (bottomRight[1] - topLeft[1] + 1) + topLeft[1]);
+
 
 	if (PASSABLE_TILES.includes(MAP[y][x])) {
 		enemies[enemyNextID] = { //Create new enemies
@@ -60,7 +61,6 @@ export function spawnEnemy(enemies, PASSABLE_TILES, MAP, enemyNextID, TILE_SIZE,
 		};
 
 		enemyNextID = getNextEnemyID();
-		locationData[spawnLocation]++;
 	}
 }
 
