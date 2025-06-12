@@ -39,7 +39,7 @@ export async function updateStats(key, newValue, supabase) {
 	}
 }
 
-export function spawnEnemy(enemies, PASSABLE_TILES, MAP, enemyNextID, TILE_SIZE, topLeft, bottomRight, spawnLocation) {
+export function spawnEnemy(enemies, PASSABLE_TILES, MAP, enemyNextID, TILE_SIZE, topLeft, bottomRight, spawnLocation, enemyStats) {
 	let x, y;
 	x = Math.floor(Math.random() * (bottomRight[0] - topLeft[0] + 1) + topLeft[0]);
 	y = Math.floor(Math.random() * (bottomRight[1] - topLeft[1] + 1) + topLeft[1]);
@@ -56,8 +56,12 @@ export function spawnEnemy(enemies, PASSABLE_TILES, MAP, enemyNextID, TILE_SIZE,
 			targetY: y * TILE_SIZE,
 			movingX: 0,
 			movingY: 0,
-			health: 100,
-			location: spawnLocation
+			health: enemyStats.health[0],
+			maxHealth: enemyStats.health[1],
+			location: spawnLocation,
+			name: enemyStats.name,
+			damage: enemyStats.damage,
+			speed: enemyStats.speed
 		};
 
 		enemyNextID = getNextEnemyID();

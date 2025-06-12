@@ -121,7 +121,7 @@ export async function startWebSocket(config) {
 						const dx = Math.abs(player.pixelX - enemy.pixelX);
 						const dy = Math.abs(player.pixelY - enemy.pixelY);
 						if (dx < TILE_SIZE * 1.2 && dy < TILE_SIZE * 1.2) { // If enemy in range
-							enemy.health = Math.max(0, enemy.health - 3); // Damage enemy
+							enemy.health = Math.max(0, enemy.health - 3); // Damage enemy (3 is the default value change this for when players deal theirown damage)
 							hasUpdated = true;
 						}
 						if (hasUpdated) {
@@ -134,7 +134,9 @@ export async function startWebSocket(config) {
 								pixelY: enemy.pixelY,
 								targetX: enemy.targetX,
 								targetY: enemy.targetY,
-								health: enemy.health
+								health: enemy.health,
+								maxHealth: enemy.maxHealth,
+								name: enemy.name
 							}, wss);
 						}
 					}

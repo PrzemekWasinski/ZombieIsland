@@ -58,17 +58,17 @@ export function startGame({ userId, token }) {
         return;
       } //Skip if invalid player
 	  if (isNearby([players[playerId].mapX, players[playerId].mapY], [msg.mapX, msg.mapY])) {
-		const player = players[msg.id];
-		player.health = Number(msg.health) || 100;
-		player.mapX = Number(msg.mapX) || 42;
-		player.mapY = Number(msg.mapY) || 46;
-		player.pixelX = Number(msg.pixelX) || player.mapX * tileSize;
-		player.pixelY = Number(msg.pixelY) || player.mapY * tileSize;
-		player.targetX = Number(msg.targetX) || player.pixelX;
-		player.targetY = Number(msg.targetY) || player.pixelY;
-		player.username = msg.username;
-		player.level = msg.level;
-		player.gold = msg.gold;
+      const player = players[msg.id];
+      player.health = Number(msg.health) || 100;
+      player.mapX = Number(msg.mapX) || 42;
+      player.mapY = Number(msg.mapY) || 46;
+      player.pixelX = Number(msg.pixelX) || player.mapX * tileSize;
+      player.pixelY = Number(msg.pixelY) || player.mapY * tileSize;
+      player.targetX = Number(msg.targetX) || player.pixelX;
+      player.targetY = Number(msg.targetY) || player.pixelY;
+      player.username = msg.username;
+      player.level = msg.level;
+      player.gold = msg.gold;
 
 		if (msg.id === playerId && msg.map) { //Update your map
 			player.map = msg.map;
@@ -86,7 +86,8 @@ export function startGame({ userId, token }) {
 					pixelY: msg.pixelY || msg.mapY * tileSize,
 					targetX: msg.targetX || msg.mapX * tileSize,
 					targetY: msg.targetY || msg.mapY * tileSize,
-					health: msg.health
+					health: msg.health,
+          name: msg.name
 				};
 			} else { //Existing enemy
 				const enemy = enemies[msg.id];
@@ -97,6 +98,7 @@ export function startGame({ userId, token }) {
 				enemy.targetX = msg.targetX;
 				enemy.targetY = msg.targetY;
 				enemy.health = msg.health;
+        enemy.name = msg.name;
 			}
 		}
     } else if (msg.type === 'leave') { //Player left
@@ -147,7 +149,7 @@ export function startGame({ userId, token }) {
 
   function draw(currentTime) { //Main game loop
     console.log(`Enemies loaded: ${Object.keys(enemies).length}`)
-	console.log(`Players loaded: ${Object.keys(players).length}`)
+	  console.log(`Players loaded: ${Object.keys(players).length}`)
 
     for (const enemyID in enemies) {
       const enemy = enemies[enemyID];

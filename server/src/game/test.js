@@ -17,3 +17,6 @@ for (let i = 0; i < Object.keys(ENEMY_SPAWNS).length; i++) {
     }
 }
 console.log(locationData)
+
+let x = 5
+console.log(-x * 2)

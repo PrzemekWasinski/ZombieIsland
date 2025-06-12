@@ -76,7 +76,6 @@ export function drawPlayer(player, isCurrentPlayer, currentPlayer) { //Draw play
   ctx.font = "18px Arial";
   ctx.textAlign = "center"
   ctx.fillText(`${player.username} lv.${player.level}`, screenX + 30, screenY - 10)
-  
 }
 
 export function drawEnemy(enemy, currentPlayer) { //Draw enemy
@@ -103,6 +102,11 @@ export function drawEnemy(enemy, currentPlayer) { //Draw enemy
       healthBarFg.height
     );
   }
+
+  ctx.fillStyle = "rgb(255, 255, 255)" 
+  ctx.font = "18px Arial";
+  ctx.textAlign = "center"
+  ctx.fillText(`${enemy.name}`, screenX + 30, screenY - 10)
 }
 
 export function isNearby(coord1, coord2) {

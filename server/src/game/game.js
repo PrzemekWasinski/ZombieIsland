@@ -1,4 +1,4 @@
-import { players, enemies, enemyNextID } from "./state.js";
+import { players, enemies, enemyNextID, drops, getNextDropID } from "./state.js";
 import { broadcast, spawnEnemy, getMap, isNearby } from "../game/functions.js";
 
 export function startGame(wss, TILE_SIZE, VISIBLE_TILES_X, VISIBLE_TILES_Y, PASSABLE_TILES, PLAYER_SPAWN, ENEMY_SPAWNS, MAP) {
@@ -11,12 +11,12 @@ export function startGame(wss, TILE_SIZE, VISIBLE_TILES_X, VISIBLE_TILES_Y, PASS
         let key = Object.keys(ENEMY_SPAWNS)[i]
         let spawnData = ENEMY_SPAWNS[key]
         for (let j = 0; j < spawnData.enemyAmount; j++) {
-            spawnEnemy(enemies, PASSABLE_TILES, MAP, enemyNextID, TILE_SIZE, spawnData.topLeft, spawnData.bottomRight, key)
+            spawnEnemy(enemies, PASSABLE_TILES, MAP, enemyNextID, TILE_SIZE, spawnData.topLeft, spawnData.bottomRight, key, spawnData.enemyStats)
         }
     }
 
     setInterval(() => { //Game loop 50 times per second
-        const deadEnemies = Object.keys(enemies).filter(id => enemies[id].health <= 0);
+        const deadEnemies = Object.keys(enemies).filter(id => enemies[id].health <= 0); //Delete dead zombies
         for (const id of deadEnemies) {
             const loc = enemies[id].location;
             locationData[loc]--;
@@ -28,7 +28,7 @@ export function startGame(wss, TILE_SIZE, VISIBLE_TILES_X, VISIBLE_TILES_Y, PASS
             let spawnData = ENEMY_SPAWNS[key];
 
             while (locationData[key] < spawnData.enemyAmount) {
-                spawnEnemy(enemies, PASSABLE_TILES, MAP, enemyNextID, TILE_SIZE, spawnData.topLeft, spawnData.bottomRight, key);
+                spawnEnemy(enemies, PASSABLE_TILES, MAP, enemyNextID, TILE_SIZE, spawnData.topLeft, spawnData.bottomRight, key, spawnData.enemyStats);
                 locationData[key]++;
             }
         }
@@ -152,7 +152,7 @@ export function startGame(wss, TILE_SIZE, VISIBLE_TILES_X, VISIBLE_TILES_Y, PASS
                 const dx = Math.abs(player.pixelX - enemy.pixelX);
                 const dy = Math.abs(player.pixelY - enemy.pixelY);
                 if (dx < TILE_SIZE * 0.8 && dy < TILE_SIZE * 0.8) { //If too close to enemy
-                    player.health = Math.max(0, player.health - 0.25); //Take damage
+                    player.health = Math.max(0, player.health - enemy.damage); //Take damage
                     broadcast({
                         type: "update",
                         id: player.id,
@@ -229,10 +229,11 @@ export function startGame(wss, TILE_SIZE, VISIBLE_TILES_X, VISIBLE_TILES_Y, PASS
 
             let velocityX = 0;
             let velocityY = 0;
-            if (enemy.movingUp || enemy.movingUpLeft || enemy.movingUpRight) velocityY = -1.5;
-            else if (enemy.movingDown || enemy.movingDownRight || enemy.movingDownleft) velocityY = 1.5;
-            if (enemy.movingLeft || enemy.movingDownleft || enemy.movingUpRight) velocityX = -1.5;
-            else if (enemy.movingRight || enemy.movingDownRight || enemy.movingUpRight) velocityX = 1.5;
+
+            if (enemy.movingUp || enemy.movingUpLeft || enemy.movingUpRight) velocityY = -enemy.speed;
+            else if (enemy.movingDown || enemy.movingDownRight || enemy.movingDownleft) velocityY = enemy.speed;
+            if (enemy.movingLeft || enemy.movingDownleft || enemy.movingUpRight) velocityX = -enemy.speed;
+            else if (enemy.movingRight || enemy.movingDownRight || enemy.movingUpRight) velocityX = enemy.speed;
 
             if (velocityX !== 0 && velocityY !== 0) { //Normalize diagonal speed
                 const normalizer = 1 / Math.sqrt(2);
@@ -326,7 +327,9 @@ export function startGame(wss, TILE_SIZE, VISIBLE_TILES_X, VISIBLE_TILES_Y, PASS
                         pixelY: enemy.pixelY,
                         targetX: enemy.targetX,
                         targetY: enemy.targetY,
-                        health: enemy.health
+                        health: enemy.health,
+                        maxHealth: enemy.maxHealth,
+                        name: enemy.name
                     }, wss);
                 }
             }
