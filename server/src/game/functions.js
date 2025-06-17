@@ -1,4 +1,4 @@
-import { getNextEnemyID } from "./state.js";
+import { getNextDropID, getNextEnemyID } from "./state.js";
 
 export function broadcast(data, wss) { //Send data to all clients
 	const msg = JSON.stringify(data);
@@ -91,4 +91,14 @@ export function isNearby(coord1, coord2) {
 	const dx = coord1[0] - coord2[0]; // X-axis difference
 	const dy = coord1[1] - coord2[1]; // Y-axis difference
 	return dx * dx + dy * dy <= 1250; // 25^2 = 1250
+}
+
+export function spawnDrop(x, y, id, drops, TILE_SIZE) {
+	drops[id] = {
+		id: id,
+		mapX: x,
+		mapY: y,
+		pixelX: x * TILE_SIZE,
+		pixelY: y * TILE_SIZE
+	}
 }

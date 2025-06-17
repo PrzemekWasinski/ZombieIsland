@@ -109,6 +109,16 @@ export function drawEnemy(enemy, currentPlayer) { //Draw enemy
   ctx.fillText(`${enemy.name}`, screenX + 30, screenY - 10)
 }
 
+export function drawDrop(drop, currentPlayer) { //Draw drop
+  const relativeX = drop.pixelX - currentPlayer.pixelX;
+  const relativeY = drop.pixelY - currentPlayer.pixelY;
+  const screenX = Math.round(halfCanvasWidth - halfTileSize + relativeX);
+  const screenY = Math.round(halfCanvasHeight - halfTileSize + relativeY);
+  
+  ctx.fillStyle = 'blue';
+  ctx.fillRect(screenX, screenY, tileSize, tileSize);
+}
+
 export function isNearby(coord1, coord2) {
   const dx = coord1[0] - coord2[0]; // X-axis difference
   const dy = coord1[1] - coord2[1]; // Y-axis difference

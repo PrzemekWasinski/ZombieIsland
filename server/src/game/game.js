@@ -1,5 +1,5 @@
 import { players, enemies, enemyNextID, drops, getNextDropID } from "./state.js";
-import { broadcast, spawnEnemy, getMap, isNearby } from "../game/functions.js";
+import { broadcast, spawnEnemy, getMap, isNearby, spawnDrop } from "../game/functions.js";
 
 export function startGame(wss, TILE_SIZE, VISIBLE_TILES_X, VISIBLE_TILES_Y, PASSABLE_TILES, PLAYER_SPAWN, ENEMY_SPAWNS, MAP) {
     let locationData = {}
@@ -18,9 +18,24 @@ export function startGame(wss, TILE_SIZE, VISIBLE_TILES_X, VISIBLE_TILES_Y, PASS
     setInterval(() => { //Game loop 50 times per second
         const deadEnemies = Object.keys(enemies).filter(id => enemies[id].health <= 0); //Delete dead zombies
         for (const id of deadEnemies) {
-            const loc = enemies[id].location;
+            const enemy = enemies[id]
+            const loc = enemy.location;
             locationData[loc]--;
+            const dropID = getNextDropID();
+            spawnDrop(enemy.mapX, enemy.mapY, dropID, drops, TILE_SIZE)
             delete enemies[id];
+        }
+
+        for (const id in drops) {
+            const drop = drops[id]
+            broadcast({
+                type: "drop",
+                id: drop.id,
+                mapX: drop.mapX,
+                mapY: drop.mapY,
+                pixelX: drop.pixelX,
+                pixelY: drop.pixelY,
+            }, wss);
         }
 
         for (let i = 0; i < Object.keys(ENEMY_SPAWNS).length; i++) {
