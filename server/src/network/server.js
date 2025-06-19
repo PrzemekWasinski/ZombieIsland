@@ -135,8 +135,7 @@ export async function startWebSocket(config) {
 								targetX: enemy.targetX,
 								targetY: enemy.targetY,
 								health: enemy.health,
-								maxHealth: enemy.maxHealth,
-								name: enemy.name
+								maxHealth: enemy.maxHealth
 							}, wss);
 						}
 					}

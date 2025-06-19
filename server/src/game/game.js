@@ -21,8 +21,13 @@ export function startGame(wss, TILE_SIZE, VISIBLE_TILES_X, VISIBLE_TILES_Y, PASS
             const enemy = enemies[id]
             const loc = enemy.location;
             locationData[loc]--;
-            const dropID = getNextDropID();
-            spawnDrop(enemy.mapX, enemy.mapY, dropID, drops, TILE_SIZE)
+
+            const rand = Math.random() * (100 - 1) + 1;
+            if (rand > 50) {
+                const dropID = getNextDropID();
+                spawnDrop(enemy.mapX, enemy.mapY, dropID, drops, TILE_SIZE)
+            }
+
             delete enemies[id];
         }
 
@@ -137,9 +142,8 @@ export function startGame(wss, TILE_SIZE, VISIBLE_TILES_X, VISIBLE_TILES_Y, PASS
                         pixelY: player.pixelY,
                         targetX: player.targetX,
                         targetY: player.targetY,
+                        map: sendMap ? player.map : undefined,
                         health: player.health,
-                        map: sendMap ?
-                            player.map : undefined,
                         username: player.username,
                         level: player.level,
                         gold: player.gold
@@ -157,8 +161,8 @@ export function startGame(wss, TILE_SIZE, VISIBLE_TILES_X, VISIBLE_TILES_Y, PASS
                     targetY: player.targetY,
                     health: player.health,
                     username: player.username,
-                    level: player.level,
-                    gold: player.gold
+					level: player.level,
+					gold: player.gold
                 }, wss, ws_client);
             }
 
@@ -171,16 +175,7 @@ export function startGame(wss, TILE_SIZE, VISIBLE_TILES_X, VISIBLE_TILES_Y, PASS
                     broadcast({
                         type: "update",
                         id: player.id,
-                        mapX: player.mapX,
-                        mapY: player.mapY,
-                        pixelX: player.pixelX,
-                        pixelY: player.pixelY,
-                        targetX: player.targetX,
-                        targetY: player.targetY,
                         health: player.health,
-                        username: player.username,
-                        gold: player.gold,
-                        level: player.level
                     }, wss);
                 }
             }
@@ -345,6 +340,29 @@ export function startGame(wss, TILE_SIZE, VISIBLE_TILES_X, VISIBLE_TILES_Y, PASS
                         health: enemy.health,
                         maxHealth: enemy.maxHealth,
                         name: enemy.name
+                    }, wss);
+                }
+            }
+        }
+
+        for (const dropID in drops) {
+            const drop = drops[dropID]
+
+            for (const playerID in players) {
+                const player = players[playerID]
+                if (player.mapX == drop.mapX && player.mapY == drop.mapY) {
+                    delete drops[dropID];
+                    
+                    if (player.health > 90) {
+                        player.health = 100
+                    } else {
+                        player.health += 10
+                    }
+
+                    broadcast({
+                        type: "update",
+                        id: player.id,
+                        health: player.health,
                     }, wss);
                 }
             }

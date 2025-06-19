@@ -60,16 +60,17 @@ export function startGame({ userId, token }) {
 			} //Skip if invalid player
 			if (isNearby([players[playerId].mapX, players[playerId].mapY], [msg.mapX, msg.mapY])) {
 				const player = players[msg.id];
-				player.health = Number(msg.health) || 100;
-				player.mapX = Number(msg.mapX) || 42;
-				player.mapY = Number(msg.mapY) || 46;
-				player.pixelX = Number(msg.pixelX) || player.mapX * tileSize;
-				player.pixelY = Number(msg.pixelY) || player.mapY * tileSize;
-				player.targetX = Number(msg.targetX) || player.pixelX;
-				player.targetY = Number(msg.targetY) || player.pixelY;
-				player.username = msg.username;
-				player.level = msg.level;
-				player.gold = msg.gold;
+
+				if (player.health !== undefined) player.health = Number(msg.health) || 100;
+				if (player.mapX !== undefined) player.mapX = Number(msg.mapX) || 42;
+				if (player.mapY !== undefined) player.mapY = Number(msg.mapY) || 46;
+				if (player.pixelX !== undefined) player.pixelX = Number(msg.pixelX) || player.mapX * tileSize;
+				if (player.pixelY !== undefined) player.pixelY = Number(msg.pixelY) || player.mapY * tileSize;
+				if (player.targetX !== undefined) player.targetX = Number(msg.targetX) || player.pixelX;
+				if (player.targetY !== undefined) player.targetY = Number(msg.targetY) || player.pixelY;
+				if (player.username !== undefined) player.username = msg.username;
+				if (player.level !== undefined) player.level = msg.level;
+				if (player.gold !== undefined) player.gold = msg.gold;
 
 				if (msg.id === playerId && msg.map) { //Update your map
 					player.map = msg.map;
@@ -78,55 +79,50 @@ export function startGame({ userId, token }) {
 
 		} else if (msg.type === 'enemy') { //enemy update
 			if (isNearby([msg.mapX, msg.mapY], [players[playerId].mapX, players[playerId].mapY])) {
-				if (!enemies[msg.id]) { //New enemy
-					enemies[msg.id] = {
-						id: msg.id,
-						mapX: msg.mapX,
-						mapY: msg.mapY,
-						pixelX: msg.pixelX || msg.mapX * tileSize,
-						pixelY: msg.pixelY || msg.mapY * tileSize,
-						targetX: msg.targetX || msg.mapX * tileSize,
-						targetY: msg.targetY || msg.mapY * tileSize,
-						health: msg.health,
-						name: msg.name
-					};
+				if (!enemies[msg.id]) { //New 
+					let enemy = {};
+    
+					if (msg.mapX !== undefined) enemy.mapX = msg.mapX;
+					if (msg.mapY !== undefined) enemy.mapY = msg.mapY;
+					if (msg.pixelX !== undefined) enemy.pixelX = msg.pixelX;
+					if (msg.pixelY !== undefined) enemy.pixelY = msg.pixelY;
+					if (msg.targetX !== undefined) enemy.targetX = msg.targetX;
+					if (msg.targetY !== undefined) enemy.targetY = msg.targetY;
+					if (msg.health !== undefined) enemy.health = msg.health;
+					if (msg.maxHealth !== undefined) enemy.maxHealth = msg.maxHealth;
+					if (msg.name !== undefined) enemy.name = msg.name;
+
+					enemies[msg.id] = enemy;
 				} else { //Existing enemy
 					const enemy = enemies[msg.id];
-					enemy.mapX = msg.mapX;
-					enemy.mapY = msg.mapY;
-					enemy.pixelX = msg.pixelX;
-					enemy.pixelY = msg.pixelY;
-					enemy.targetX = msg.targetX;
-					enemy.targetY = msg.targetY;
-					enemy.health = msg.health;
-					enemy.name = msg.name;
+					if (msg.mapX !== undefined) enemy.mapX = msg.mapX;
+					if (msg.mapY !== undefined) enemy.mapY = msg.mapY;
+					if (msg.pixelX !== undefined) enemy.pixelX = msg.pixelX;
+					if (msg.pixelY !== undefined) enemy.pixelY = msg.pixelY;
+					if (msg.targetX !== undefined) enemy.targetX = msg.targetX;
+					if (msg.targetY !== undefined) enemy.targetY = msg.targetY;
+					if (msg.health !== undefined) enemy.health = msg.health;
+					if (msg.name !== undefined) enemy.name = msg.name;
 				}
 			}
 		
 		} else if (msg.type === "drop") {
 			if (isNearby([msg.mapX, msg.mapY], [players[playerId].mapX, players[playerId].mapY])) {
 				if (!drops[msg.id]) { //New drop
-					drops[msg.id] = {
-						id: msg.id,
-						mapX: msg.mapX,
-						mapY: msg.mapY,
-						pixelX: msg.pixelX || msg.mapX * tileSize,
-						pixelY: msg.pixelY || msg.mapY * tileSize,
-						targetX: msg.targetX || msg.mapX * tileSize,
-						targetY: msg.targetY || msg.mapY * tileSize,
-						health: msg.health,
-						name: msg.name
-					};
+					let drop = {}
+
+					if (msg.mapX !== undefined) {drop.mapX = msg.mapX};
+					if (msg.mapY !== undefined) {drop.mapY = msg.mapY};
+					if (msg.pixelX !== undefined) {drop.pixelX = msg.pixelX};
+					if (msg.pixelY !== undefined) {drop.pixelY = msg.pixelY};
+
+					drops[msg.id] = drop;
 				} else { //Existing drop
 					const drop = drops[msg.id];
-					drop.mapX = msg.mapX;
-					drop.mapY = msg.mapY;
-					drop.pixelX = msg.pixelX;
-					drop.pixelY = msg.pixelY;
-					drop.targetX = msg.targetX;
-					drop.targetY = msg.targetY;
-					drop.health = msg.health;
-					drop.name = msg.name;
+					if (msg.mapX !== undefined) {drop.mapX = msg.mapX};
+					if (msg.mapY !== undefined) {drop.mapY = msg.mapY};
+					if (msg.pixelX !== undefined) {drop.pixelX = msg.pixelX};
+					if (msg.pixelY !== undefined) {drop.pixelY = msg.pixelY};
 				}
 			}
 		} else if (msg.type === 'leave') { //Player left
@@ -244,7 +240,15 @@ export function startGame({ userId, token }) {
 		}
 
 		for (const id in drops) { //Draw drops
-			drawDrop(drops[id], currentPlayer);
+			const drop = drops[id]
+			drawDrop(drop, currentPlayer); //Remove picked up drops
+
+			for (const playerID in players) {
+				const player = players[playerID];
+				if (player.mapX == drop.mapX && player.mapY == drop.mapY) {
+					delete drops[id]
+				}
+			}
 		}
 
 		if (players[playerId]) { //Draw you (on top)
