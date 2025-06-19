@@ -1,7 +1,7 @@
 import { players, enemies, enemyNextID, drops, getNextDropID } from "./state.js";
-import { broadcast, spawnEnemy, getMap, isNearby, spawnDrop } from "../game/functions.js";
+import { broadcast, spawnEnemy, getMap, isNearby, spawnDrop, updateStats, saveProgress } from "../game/functions.js";
 
-export function startGame(wss, TILE_SIZE, VISIBLE_TILES_X, VISIBLE_TILES_Y, PASSABLE_TILES, PLAYER_SPAWN, ENEMY_SPAWNS, MAP) {
+export function startGame(wss, TILE_SIZE, VISIBLE_TILES_X, VISIBLE_TILES_Y, PASSABLE_TILES, PLAYER_SPAWN, ENEMY_SPAWNS, MAP, supabase) {
     let locationData = {}
     for (let i = 0; i < Object.keys(ENEMY_SPAWNS).length; i++) {
         locationData[Object.keys(ENEMY_SPAWNS)[i]] = 0
@@ -25,7 +25,7 @@ export function startGame(wss, TILE_SIZE, VISIBLE_TILES_X, VISIBLE_TILES_Y, PASS
             const rand = Math.random() * (100 - 1) + 1;
             if (rand > 50) {
                 const dropID = getNextDropID();
-                spawnDrop(enemy.mapX, enemy.mapY, dropID, drops, TILE_SIZE)
+                spawnDrop(enemy.pixelX, enemy.pixelY, dropID, drops, TILE_SIZE)
             }
 
             delete enemies[id];
@@ -350,7 +350,9 @@ export function startGame(wss, TILE_SIZE, VISIBLE_TILES_X, VISIBLE_TILES_Y, PASS
 
             for (const playerID in players) {
                 const player = players[playerID]
-                if (player.mapX == drop.mapX && player.mapY == drop.mapY) {
+                const dx = Math.abs(player.pixelX - drop.pixelX);
+                const dy = Math.abs(player.pixelY - drop.pixelY);
+                if (dx < TILE_SIZE - 0.5 && dy < TILE_SIZE - 0.5) { //If too close to drop
                     delete drops[dropID];
                     
                     if (player.health > 90) {
@@ -358,6 +360,9 @@ export function startGame(wss, TILE_SIZE, VISIBLE_TILES_X, VISIBLE_TILES_Y, PASS
                     } else {
                         player.health += 10
                     }
+                    player.level += 1
+
+                    saveProgress(player, supabase)
 
                     broadcast({
                         type: "update",

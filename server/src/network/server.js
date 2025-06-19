@@ -59,6 +59,7 @@ export async function startWebSocket(config) {
 				// Create and store the player object
 				players[id] = {
 					id,
+					dbID: ws.userId,
 					mapX: PLAYER_SPAWN[0],
 					mapY: PLAYER_SPAWN[1],
 					pixelX: PLAYER_SPAWN[0] * TILE_SIZE,
@@ -135,7 +136,8 @@ export async function startWebSocket(config) {
 								targetX: enemy.targetX,
 								targetY: enemy.targetY,
 								health: enemy.health,
-								maxHealth: enemy.maxHealth
+								maxHealth: enemy.maxHealth,
+								name: enemy.name
 							}, wss);
 						}
 					}
@@ -157,5 +159,5 @@ export async function startWebSocket(config) {
 		});
 	});
 
-	startGame(wss, TILE_SIZE, VISIBLE_TILES_X, VISIBLE_TILES_Y, PASSABLE_TILES, PLAYER_SPAWN, ENEMY_SPAWNS, MAP);
+	startGame(wss, TILE_SIZE, VISIBLE_TILES_X, VISIBLE_TILES_Y, PASSABLE_TILES, PLAYER_SPAWN, ENEMY_SPAWNS, MAP, supabase);
 }

@@ -106,7 +106,7 @@ export function drawEnemy(enemy, currentPlayer) { //Draw enemy
   ctx.fillStyle = "rgb(255, 255, 255)" 
   ctx.font = "18px Arial";
   ctx.textAlign = "center"
-  ctx.fillText(`${enemy.name}`, screenX + 30, screenY - 10)
+  ctx.fillText(`${enemy.name} ${enemy.health}/${enemy.maxHealth}`, screenX + 30, screenY - 10)
 }
 
 export function drawDrop(drop, currentPlayer) { //Draw drop

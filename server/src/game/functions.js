@@ -7,6 +7,16 @@ export function broadcast(data, wss) { //Send data to all clients
 	}
 }
 
+export async function saveProgress(player, supabase) {
+	const { data, error } = await supabase
+		.from("Characters")
+		.update({ "level": player.level, "gold": player.gold })
+		.eq("id", player.dbID)
+		.select(); // Optional: get updated row back
+
+	console.log("Updated stats")
+}
+
 export async function updateStats(key, newValue, supabase) {
 	// First, fetch the current value
 	const { data: existing, error: fetchError } = await supabase
@@ -96,9 +106,9 @@ export function isNearby(coord1, coord2) {
 export function spawnDrop(x, y, id, drops, TILE_SIZE) {
 	drops[id] = {
 		id: id,
-		mapX: x,
-		mapY: y,
-		pixelX: x * TILE_SIZE,
-		pixelY: y * TILE_SIZE
+		mapX: Math.floor(x / TILE_SIZE),
+		mapY: Math.floor(y / TILE_SIZE),
+		pixelX: x,
+		pixelY: y 
 	}
 }

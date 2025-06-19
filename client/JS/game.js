@@ -14,7 +14,7 @@ export function startGame({ userId, token }) {
 
 	const canvas = document.getElementById('game');
 	const ctx = canvas.getContext('2d');
-	const tileSize = 61; //Tile size in pixels
+	const TILE_SIZE = 61; //Tile size in pixels
 
 	let playerId = null; //player ID (not userID)
 	let players = {}; //All players
@@ -38,8 +38,8 @@ export function startGame({ userId, token }) {
 			players = msg.players;
 			for (const id in players) {
 				const player = players[id];
-				player.pixelX = Number(player.pixelX) || Number(player.mapX || 42) * tileSize;
-				player.pixelY = Number(player.pixelY) || Number(player.mapY || 46) * tileSize;
+				player.pixelX = Number(player.pixelX) || Number(player.mapX || 42) * TILE_SIZE;
+				player.pixelY = Number(player.pixelY) || Number(player.mapY || 46) * TILE_SIZE;
 				player.targetX = Number(player.targetX) || player.pixelX;
 				player.targetY = Number(player.targetY) || player.pixelY;
 			}
@@ -48,8 +48,8 @@ export function startGame({ userId, token }) {
 			if (isNearby([players[playerId].mapX, players[playerId.mapY]], [msg.player.mapX, msg.player.mapY])) {
 				players[msg.player.id] = msg.player;
 				const player = players[msg.player.id];
-				if (!player.pixelX) player.pixelX = player.mapX * tileSize;
-				if (!player.pixelY) player.pixelY = player.mapY * tileSize;
+				if (!player.pixelX) player.pixelX = player.mapX * TILE_SIZE;
+				if (!player.pixelY) player.pixelY = player.mapY * TILE_SIZE;
 				if (!player.targetX) player.targetX = player.pixelX;
 				if (!player.targetY) player.targetY = player.pixelY;
 			}
@@ -64,8 +64,8 @@ export function startGame({ userId, token }) {
 				if (player.health !== undefined) player.health = Number(msg.health) || 100;
 				if (player.mapX !== undefined) player.mapX = Number(msg.mapX) || 42;
 				if (player.mapY !== undefined) player.mapY = Number(msg.mapY) || 46;
-				if (player.pixelX !== undefined) player.pixelX = Number(msg.pixelX) || player.mapX * tileSize;
-				if (player.pixelY !== undefined) player.pixelY = Number(msg.pixelY) || player.mapY * tileSize;
+				if (player.pixelX !== undefined) player.pixelX = Number(msg.pixelX) || player.mapX * TILE_SIZE;
+				if (player.pixelY !== undefined) player.pixelY = Number(msg.pixelY) || player.mapY * TILE_SIZE;
 				if (player.targetX !== undefined) player.targetX = Number(msg.targetX) || player.pixelX;
 				if (player.targetY !== undefined) player.targetY = Number(msg.targetY) || player.pixelY;
 				if (player.username !== undefined) player.username = msg.username;
@@ -245,7 +245,9 @@ export function startGame({ userId, token }) {
 
 			for (const playerID in players) {
 				const player = players[playerID];
-				if (player.mapX == drop.mapX && player.mapY == drop.mapY) {
+				const dx = Math.abs(player.pixelX - drop.pixelX);
+                const dy = Math.abs(player.pixelY - drop.pixelY);
+                if (dx < TILE_SIZE - 0.5 && dy < TILE_SIZE - 0.5) { //If too close to drop
 					delete drops[id]
 				}
 			}
