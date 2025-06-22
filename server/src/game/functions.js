@@ -8,11 +8,15 @@ export function broadcast(data, wss) { //Send data to all clients
 }
 
 export async function saveProgress(player, supabase) {
-	const { data, error } = await supabase
+	const { error } = await supabase
 		.from("Characters")
-		.update({ "level": player.level, "gold": player.gold })
+		.update({ "level": player.level, "gold": player.gold, "health": player.health, "mapX": player.mapX, "mapY": player.mapY })
 		.eq("id", player.dbID)
-		.select(); // Optional: get updated row back
+		.select();
+
+	if (error) {
+		console.log(`Failed to update stats for: ${player.name}`)
+	}
 
 	console.log("Updated stats")
 }
@@ -54,6 +58,27 @@ export function spawnEnemy(enemies, PASSABLE_TILES, MAP, enemyNextID, TILE_SIZE,
 	x = Math.floor(Math.random() * (bottomRight[0] - topLeft[0] + 1) + topLeft[0]);
 	y = Math.floor(Math.random() * (bottomRight[1] - topLeft[1] + 1) + topLeft[1]);
 
+	let randInt = Math.floor((Math.random() * 100) + 1);
+	let enemyDamage, enemySpeed
+
+	if (randInt > 80) {
+		enemyDamage = 1
+		enemySpeed = 0
+	} else if (randInt > 60) {
+		enemyDamage = -1
+		enemySpeed = 0
+	} else if (randInt > 40) {
+		enemyDamage = 0
+		enemySpeed = 1
+	} else if (randInt > 20) {
+		enemyDamage = 0
+		enemySpeed = -1
+	} else if (randInt > 0) {
+		enemyDamage = 0
+		enemySpeed = 0
+	}
+
+
 
 	if (PASSABLE_TILES.includes(MAP[y][x])) {
 		enemies[enemyNextID] = { //Create new enemies
@@ -70,8 +95,8 @@ export function spawnEnemy(enemies, PASSABLE_TILES, MAP, enemyNextID, TILE_SIZE,
 			maxHealth: enemyStats.health[1],
 			location: spawnLocation,
 			name: enemyStats.name,
-			damage: enemyStats.damage,
-			speed: enemyStats.speed
+			damage: enemyStats.damage + enemyDamage,
+			speed: enemyStats.speed + enemySpeed
 		};
 
 		enemyNextID = getNextEnemyID();

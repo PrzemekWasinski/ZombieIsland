@@ -37,7 +37,6 @@ export async function startWebSocket(config) {
 
 				ws.userId = userData.user.id;
 
-				// Now try your original query
 				const { data: characterData, error: fetchError } = await supabase
 					.from("Characters")
 					.select("*")

@@ -373,4 +373,12 @@ export function startGame(wss, TILE_SIZE, VISIBLE_TILES_X, VISIBLE_TILES_Y, PASS
             }
         }
     }, 20);
+
+    setInterval(() => { //Loop to save every player's current progress
+        for (const id in players) {
+            const player = players[id];
+
+            saveProgress(player, supabase);
+        }
+    }, 500);
 }

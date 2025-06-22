@@ -54,12 +54,15 @@ document.getElementById('register-button').onclick = async () => {
   const user = data.user;
 
   if (user) {
-    //Step 3: Insert new character with unique username
     const { error: insertError } = await supabase.from('Characters').insert({
       id: user.id,
       username: username,
       level: 1,
-      gold: 0
+      gold: 0,
+      health: 100,
+      mapX: 269,
+      mapY: 245
+
     });
 
     if (insertError) {
