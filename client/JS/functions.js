@@ -14,6 +14,7 @@ const healthBarFg = { x: 5, y: 66, width: 0, height: 8 }; //Health bar fg
 
 export function drawMap(currentPlayer) { //Draw game map
   if (!currentPlayer.map) return;
+  
   const map = currentPlayer.map;
   const pixelX = currentPlayer.pixelX || 0;
   const pixelY = currentPlayer.pixelY || 0;
@@ -28,8 +29,10 @@ export function drawMap(currentPlayer) { //Draw game map
       if (img && img.complete) {
         const screenX = Math.round(halfCanvasWidth + (x - centerTileX) * tileSize - modX);
         const screenY = Math.round(halfCanvasHeight + (y - centerTileY) * tileSize - modY);
-        if (screenX > -tileSize && screenX < canvas.width && 
-            screenY > -tileSize && screenY < canvas.height) { //Only draw visible tiles
+        if (
+          screenX > -tileSize && screenX < canvas.width && //Only draw visible tiles
+          screenY > -tileSize && screenY < canvas.height
+        ) { 
           ctx.drawImage(img, screenX, screenY, tileSize, tileSize);
         }
       }
@@ -47,9 +50,11 @@ export function drawPlayer(player, isCurrentPlayer, currentPlayer) { //Draw play
     const relativeY = player.pixelY - currentPlayer.pixelY;
     screenX = Math.round(halfCanvasWidth - halfTileSize + relativeX);
     screenY = Math.round(halfCanvasHeight - halfTileSize + relativeY);
-    if (screenX < -tileSize || screenX > canvas.width || 
-        screenY < -tileSize || screenY > canvas.height) { //Skip if off-screen
-      return;
+    if (
+		screenX < -tileSize || screenX > canvas.width || 
+		screenY < -tileSize || screenY > canvas.height
+      ) { //Skip if off-screen
+      	return;
     }
   }
   
@@ -106,7 +111,7 @@ export function drawEnemy(enemy, currentPlayer) { //Draw enemy
   ctx.fillStyle = "rgb(255, 255, 255)" 
   ctx.font = "18px Arial";
   ctx.textAlign = "center"
-  ctx.fillText(`${enemy.name} ${enemy.health}/${enemy.maxHealth}`, screenX + 30, screenY - 10)
+  ctx.fillText(`${enemy.name} lv.${enemy.level} ${enemy.health}/${enemy.maxHealth}`, screenX + 30, screenY - 10)
 }
 
 export function drawDrop(drop, currentPlayer) { //Draw drop

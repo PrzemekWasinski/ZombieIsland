@@ -91,10 +91,12 @@ export function startGame({ userId, token }) {
 					if (msg.health !== undefined) enemy.health = msg.health;
 					if (msg.maxHealth !== undefined) enemy.maxHealth = msg.maxHealth;
 					if (msg.name !== undefined) enemy.name = msg.name;
-
+					if (msg.level !== undefined) enemy.level = msg.level;
 					enemies[msg.id] = enemy;
+
 				} else { //Existing enemy
 					const enemy = enemies[msg.id];
+
 					if (msg.mapX !== undefined) enemy.mapX = msg.mapX;
 					if (msg.mapY !== undefined) enemy.mapY = msg.mapY;
 					if (msg.pixelX !== undefined) enemy.pixelX = msg.pixelX;
@@ -103,6 +105,7 @@ export function startGame({ userId, token }) {
 					if (msg.targetY !== undefined) enemy.targetY = msg.targetY;
 					if (msg.health !== undefined) enemy.health = msg.health;
 					if (msg.name !== undefined) enemy.name = msg.name;
+					if (msg.level !== undefined) enemy.level = msg.level;
 				}
 			}
 		

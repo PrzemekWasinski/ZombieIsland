@@ -59,21 +59,21 @@ export async function startWebSocket(config) {
 				players[id] = {
 					id,
 					dbID: ws.userId,
-					mapX: PLAYER_SPAWN[0],
-					mapY: PLAYER_SPAWN[1],
-					pixelX: PLAYER_SPAWN[0] * TILE_SIZE,
-					pixelY: PLAYER_SPAWN[1] * TILE_SIZE,
-					targetX: PLAYER_SPAWN[0] * TILE_SIZE,
-					targetY: PLAYER_SPAWN[1] * TILE_SIZE,
-					health: 100,
-					map: getMap(PLAYER_SPAWN[1], PLAYER_SPAWN[0], MAP, VISIBLE_TILES_X, VISIBLE_TILES_Y),
+					mapX: characterData.mapX,
+					mapY: characterData.mapY,
+					pixelX: characterData.mapX * TILE_SIZE,
+					pixelY: characterData.mapY * TILE_SIZE,
+					targetX: characterData.mapX * TILE_SIZE,
+					targetY: characterData.mapY * TILE_SIZE,
+					health: characterData.health,
+					map: getMap(characterData.mapY, characterData.mapX, MAP, VISIBLE_TILES_X, VISIBLE_TILES_Y),
 					movingUp: false,
 					movingDown: false,
 					movingLeft: false,
 					movingRight: false,
 					speed: MOVE_SPEED,
-					lastMapX: PLAYER_SPAWN[0],
-					lastMapY: PLAYER_SPAWN[1],
+					lastMapX: characterData.mapX,
+					lastMapY: characterData.mapY,
 					username: characterData.username,
 					level: characterData.level,
 					gold: characterData.gold
@@ -136,7 +136,8 @@ export async function startWebSocket(config) {
 								targetY: enemy.targetY,
 								health: enemy.health,
 								maxHealth: enemy.maxHealth,
-								name: enemy.name
+								name: enemy.name,
+								level:enemy.level
 							}, wss);
 						}
 					}

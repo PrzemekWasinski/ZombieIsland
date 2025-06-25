@@ -339,7 +339,8 @@ export function startGame(wss, TILE_SIZE, VISIBLE_TILES_X, VISIBLE_TILES_Y, PASS
                         targetY: enemy.targetY,
                         health: enemy.health,
                         maxHealth: enemy.maxHealth,
-                        name: enemy.name
+                        name: enemy.name,
+                        level: enemy.level
                     }, wss);
                 }
             }
@@ -380,5 +381,5 @@ export function startGame(wss, TILE_SIZE, VISIBLE_TILES_X, VISIBLE_TILES_Y, PASS
 
             saveProgress(player, supabase);
         }
-    }, 500);
+    }, 5_000);
 }

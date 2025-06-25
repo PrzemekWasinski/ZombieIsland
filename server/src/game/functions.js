@@ -96,7 +96,8 @@ export function spawnEnemy(enemies, PASSABLE_TILES, MAP, enemyNextID, TILE_SIZE,
 			location: spawnLocation,
 			name: enemyStats.name,
 			damage: enemyStats.damage + enemyDamage,
-			speed: enemyStats.speed + enemySpeed
+			speed: enemyStats.speed + enemySpeed,
+			level: enemyStats.level
 		};
 
 		enemyNextID = getNextEnemyID();
