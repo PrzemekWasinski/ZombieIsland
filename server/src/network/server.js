@@ -52,7 +52,7 @@ export async function startWebSocket(config) {
 				let id = getNextId()
 				playerId = id;
 
-				// IMPORTANT: Set playerId on the WebSocket client for game loop lookup
+				//Set playerId on the WebSocket client for game loop lookup
 				ws.playerId = id;
 
 				// Create and store the player object
@@ -61,10 +61,10 @@ export async function startWebSocket(config) {
 					dbID: ws.userId,
 					mapX: characterData.mapX,
 					mapY: characterData.mapY,
-					pixelX: characterData.mapX * TILE_SIZE,
-					pixelY: characterData.mapY * TILE_SIZE,
-					targetX: characterData.mapX * TILE_SIZE,
-					targetY: characterData.mapY * TILE_SIZE,
+					pixelX: (characterData.mapX * TILE_SIZE) + (Math.floor(TILE_SIZE / 2)), //Centers the player on their tile position
+					pixelY: (characterData.mapY * TILE_SIZE) + (Math.floor(TILE_SIZE / 2)),
+					targetX: (characterData.mapX * TILE_SIZE) + (Math.floor(TILE_SIZE / 2)),
+					targetY: (characterData.mapY * TILE_SIZE) + (Math.floor(TILE_SIZE / 2)),
 					health: characterData.health,
 					map: getMap(characterData.mapY, characterData.mapX, MAP, VISIBLE_TILES_X, VISIBLE_TILES_Y),
 					movingUp: false,

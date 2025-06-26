@@ -1,5 +1,5 @@
 import { players, enemies, enemyNextID, drops, getNextDropID } from "./state.js";
-import { broadcast, spawnEnemy, getMap, isNearby, spawnDrop, updateStats, saveProgress } from "../game/functions.js";
+import { broadcast, spawnEnemy, getMap, isNearby, spawnDrop, updateStats, saveProgress } from "./functions.js";
 
 export function startGame(wss, TILE_SIZE, VISIBLE_TILES_X, VISIBLE_TILES_Y, PASSABLE_TILES, PLAYER_SPAWN, ENEMY_SPAWNS, MAP, supabase) {
     let locationData = {}
@@ -56,15 +56,6 @@ export function startGame(wss, TILE_SIZE, VISIBLE_TILES_X, VISIBLE_TILES_Y, PASS
         for (const id in players) { //Update all players
             const player = players[id];
 
-            if (Math.floor(player.health) < 1) { //Respawn dead players
-                player.mapX = PLAYER_SPAWN[0]
-                player.mapY = PLAYER_SPAWN[1]
-                player.pixelX = PLAYER_SPAWN[0] * TILE_SIZE
-                player.pixelY = PLAYER_SPAWN[1] * TILE_SIZE
-                player.targetX = PLAYER_SPAWN[0] * TILE_SIZE
-                player.targetY = PLAYER_SPAWN[1] * TILE_SIZE
-                player.health = 100
-            } else {
                 const currentTileX = Math.floor(player.pixelX / TILE_SIZE);
                 const currentTileY = Math.floor(player.pixelY / TILE_SIZE);
                 let velocityX = 0;
@@ -123,13 +114,22 @@ export function startGame(wss, TILE_SIZE, VISIBLE_TILES_X, VISIBLE_TILES_Y, PASS
                     player.targetY = player.pixelY;
                 }
 
-                let sendMap = false;
-                if (player.mapX !== player.lastMapX || player.mapY !== player.lastMapY) { //Tile changed
-                    player.map = getMap(player.mapY, player.mapX, MAP, VISIBLE_TILES_X, VISIBLE_TILES_Y);
-                    player.lastMapX = player.mapX;
-                    player.lastMapY = player.mapY;
-                    sendMap = true;
+                if (Math.floor(player.health) < 1) {
+                    player.mapX = PLAYER_SPAWN[0]
+                    player.mapY = PLAYER_SPAWN[1]
+                    player.pixelX = (PLAYER_SPAWN[0] * TILE_SIZE) + (Math.floor(TILE_SIZE / 2))
+                    player.pixelY = (PLAYER_SPAWN[1] * TILE_SIZE) + (Math.floor(TILE_SIZE / 2))
+                    player.targetX = (PLAYER_SPAWN[0] * TILE_SIZE) + (Math.floor(TILE_SIZE / 2))
+                    player.targetY = (PLAYER_SPAWN[1] * TILE_SIZE) + (Math.floor(TILE_SIZE / 2))
+                    player.health = 100
                 }
+
+                let sendMap = false;
+                player.map = getMap(player.mapY, player.mapX, MAP, VISIBLE_TILES_X, VISIBLE_TILES_Y);
+                player.lastMapX = player.mapX;
+                player.lastMapY = player.mapY;
+                sendMap = true;
+                
 
                 const ws_client = Array.from(wss.clients).find(client => client.playerId === player.id);
                 if (ws_client) {
@@ -149,22 +149,7 @@ export function startGame(wss, TILE_SIZE, VISIBLE_TILES_X, VISIBLE_TILES_Y, PASS
                         gold: player.gold
                     }));
                 }
-
-                broadcast({
-                    type: "update",
-                    id: player.id,
-                    mapX: player.mapX,
-                    mapY: player.mapY,
-                    pixelX: player.pixelX,
-                    pixelY: player.pixelY,
-                    targetX: player.targetX,
-                    targetY: player.targetY,
-                    health: player.health,
-                    username: player.username,
-					level: player.level,
-					gold: player.gold
-                }, wss, ws_client);
-            }
+            
 
             for (const enemyID in enemies) { //Check enemy collisions
                 const enemy = enemies[enemyID];
@@ -240,10 +225,21 @@ export function startGame(wss, TILE_SIZE, VISIBLE_TILES_X, VISIBLE_TILES_Y, PASS
             let velocityX = 0;
             let velocityY = 0;
 
-            if (enemy.movingUp || enemy.movingUpLeft || enemy.movingUpRight) velocityY = -enemy.speed;
-            else if (enemy.movingDown || enemy.movingDownRight || enemy.movingDownleft) velocityY = enemy.speed;
-            if (enemy.movingLeft || enemy.movingDownleft || enemy.movingUpRight) velocityX = -enemy.speed;
-            else if (enemy.movingRight || enemy.movingDownRight || enemy.movingUpRight) velocityX = enemy.speed;
+            if (enemy.movingUp || enemy.movingUpLeft || enemy.movingUpRight) {
+                velocityY = -enemy.speed;
+            }
+
+            else if (enemy.movingDown || enemy.movingDownRight || enemy.movingDownleft) {
+                velocityY = enemy.speed;
+            }
+
+            if (enemy.movingLeft || enemy.movingDownleft || enemy.movingUpRight) {
+                velocityX = -enemy.speed;
+            }
+
+            else if (enemy.movingRight || enemy.movingDownRight || enemy.movingUpRight) {
+                velocityX = enemy.speed;
+            }
 
             if (velocityX !== 0 && velocityY !== 0) { //Normalize diagonal speed
                 const normalizer = 1 / Math.sqrt(2);
@@ -292,7 +288,10 @@ export function startGame(wss, TILE_SIZE, VISIBLE_TILES_X, VISIBLE_TILES_Y, PASS
             if (newTileX !== currentTileX && newTileY !== currentTileY) { //Check diagonal collision
                 const checkX = newTileX;
                 const checkY = newTileY;
-                if (checkY < 0 || checkY >= MAP.length || checkX < 0 || checkX >= MAP[0].length || !PASSABLE_TILES.includes(MAP[checkY][checkX])) {
+                if (
+                    checkY < 0 || checkY >= MAP.length || checkX < 0 || checkX >= MAP[0].length || 
+                    !PASSABLE_TILES.includes(MAP[checkY][checkX])
+                ) {
                     newPixelX = enemy.pixelX;
                     newPixelY = enemy.pixelY;
                     enemy.movingUp = false;
@@ -314,10 +313,10 @@ export function startGame(wss, TILE_SIZE, VISIBLE_TILES_X, VISIBLE_TILES_Y, PASS
             const minY = topLeft[1] * TILE_SIZE;
             const maxY = (bottomRight[1] + 1) * TILE_SIZE - 1;
 
-            if (newPixelX < minX) newPixelX = minX;
-            if (newPixelX > maxX) newPixelX = maxX;
-            if (newPixelY < minY) newPixelY = minY;
-            if (newPixelY > maxY) newPixelY = maxY;
+            if (newPixelX < minX) { newPixelX = minX; }
+            if (newPixelX > maxX) { newPixelX = maxX; }
+            if (newPixelY < minY) { newPixelY = minY; }
+            if (newPixelY > maxY) { newPixelY = maxY; }
 
             if (nearPLayer) {
                 if (newPixelX !== enemy.pixelX || newPixelY !== enemy.pixelY) { //Update enemy position

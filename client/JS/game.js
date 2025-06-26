@@ -58,27 +58,36 @@ export function startGame({ userId, token }) {
 			if (!players[msg.id]) {
 				return;
 			} //Skip if invalid player
-			if (isNearby([players[playerId].mapX, players[playerId].mapY], [msg.mapX, msg.mapY])) {
-				const player = players[msg.id];
-
-				if (player.health !== undefined) player.health = Number(msg.health) || 100;
-				if (player.mapX !== undefined) player.mapX = Number(msg.mapX) || 42;
-				if (player.mapY !== undefined) player.mapY = Number(msg.mapY) || 46;
-				if (player.pixelX !== undefined) player.pixelX = Number(msg.pixelX) || player.mapX * TILE_SIZE;
-				if (player.pixelY !== undefined) player.pixelY = Number(msg.pixelY) || player.mapY * TILE_SIZE;
-				if (player.targetX !== undefined) player.targetX = Number(msg.targetX) || player.pixelX;
-				if (player.targetY !== undefined) player.targetY = Number(msg.targetY) || player.pixelY;
+			const player = players[msg.id];
+			if (msg.id !== playerId && isNearby([players[playerId].mapX, players[playerId].mapY], [msg.mapX, msg.mapY])) {
+				if (player.health !== undefined) player.health = Number(msg.health);
+				if (player.mapX !== undefined) player.mapX = Number(msg.mapX);
+				if (player.mapY !== undefined) player.mapY = Number(msg.mapY);
+				if (player.pixelX !== undefined) player.pixelX = Number(msg.pixelX) || (player.mapX * TILE_SIZE) + (Math.floor(TILE_SIZE / 2));
+				if (player.pixelY !== undefined) player.pixelY = Number(msg.pixelY) || (player.mapY * TILE_SIZE) + (Math.floor(TILE_SIZE / 2));
+				if (player.targetX !== undefined) player.targetX = Number(msg.targetX);
+				if (player.targetY !== undefined) player.targetY = Number(msg.targetY);
 				if (player.username !== undefined) player.username = msg.username;
 				if (player.level !== undefined) player.level = msg.level;
 				if (player.gold !== undefined) player.gold = msg.gold;
+			}
 
-				if (msg.id === playerId && msg.map) { //Update your map
-					player.map = msg.map;
-				}
+			if (msg.id === playerId && msg.map) {
+				if (player.health !== undefined) player.health = Number(msg.health);
+				if (player.mapX !== undefined) player.mapX = Number(msg.mapX);
+				if (player.mapY !== undefined) player.mapY = Number(msg.mapY);
+				if (player.pixelX !== undefined) player.pixelX = Number(msg.pixelX) || (player.mapX * TILE_SIZE) + (Math.floor(TILE_SIZE / 2));
+				if (player.pixelY !== undefined) player.pixelY = Number(msg.pixelY) || (player.mapY * TILE_SIZE) + (Math.floor(TILE_SIZE / 2));
+				if (player.targetX !== undefined) player.targetX = Number(msg.targetX);
+				if (player.targetY !== undefined) player.targetY = Number(msg.targetY);
+				if (player.username !== undefined) player.username = msg.username;
+				if (player.level !== undefined) player.level = msg.level;
+				if (player.gold !== undefined) player.gold = msg.gold;
+				if (player.map !== undefined) player.map = msg.map;
 			}
 
 		} else if (msg.type === 'enemy') { //enemy update
-			if (isNearby([msg.mapX, msg.mapY], [players[playerId].mapX, players[playerId].mapY])) {
+			if (isNearby([players[playerId].mapX, players[playerId].mapY], [msg.mapX, msg.mapY])) {
 				if (!enemies[msg.id]) { //New 
 					let enemy = {};
     
@@ -175,8 +184,6 @@ export function startGame({ userId, token }) {
 	}
 
 	function draw(currentTime) { //Main game loop
-		console.log(`Enemies loaded: ${Object.keys(enemies).length}`)
-		console.log(`Players loaded: ${Object.keys(players).length}`)
 
 		for (const enemyID in enemies) {
 			const enemy = enemies[enemyID];

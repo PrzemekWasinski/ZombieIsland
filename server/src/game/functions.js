@@ -78,8 +78,6 @@ export function spawnEnemy(enemies, PASSABLE_TILES, MAP, enemyNextID, TILE_SIZE,
 		enemySpeed = 0
 	}
 
-
-
 	if (PASSABLE_TILES.includes(MAP[y][x])) {
 		enemies[enemyNextID] = { //Create new enemies
 			id: enemyNextID,

@@ -9,32 +9,38 @@ const halfCanvasHeight = canvas.height / 2; //Half canvas height
 const halfTileSize = tileSize / 2; //Half tile size
 
 const tempRect = { x: 0, y: 0, width: tileSize, height: tileSize }; //Reusable rect
-const healthBarBg = { x: 4, y: 65, width: 52, height: 10 }; //Health bar bg
+const healthBarBg = { x: 4, y: 65, width: 50, height: 10 }; //Health bar bg
 const healthBarFg = { x: 5, y: 66, width: 0, height: 8 }; //Health bar fg
 
 export function drawMap(currentPlayer) { //Draw game map
-  if (!currentPlayer.map) return;
-  
+  if (!currentPlayer.map) {
+    return;
+  }
+
   const map = currentPlayer.map;
-  const pixelX = currentPlayer.pixelX || 0;
-  const pixelY = currentPlayer.pixelY || 0;
+  const pixelX = currentPlayer.pixelX;
+  const pixelY = currentPlayer.pixelY;
   const centerTileX = Math.floor(map[0].length / 2);
   const centerTileY = Math.floor(map.length / 2);
   const modX = pixelX % tileSize;
   const modY = pixelY % tileSize;
+
+  console.log("Drawing map:", map.length, "rows");
+  if (map.length > 0) {
+    console.log("First row length:", map[0].length);
+    console.log("Sample tile ID:", map[0][0]);
+    console.log("Image for tile:", tileImages[map[0][0]]);
+  }
   
   for (let y = 0; y < map.length; y++) {
     for (let x = 0; x < map[y].length; x++) {
+
       const img = tileImages[map[y][x]];
       if (img && img.complete) {
         const screenX = Math.round(halfCanvasWidth + (x - centerTileX) * tileSize - modX);
         const screenY = Math.round(halfCanvasHeight + (y - centerTileY) * tileSize - modY);
-        if (
-          screenX > -tileSize && screenX < canvas.width && //Only draw visible tiles
-          screenY > -tileSize && screenY < canvas.height
-        ) { 
-          ctx.drawImage(img, screenX, screenY, tileSize, tileSize);
-        }
+
+        ctx.drawImage(img, screenX, screenY, tileSize, tileSize);        
       }
     }
   }
@@ -91,6 +97,8 @@ export function drawEnemy(enemy, currentPlayer) { //Draw enemy
   
   ctx.fillStyle = 'green';
   ctx.fillRect(screenX, screenY, tileSize, tileSize);
+
+  const multiplier = Math.floor(healthBarBg.width / enemy.maxHealth)
   
   tempRect.x = screenX + healthBarBg.x;
   tempRect.y = screenY + healthBarBg.y;
@@ -98,7 +106,7 @@ export function drawEnemy(enemy, currentPlayer) { //Draw enemy
   ctx.fillRect(tempRect.x, tempRect.y, healthBarBg.width, healthBarBg.height);
 
   if (enemy.health > 0) { //Fill in healthbar if alive
-    healthBarFg.width = Math.round(enemy.health / 2);
+    healthBarFg.width = Math.round((enemy.health * multiplier) - 1);
     ctx.fillStyle = "rgb(255, 0, 0)";
     ctx.fillRect(
       screenX + healthBarFg.x,

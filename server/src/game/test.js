@@ -7,8 +7,6 @@ for (let i = 0; i < Object.keys(ENEMY_SPAWNS).length; i++) {
     locationData[Object.keys(ENEMY_SPAWNS)[i]] = 0
 }
 
-
-
 for (let i = 0; i < Object.keys(ENEMY_SPAWNS).length; i++) {
     let index = Object.keys(ENEMY_SPAWNS)[i]
 
