@@ -122,14 +122,16 @@ export function getMap(mapY, mapX, MAP, VISIBLE_TILES_X, VISIBLE_TILES_Y) { //Ge
 }
 
 export function isNearby(coord1, coord2) {
-	const dx = coord1[0] - coord2[0]; // X-axis difference
-	const dy = coord1[1] - coord2[1]; // Y-axis difference
-	return dx * dx + dy * dy <= 1250; // 25^2 = 1250
+    const dx = Math.abs(coord1[0] - coord2[0]);
+    const dy = Math.abs(coord1[1] - coord2[1]);
+    return dx + dy <= 25;
 }
+
 
 export function spawnDrop(x, y, id, drops, TILE_SIZE) {
 	drops[id] = {
 		id: id,
+		name: "drop",
 		mapX: Math.floor(x / TILE_SIZE),
 		mapY: Math.floor(y / TILE_SIZE),
 		pixelX: x,
