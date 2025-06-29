@@ -1,4 +1,4 @@
-import { loadImages } from "./images.js";
+import { loadImages, sprites } from "./images.js";
 import { drawMap, drawPlayer, drawEnemy, drawDrop, isNearby } from "./functions.js"
 
 export function startGame({ userId, token }) {
@@ -88,6 +88,7 @@ export function startGame({ userId, token }) {
 
 		} else if (msg.type === 'enemy') { //enemy update
 			if (isNearby([players[playerId].mapX, players[playerId].mapY], [msg.mapX, msg.mapY])) {
+				console.log(msg.name)
 				if (!enemies[msg.id]) { //New 
 					let enemy = {};
     
@@ -101,6 +102,8 @@ export function startGame({ userId, token }) {
 					if (msg.maxHealth !== undefined) enemy.maxHealth = msg.maxHealth;
 					if (msg.name !== undefined) enemy.name = msg.name;
 					if (msg.level !== undefined) enemy.level = msg.level;
+					enemy.frameIndex = enemy.frameIndex ?? 0;
+					enemy.frameTimer = enemy.frameTimer ?? 0;
 					enemies[msg.id] = enemy;
 
 				} else { //Existing enemy
@@ -115,6 +118,8 @@ export function startGame({ userId, token }) {
 					if (msg.health !== undefined) enemy.health = msg.health;
 					if (msg.name !== undefined) enemy.name = msg.name;
 					if (msg.level !== undefined) enemy.level = msg.level;
+					enemy.frameIndex = enemy.frameIndex ?? 0;
+					enemy.frameTimer = enemy.frameTimer ?? 0;
 				}
 			}
 		
@@ -201,6 +206,7 @@ export function startGame({ userId, token }) {
 
 		const deltaTime = Math.min(0.1, (currentTime - lastFrameTime) / 1000);
 		lastFrameTime = currentTime;
+		
 		ctx.clearRect(0, 0, canvas.width, canvas.height); //Clear screen
 
 		if (!playerId || !players[playerId]) { //Skip if not initialized
@@ -235,6 +241,13 @@ export function startGame({ userId, token }) {
 			const enemy = enemies[id];
 			enemy.pixelX = tileTransition(enemy.pixelX, enemy.targetX, time);
 			enemy.pixelY = tileTransition(enemy.pixelY, enemy.targetY, time);
+			enemy.frameTimer += deltaTime * 1000; // Convert to ms
+			const frameDelay = 100; // ms between frames
+
+			if (enemy.frameTimer >= frameDelay) {
+				enemy.frameTimer = 0;
+				enemy.frameIndex = (enemy.frameIndex + 1) % 8; // 8 frames in top row
+}
 		}
 
 		drawMap(currentPlayer); //Draw surrounding areas
@@ -246,7 +259,20 @@ export function startGame({ userId, token }) {
 		}
 
 		for (const id in enemies) { //Draw enemies
-			drawEnemy(enemies[id], currentPlayer);
+			let sprite;
+			let name = enemies[id].name;
+
+			if (name === "Green Slime") {
+				sprite = sprites[0];
+			} else if (name === "Toxic Slime") {
+				sprite = sprites[1];
+			} else if (name === "Magma Slime") {
+				sprite = sprites[2];
+			} else {
+				continue;
+			}
+
+			drawEnemy(enemies[id], currentPlayer, sprite);
 		}
 
 		for (const id in drops) { //Draw drops

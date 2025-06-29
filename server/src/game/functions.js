@@ -17,29 +17,9 @@ export async function saveProgress(player, supabase) {
 	if (error) {
 		console.log(`Failed to update stats for: ${player.name}`)
 	}
-
-	console.log("Updated stats")
 }
 
 export async function updateStats(key, newValue, supabase) {
-	// First, fetch the current value
-	const { data: existing, error: fetchError } = await supabase
-		.from("Statistics")
-		.select("value")
-		.eq("key", key)
-		.single();
-
-	if (fetchError || !existing) {
-		console.log(`Failed to fetch current value for '${key}':`, fetchError?.message);
-		return;
-	}
-
-	if (existing.value === newValue) {
-		console.log(`${key} is already set to ${newValue}, no update needed`)
-		return;
-	}
-
-	// Now update it
 	const { data, error } = await supabase
 		.from("Statistics")
 		.update({ value: newValue })
@@ -53,53 +33,35 @@ export async function updateStats(key, newValue, supabase) {
 	}
 }
 
-export function spawnEnemy(enemies, PASSABLE_TILES, MAP, enemyNextID, TILE_SIZE, topLeft, bottomRight, spawnLocation, enemyStats) {
-	let x, y;
-	x = Math.floor(Math.random() * (bottomRight[0] - topLeft[0] + 1) + topLeft[0]);
-	y = Math.floor(Math.random() * (bottomRight[1] - topLeft[1] + 1) + topLeft[1]);
 
-	let randInt = Math.floor((Math.random() * 100) + 1);
-	let enemyDamage, enemySpeed
+export function spawnEnemy(enemies, PASSABLE_TILES, MAP, enemyID, TILE_SIZE, topLeft, bottomRight, spawnLocation, enemyStats) {
+    const x = Math.floor(Math.random() * (bottomRight[0] - topLeft[0] + 1)) + topLeft[0];
+    const y = Math.floor(Math.random() * (bottomRight[1] - topLeft[1] + 1)) + topLeft[1];
 
-	if (randInt > 80) {
-		enemyDamage = 1
-		enemySpeed = 0
-	} else if (randInt > 60) {
-		enemyDamage = -1
-		enemySpeed = 0
-	} else if (randInt > 40) {
-		enemyDamage = 0
-		enemySpeed = 1
-	} else if (randInt > 20) {
-		enemyDamage = 0
-		enemySpeed = -1
-	} else if (randInt > 0) {
-		enemyDamage = 0
-		enemySpeed = 0
-	}
+    if (!PASSABLE_TILES.includes(MAP[y][x])) {
+        return null; // Invalid tile, cancel spawn
+    }
 
-	if (PASSABLE_TILES.includes(MAP[y][x])) {
-		enemies[enemyNextID] = { //Create new enemies
-			id: enemyNextID,
-			mapX: x,
-			mapY: y,
-			pixelX: x * TILE_SIZE,
-			pixelY: y * TILE_SIZE,
-			targetX: x * TILE_SIZE,
-			targetY: y * TILE_SIZE,
-			movingX: 0,
-			movingY: 0,
-			health: enemyStats.health[0],
-			maxHealth: enemyStats.health[1],
-			location: spawnLocation,
-			name: enemyStats.name,
-			damage: enemyStats.damage + enemyDamage,
-			speed: enemyStats.speed + enemySpeed,
-			level: enemyStats.level
-		};
+    enemies[enemyID] = {
+        id: enemyID,
+        mapX: x,
+        mapY: y,
+        pixelX: x * TILE_SIZE,
+        pixelY: y * TILE_SIZE,
+        targetX: x * TILE_SIZE,
+        targetY: y * TILE_SIZE,
+        movingX: 0,
+        movingY: 0,
+        health: enemyStats.health[0],
+        maxHealth: enemyStats.health[1],
+        location: spawnLocation,
+        name: enemyStats.name,
+        damage: enemyStats.damage,
+        speed: enemyStats.speed,
+        level: enemyStats.level
+    };
 
-		enemyNextID = getNextEnemyID();
-	}
+    return enemyID;
 }
 
 export function getMap(mapY, mapX, MAP, VISIBLE_TILES_X, VISIBLE_TILES_Y) { //Get visible map area

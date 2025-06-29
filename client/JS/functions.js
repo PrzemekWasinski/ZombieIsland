@@ -24,13 +24,6 @@ export function drawMap(currentPlayer) { //Draw game map
   const centerTileY = Math.floor(map.length / 2);
   const modX = pixelX % tileSize;
   const modY = pixelY % tileSize;
-
-  console.log("Drawing map:", map.length, "rows");
-  if (map.length > 0) {
-    console.log("First row length:", map[0].length);
-    console.log("Sample tile ID:", map[0][0]);
-    console.log("Image for tile:", tileImages[map[0][0]]);
-  }
   
   for (let y = 0; y < map.length; y++) {
     for (let x = 0; x < map[y].length; x++) {
@@ -89,23 +82,34 @@ export function drawPlayer(player, isCurrentPlayer, currentPlayer) { //Draw play
   ctx.fillText(`${player.username} lv.${player.level}`, screenX + 30, screenY - 10)
 }
 
-export function drawEnemy(enemy, currentPlayer) { //Draw enemy
+export function drawEnemy(enemy, currentPlayer, sprite) {
   const relativeX = enemy.pixelX - currentPlayer.pixelX;
   const relativeY = enemy.pixelY - currentPlayer.pixelY;
   const screenX = Math.round(halfCanvasWidth - halfTileSize + relativeX);
   const screenY = Math.round(halfCanvasHeight - halfTileSize + relativeY);
-  
-  ctx.fillStyle = 'green';
-  ctx.fillRect(screenX, screenY, tileSize, tileSize);
 
-  const multiplier = Math.floor(healthBarBg.width / enemy.maxHealth)
+  // Draw the sprite (replace green box); 
+  const frameWidth = 64;
+  const frameHeight = 64;
+
+  const sourceX = enemy.frameIndex * frameWidth;
+  const sourceY = 0; // top row only for now
+
+  ctx.drawImage(
+    sprite,
+    sourceX, sourceY, frameWidth, frameHeight,
+    screenX, screenY, frameWidth, frameHeight
+  );
+
+  // Health bar
+  const multiplier = Math.floor(healthBarBg.width / enemy.maxHealth);
   
   tempRect.x = screenX + healthBarBg.x;
   tempRect.y = screenY + healthBarBg.y;
   ctx.fillStyle = "rgb(0, 0, 0)";
   ctx.fillRect(tempRect.x, tempRect.y, healthBarBg.width, healthBarBg.height);
 
-  if (enemy.health > 0) { //Fill in healthbar if alive
+  if (enemy.health > 0) {
     healthBarFg.width = Math.round((enemy.health * multiplier) - 1);
     ctx.fillStyle = "rgb(255, 0, 0)";
     ctx.fillRect(
@@ -116,11 +120,16 @@ export function drawEnemy(enemy, currentPlayer) { //Draw enemy
     );
   }
 
-  ctx.fillStyle = "rgb(255, 255, 255)" 
+  ctx.fillStyle = "rgb(255, 255, 255)";
   ctx.font = "18px Arial";
-  ctx.textAlign = "center"
-  ctx.fillText(`${enemy.name} lv.${enemy.level} ${enemy.health}/${enemy.maxHealth}`, screenX + 30, screenY - 10)
+  ctx.textAlign = "center";
+  ctx.fillText(
+    `${enemy.name} lv.${enemy.level} ${enemy.health}/${enemy.maxHealth}`,
+    screenX + 30,
+    screenY - 10
+  );
 }
+
 
 export function drawDrop(drop, currentPlayer) { //Draw drop
   const relativeX = drop.pixelX - currentPlayer.pixelX;

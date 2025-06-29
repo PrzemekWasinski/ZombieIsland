@@ -1,35 +1,40 @@
-import { players, enemies, enemyNextID, drops, getNextDropID } from "./state.js";
+import { players, enemies, enemyNextID, drops, getNextDropID, getNextEnemyID } from "./state.js";
 import { broadcast, spawnEnemy, getMap, isNearby, spawnDrop, updateStats, saveProgress } from "./functions.js";
 
 export function startGame(wss, TILE_SIZE, VISIBLE_TILES_X, VISIBLE_TILES_Y, PASSABLE_TILES, PLAYER_SPAWN, ENEMY_SPAWNS, MAP, supabase) {
-    let locationData = {}
+    let locationData = {};
 
-    for (let i = 0; i < Object.keys(ENEMY_SPAWNS).length; i++) {
-        locationData[Object.keys(ENEMY_SPAWNS)[i]] = 0
+    for (const key of Object.keys(ENEMY_SPAWNS)) {
+        locationData[key] = 0;
     }
 
-    setInterval(() => { //Game loop 50 times per second
-        const deadEnemies = Object.keys(enemies).filter(id => enemies[id].health <= 0); //Delete dead zombies
+    setInterval(() => {
+        // 1. Handle dead enemies
+        const deadEnemies = Object.keys(enemies).filter(id => enemies[id].health <= 0);
+
         for (const id of deadEnemies) {
-            const enemy = enemies[id]
+            const enemy = enemies[id];
             const loc = enemy.location;
+
+            console.log(`Enemy ${id} died at (${enemy.pixelX}, ${enemy.pixelY})`);
             locationData[loc]--;
 
-            const rand = Math.random() * (100 - 1) + 1;
+            const rand = Math.floor(Math.random() * 100) + 1; // 1–100 inclusive
             if (rand > 50) {
                 const dropID = getNextDropID();
-                spawnDrop(enemy.pixelX, enemy.pixelY, dropID, drops, TILE_SIZE)
+                spawnDrop(enemy.pixelX, enemy.pixelY, dropID, drops, TILE_SIZE);
             }
 
-            delete enemies[id];
+            delete enemies[id]; 
         }
 
+        // 2. Broadcast drops
         for (const id in drops) {
-            const drop = drops[id]
+            const drop = drops[id];
             broadcast({
                 type: "drop",
                 id: drop.id,
-                name:drop.name,
+                name: drop.name,
                 mapX: drop.mapX,
                 mapY: drop.mapY,
                 pixelX: drop.pixelX,
@@ -37,113 +42,119 @@ export function startGame(wss, TILE_SIZE, VISIBLE_TILES_X, VISIBLE_TILES_Y, PASS
             }, wss);
         }
 
-        for (let i = 0; i < Object.keys(ENEMY_SPAWNS).length; i++) {
-            let key = Object.keys(ENEMY_SPAWNS)[i];
-            let spawnData = ENEMY_SPAWNS[key];
+        // 3. Spawn enemies if needed
+        const spawnKeys = Object.keys(ENEMY_SPAWNS);
 
-            while (locationData[key] < spawnData.enemyAmount) {
-                spawnEnemy(enemies, PASSABLE_TILES, MAP, enemyNextID, TILE_SIZE, spawnData.topLeft, spawnData.bottomRight, key, spawnData.enemyStats);
-                locationData[key]++;
+        for (const key of spawnKeys) {
+            const spawnData = ENEMY_SPAWNS[key];
+            let tries = 0;
+
+            while (locationData[key] < spawnData.enemyAmount && tries < 10) {
+                const newID = spawnEnemy(enemies, PASSABLE_TILES, MAP, getNextEnemyID(), TILE_SIZE, spawnData.topLeft, spawnData.bottomRight, key, spawnData.enemyStats);
+                if (newID !== null) {
+                    locationData[key]++;
+                }
+                tries++;
             }
         }
 
         for (const id in players) { //Update all players
             const player = players[id];
 
-                const currentTileX = Math.floor(player.pixelX / TILE_SIZE);
-                const currentTileY = Math.floor(player.pixelY / TILE_SIZE);
-                let velocityX = 0;
-                let velocityY = 0;
+            const currentTileX = Math.floor(player.pixelX / TILE_SIZE);
+            const currentTileY = Math.floor(player.pixelY / TILE_SIZE);
+            let velocityX = 0;
+            let velocityY = 0;
 
-                if (player.movingUp) velocityY = -player.speed;
-                else if (player.movingDown) velocityY = player.speed;
-                if (player.movingLeft) velocityX = -player.speed;
-                else if (player.movingRight) velocityX = player.speed;
+            if (player.movingUp) velocityY = -player.speed;
+            else if (player.movingDown) velocityY = player.speed;
+            if (player.movingLeft) velocityX = -player.speed;
+            else if (player.movingRight) velocityX = player.speed;
 
-                if (velocityX !== 0 && velocityY !== 0) { //Normalize diagonal speed
-                    const normalizer = 1 / Math.sqrt(2);
-                    velocityX *= normalizer;
-                    velocityY *= normalizer;
+            if (velocityX !== 0 && velocityY !== 0) { //Normalize diagonal speed
+                const normalizer = 1 / Math.sqrt(2);
+                velocityX *= normalizer;
+                velocityY *= normalizer;
+            }
+
+            let newPixelX = player.pixelX + velocityX;
+            let newPixelY = player.pixelY + velocityY;
+            const newTileX = Math.floor(newPixelX / TILE_SIZE);
+            const newTileY = Math.floor(newPixelY / TILE_SIZE);
+
+            if (newTileX !== currentTileX) { //Check horizontal collision
+                const checkX = newTileX;
+                const checkY = currentTileY;
+                if (checkY < 0 || checkY >= MAP.length || checkX < 0 || checkX >= MAP[0].length ||
+                    !PASSABLE_TILES.includes(MAP[checkY][checkX])) {
+                    newPixelX = velocityX > 0 ? currentTileX * TILE_SIZE + TILE_SIZE - 1 : currentTileX * TILE_SIZE;
                 }
+            }
 
-                let newPixelX = player.pixelX + velocityX;
-                let newPixelY = player.pixelY + velocityY;
-                const newTileX = Math.floor(newPixelX / TILE_SIZE);
-                const newTileY = Math.floor(newPixelY / TILE_SIZE);
-
-                if (newTileX !== currentTileX) { //Check horizontal collision
-                    const checkX = newTileX;
-                    const checkY = currentTileY;
-                    if (checkY < 0 || checkY >= MAP.length || checkX < 0 || checkX >= MAP[0].length ||
-                        !PASSABLE_TILES.includes(MAP[checkY][checkX])) {
-                        newPixelX = velocityX > 0 ? currentTileX * TILE_SIZE + TILE_SIZE - 1 : currentTileX * TILE_SIZE;
-                    }
+            if (newTileY !== currentTileY) { //Check vertical collision
+                const checkX = currentTileX;
+                const checkY = newTileY;
+                if (checkY < 0 || checkY >= MAP.length || checkX < 0 || checkX >= MAP[0].length ||
+                    !PASSABLE_TILES.includes(MAP[checkY][checkX])) {
+                    newPixelY = velocityY > 0 ? currentTileY * TILE_SIZE + TILE_SIZE - 1 : currentTileY * TILE_SIZE;
                 }
+            }
 
-                if (newTileY !== currentTileY) { //Check vertical collision
-                    const checkX = currentTileX;
-                    const checkY = newTileY;
-                    if (checkY < 0 || checkY >= MAP.length || checkX < 0 || checkX >= MAP[0].length ||
-                        !PASSABLE_TILES.includes(MAP[checkY][checkX])) {
-                        newPixelY = velocityY > 0 ? currentTileY * TILE_SIZE + TILE_SIZE - 1 : currentTileY * TILE_SIZE;
-                    }
+            if (newTileX !== currentTileX && newTileY !== currentTileY) { //Check diagonal collision
+                const checkX = newTileX;
+                const checkY = newTileY;
+                if (checkY < 0 || checkY >= MAP.length || checkX < 0 || checkX >= MAP[0].length ||
+                    !PASSABLE_TILES.includes(MAP[checkY][checkX])) {
+                    newPixelX = player.pixelX;
+                    newPixelY = player.pixelY;
                 }
+            }
 
-                if (newTileX !== currentTileX && newTileY !== currentTileY) { //Check diagonal collision
-                    const checkX = newTileX;
-                    const checkY = newTileY;
-                    if (checkY < 0 || checkY >= MAP.length || checkX < 0 || checkX >= MAP[0].length ||
-                        !PASSABLE_TILES.includes(MAP[checkY][checkX])) {
-                        newPixelX = player.pixelX;
-                        newPixelY = player.pixelY;
-                    }
-                }
+            if (newPixelX !== player.pixelX || newPixelY !== player.pixelY) { //Update position if moved
+                player.pixelX = newPixelX;
+                player.pixelY = newPixelY;
+                player.mapX = Math.floor(player.pixelX / TILE_SIZE);
+                player.mapY = Math.floor(player.pixelY / TILE_SIZE);
+                player.targetX = player.pixelX;
+                player.targetY = player.pixelY;
+            }
 
-                if (newPixelX !== player.pixelX || newPixelY !== player.pixelY) { //Update position if moved
-                    player.pixelX = newPixelX;
-                    player.pixelY = newPixelY;
-                    player.mapX = Math.floor(player.pixelX / TILE_SIZE);
-                    player.mapY = Math.floor(player.pixelY / TILE_SIZE);
-                    player.targetX = player.pixelX;
-                    player.targetY = player.pixelY;
-                }
+            if (Math.floor(player.health) < 1) {
+                player.mapX = PLAYER_SPAWN[0]
+                player.mapY = PLAYER_SPAWN[1]
+                player.pixelX = (PLAYER_SPAWN[0] * TILE_SIZE) + (Math.floor(TILE_SIZE / 2))
+                player.pixelY = (PLAYER_SPAWN[1] * TILE_SIZE) + (Math.floor(TILE_SIZE / 2))
+                player.targetX = (PLAYER_SPAWN[0] * TILE_SIZE) + (Math.floor(TILE_SIZE / 2))
+                player.targetY = (PLAYER_SPAWN[1] * TILE_SIZE) + (Math.floor(TILE_SIZE / 2))
+                player.health = 100
+            }
 
-                if (Math.floor(player.health) < 1) {
-                    player.mapX = PLAYER_SPAWN[0]
-                    player.mapY = PLAYER_SPAWN[1]
-                    player.pixelX = (PLAYER_SPAWN[0] * TILE_SIZE) + (Math.floor(TILE_SIZE / 2))
-                    player.pixelY = (PLAYER_SPAWN[1] * TILE_SIZE) + (Math.floor(TILE_SIZE / 2))
-                    player.targetX = (PLAYER_SPAWN[0] * TILE_SIZE) + (Math.floor(TILE_SIZE / 2))
-                    player.targetY = (PLAYER_SPAWN[1] * TILE_SIZE) + (Math.floor(TILE_SIZE / 2))
-                    player.health = 100
-                }
+            let sendMap = false;
+            player.map = getMap(player.mapY, player.mapX, MAP, VISIBLE_TILES_X, VISIBLE_TILES_Y);
+            player.lastMapX = player.mapX;
+            player.lastMapY = player.mapY;
+            sendMap = true;
 
-                let sendMap = false;
-                player.map = getMap(player.mapY, player.mapX, MAP, VISIBLE_TILES_X, VISIBLE_TILES_Y);
-                player.lastMapX = player.mapX;
-                player.lastMapY = player.mapY;
-                sendMap = true;
-                
 
-                const ws_client = Array.from(wss.clients).find(client => client.playerId === player.id);
-                if (ws_client) {
-                    ws_client.send(JSON.stringify({
-                        type: "update",
-                        id: player.id,
-                        mapX: player.mapX,
-                        mapY: player.mapY,
-                        pixelX: player.pixelX,
-                        pixelY: player.pixelY,
-                        targetX: player.targetX,
-                        targetY: player.targetY,
-                        map: sendMap ? player.map : undefined,
-                        health: player.health,
-                        username: player.username,
-                        level: player.level,
-                        gold: player.gold
-                    }));
-                }
-            
+            const ws_client = Array.from(wss.clients).find(client => client.playerId === player.id);
+            if (ws_client) {
+                ws_client.send(JSON.stringify({
+                    type: "update",
+                    id: player.id,
+                    mapX: player.mapX,
+                    mapY: player.mapY,
+                    pixelX: player.pixelX,
+                    pixelY: player.pixelY,
+                    targetX: player.targetX,
+                    targetY: player.targetY,
+                    map: sendMap ? player.map : undefined,
+                    health: player.health,
+                    username: player.username,
+                    level: player.level,
+                    gold: player.gold
+                }));
+            }
+
 
             for (const enemyID in enemies) { //Check enemy collisions
                 const enemy = enemies[enemyID];
@@ -193,6 +204,8 @@ export function startGame(wss, TILE_SIZE, VISIBLE_TILES_X, VISIBLE_TILES_Y, PASS
                 }
             }
 
+            const STOP_DISTANCE = 1;
+
             if (nearPLayer) {
                 const spawn = ENEMY_SPAWNS[enemy.location];
                 const topLeft = spawn.topLeft;
@@ -203,7 +216,6 @@ export function startGame(wss, TILE_SIZE, VISIBLE_TILES_X, VISIBLE_TILES_Y, PASS
                 const canMoveLeft = enemy.mapX - 1 >= topLeft[0];
                 const canMoveRight = enemy.mapX + 1 <= bottomRight[0];
 
-                // Only include valid directions
                 const directions = [];
 
                 if (canMoveUp) directions.push("up");
@@ -214,7 +226,51 @@ export function startGame(wss, TILE_SIZE, VISIBLE_TILES_X, VISIBLE_TILES_Y, PASS
                 if (canMoveUp && canMoveLeft) directions.push("up-left");
                 if (canMoveDown && canMoveRight) directions.push("down-right");
                 if (canMoveDown && canMoveLeft) directions.push("down-left");
-                directions.push("none"); // Optional: allow standing still
+
+                // Clear previous movement
+                enemy.movingUp = false;
+                enemy.movingDown = false;
+                enemy.movingLeft = false;
+                enemy.movingRight = false;
+                enemy.movingUpRight = false;
+                enemy.movingUpLeft = false;
+                enemy.movingDownRight = false;
+                enemy.movingDownLeft = false;
+
+                if (targetDistance !== undefined && targetDistance > STOP_DISTANCE) {
+                    // Move toward player only if not already close enough
+                    if (targetX > enemy.mapX && targetY > enemy.mapY) enemy.movingDownRight = true;
+                    else if (targetX < enemy.mapX && targetY < enemy.mapY) enemy.movingUpLeft = true;
+                    else if (targetX > enemy.mapX && targetY < enemy.mapY) enemy.movingUpRight = true;
+                    else if (targetX < enemy.mapX && targetY > enemy.mapY) enemy.movingDownLeft = true;
+                    else if (targetX === enemy.mapX && targetY > enemy.mapY) enemy.movingDown = true;
+                    else if (targetX === enemy.mapX && targetY < enemy.mapY) enemy.movingUp = true;
+                    else if (targetY === enemy.mapY && targetX > enemy.mapX) enemy.movingRight = true;
+                    else if (targetY === enemy.mapY && targetX < enemy.mapX) enemy.movingLeft = true;
+                }
+            } else {
+                // Wander randomly if no players nearby
+                const spawn = ENEMY_SPAWNS[enemy.location];
+                const topLeft = spawn.topLeft;
+                const bottomRight = spawn.bottomRight;
+
+                const canMoveUp = enemy.mapY - 1 >= topLeft[1];
+                const canMoveDown = enemy.mapY + 1 <= bottomRight[1];
+                const canMoveLeft = enemy.mapX - 1 >= topLeft[0];
+                const canMoveRight = enemy.mapX + 1 <= bottomRight[0];
+
+                const directions = [];
+
+                if (canMoveUp) directions.push("up");
+                if (canMoveDown) directions.push("down");
+                if (canMoveLeft) directions.push("left");
+                if (canMoveRight) directions.push("right");
+                if (canMoveUp && canMoveRight) directions.push("up-right");
+                if (canMoveUp && canMoveLeft) directions.push("up-left");
+                if (canMoveDown && canMoveRight) directions.push("down-right");
+                if (canMoveDown && canMoveLeft) directions.push("down-left");
+
+                directions.push("none"); // Allow idle behavior sometimes
 
                 const randomDir = directions[Math.floor(Math.random() * directions.length)];
 
@@ -227,34 +283,15 @@ export function startGame(wss, TILE_SIZE, VISIBLE_TILES_X, VISIBLE_TILES_Y, PASS
                 enemy.movingDownRight = false;
                 enemy.movingDownLeft = false;
 
-                if (targetDistance === undefined) {
-                    if (randomDir === "up") enemy.movingUp = true;
-                    else if (randomDir === "down") enemy.movingDown = true;
-                    else if (randomDir === "left") enemy.movingLeft = true;
-                    else if (randomDir === "right") enemy.movingRight = true;
-                    else if (randomDir === "up-right") enemy.movingUpRight = true;
-                    else if (randomDir === "up-left") enemy.movingUpLeft = true;
-                    else if (randomDir === "down-right") enemy.movingDownRight = true;
-                    else if (randomDir === "down-left") enemy.movingDowLeft = true;
-                } else {
-                    if (targetX > enemy.mapX && targetY > enemy.mapY) {
-                        enemy.movingDownRight = true;
-                    } else if (targetX < enemy.mapX && targetY < enemy.mapY) {
-                        enemy.movingUpLeft = true;
-                    } else if (targetX > enemy.mapX && targetY < enemy.mapY) {
-                        enemy.movingUpRight = true;
-                    } else if (targetX < enemy.mapX && targetY > enemy.mapY) {
-                        enemy.movingDownLeft = true;
-                    } else if (targetX === enemy.mapX && targetY > enemy.mapY) {
-                        enemy.movingDown = true;
-                    } else if (targetX === enemy.mapX && targetY < enemy.mapY) {
-                        enemy.movingUp = true;
-                    } else if (targetY === enemy.mapY && targetX > enemy.mapX) {
-                        enemy.movingRight = true;
-                    } else if (targetY === enemy.mapY && targetX < enemy.mapX) {
-                        enemy.movingLeft = true;
-                    }
-                }
+                if (randomDir === "up") enemy.movingUp = true;
+                else if (randomDir === "down") enemy.movingDown = true;
+                else if (randomDir === "left") enemy.movingLeft = true;
+                else if (randomDir === "right") enemy.movingRight = true;
+                else if (randomDir === "up-right") enemy.movingUpRight = true;
+                else if (randomDir === "up-left") enemy.movingUpLeft = true;
+                else if (randomDir === "down-right") enemy.movingDownRight = true;
+                else if (randomDir === "down-left") enemy.movingDownLeft = true;
+                // "none" means do nothing
             }
 
             let velocityX = 0;
@@ -281,7 +318,7 @@ export function startGame(wss, TILE_SIZE, VISIBLE_TILES_X, VISIBLE_TILES_Y, PASS
 
             let newPixelX = enemy.pixelX + velocityX;
             let newPixelY = enemy.pixelY + velocityY;
-            
+
             const currentTileX = Math.floor(enemy.pixelX / TILE_SIZE);
             const currentTileY = Math.floor(enemy.pixelY / TILE_SIZE);
             const newTileX = Math.floor(newPixelX / TILE_SIZE);
@@ -308,7 +345,7 @@ export function startGame(wss, TILE_SIZE, VISIBLE_TILES_X, VISIBLE_TILES_Y, PASS
                 const checkX = currentTileX;
                 const checkY = newTileY;
                 if (
-                    checkY < 0 || checkY >= MAP.length || checkX < 0 || checkX >= MAP[0].length || 
+                    checkY < 0 || checkY >= MAP.length || checkX < 0 || checkX >= MAP[0].length ||
                     !PASSABLE_TILES.includes(MAP[checkY][checkX])
                 ) {
                     newPixelY = velocityY > 0 ? currentTileY * TILE_SIZE + TILE_SIZE - 1 : currentTileY * TILE_SIZE;
@@ -326,7 +363,7 @@ export function startGame(wss, TILE_SIZE, VISIBLE_TILES_X, VISIBLE_TILES_Y, PASS
                 const checkY = newTileY;
 
                 if (
-                    checkY < 0 || checkY >= MAP.length || checkX < 0 || checkX >= MAP[0].length || 
+                    checkY < 0 || checkY >= MAP.length || checkX < 0 || checkX >= MAP[0].length ||
                     !PASSABLE_TILES.includes(MAP[checkY][checkX])
                 ) {
                     newPixelX = enemy.pixelX;
@@ -391,7 +428,7 @@ export function startGame(wss, TILE_SIZE, VISIBLE_TILES_X, VISIBLE_TILES_Y, PASS
                 const dy = Math.abs(player.pixelY - drop.pixelY);
                 if (dx < TILE_SIZE - 0.5 && dy < TILE_SIZE - 0.5) { //If too close to drop
                     delete drops[dropID];
-                    
+
                     if (player.health > 90) {
                         player.health = 100
                     } else {
