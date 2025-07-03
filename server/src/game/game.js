@@ -151,7 +151,8 @@ export function startGame(wss, TILE_SIZE, VISIBLE_TILES_X, VISIBLE_TILES_Y, PASS
                     health: player.health,
                     username: player.username,
                     level: player.level,
-                    gold: player.gold
+                    gold: player.gold,
+                    name: player.name
                 }));
             }
 
@@ -165,7 +166,17 @@ export function startGame(wss, TILE_SIZE, VISIBLE_TILES_X, VISIBLE_TILES_Y, PASS
                     broadcast({
                         type: "update",
                         id: player.id,
+                        mapX: player.mapX,
+                        mapY: player.mapY,
+                        pixelX: player.pixelX,
+                        pixelY: player.pixelY,
+                        targetX: player.targetX,
+                        targetY: player.targetY,
                         health: player.health,
+                        username: player.username,
+                        level: player.level,
+                        gold: player.gold,
+                        name: player.name
                     }, wss);
                 }
             }
@@ -434,14 +445,26 @@ export function startGame(wss, TILE_SIZE, VISIBLE_TILES_X, VISIBLE_TILES_Y, PASS
                     } else {
                         player.health += 10
                     }
-                    player.level += 1
+
+                    //player.level += 1
+                    //player.gold += 1
 
                     saveProgress(player, supabase)
 
                     broadcast({
                         type: "update",
                         id: player.id,
+                        mapX: player.mapX,
+                        mapY: player.mapY,
+                        pixelX: player.pixelX,
+                        pixelY: player.pixelY,
+                        targetX: player.targetX,
+                        targetY: player.targetY,
                         health: player.health,
+                        username: player.username,
+                        level: player.level,
+                        gold: player.gold,
+                        name: player.name
                     }, wss);
                 }
             }

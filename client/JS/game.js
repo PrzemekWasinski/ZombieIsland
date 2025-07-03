@@ -14,7 +14,7 @@ export function startGame({ userId, token }) {
 
 	const canvas = document.getElementById('game');
 	const ctx = canvas.getContext('2d');
-	const TILE_SIZE = 61; //Tile size in pixels
+	const TILE_SIZE = 64; //Tile size in pixels
 
 	let playerId = null; //player ID (not userID)
 	let players = {}; //All players
@@ -189,7 +189,6 @@ export function startGame({ userId, token }) {
 	}
 
 	function draw(currentTime) { //Main game loop
-
 		for (const enemyID in enemies) {
 			const enemy = enemies[enemyID];
 
@@ -235,6 +234,7 @@ export function startGame({ userId, token }) {
 			const player = players[id];
 			player.pixelX = tileTransition(player.pixelX, player.targetX, time);
 			player.pixelY = tileTransition(player.pixelY, player.targetY, time);
+			console.log(player.mapX, player.mapY)
 		}
 
 		for (const id in enemies) { //Update enemy positions
@@ -266,6 +266,7 @@ export function startGame({ userId, token }) {
 				sprite = sprites[0];
 			} else if (name === "Toxic Slime") {
 				sprite = sprites[1];
+				console.log("Yes")
 			} else if (name === "Magma Slime") {
 				sprite = sprites[2];
 			} else {

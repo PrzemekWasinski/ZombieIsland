@@ -116,6 +116,7 @@ export async function startWebSocket(config, url, apiKey) {
 				else if (data.dir === "right") { player.movingRight = data.pressed; }
 				else if (data.dir === "attack") { // Fixed: was msg.dir
 					let hasUpdated = false;
+					
 					for (const enemyID in enemies) {
 						const enemy = enemies[enemyID];
 						const dx = Math.abs(player.pixelX - enemy.pixelX);
@@ -139,6 +140,8 @@ export async function startWebSocket(config, url, apiKey) {
 								name: enemy.name,
 								level:enemy.level
 							}, wss);
+
+							break; //Allows the user to only attack 1 enemy at a time
 						}
 					}
 				}

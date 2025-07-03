@@ -2,7 +2,7 @@ import { tileImages } from "./images.js";
 
 const canvas = document.getElementById('game');
 const ctx = canvas.getContext('2d');
-const tileSize = 61; //Tile size in pixels
+const tileSize = 64; //Tile size in pixels
 
 const halfCanvasWidth = canvas.width / 2; //Half canvas width
 const halfCanvasHeight = canvas.height / 2; //Half canvas height
@@ -83,7 +83,7 @@ export function drawPlayer(player, isCurrentPlayer, currentPlayer) { //Draw play
 }
 
 export function drawEnemy(enemy, currentPlayer, sprite) {
-  const relativeX = enemy.pixelX - currentPlayer.pixelX;
+  const relativeX = enemy.pixelX - currentPlayer.pixelX + 3;
   const relativeY = enemy.pixelY - currentPlayer.pixelY;
   const screenX = Math.round(halfCanvasWidth - halfTileSize + relativeX);
   const screenY = Math.round(halfCanvasHeight - halfTileSize + relativeY);
