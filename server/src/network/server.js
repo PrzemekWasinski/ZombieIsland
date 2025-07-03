@@ -5,13 +5,13 @@ import { broadcast, updateStats, getMap } from "../game/functions.js";
 import { players, enemies, getNextId } from "../game/state.js";
 import { startGame } from "../game/game.js";
 
-export async function startWebSocket(config) {
-	const { URL, API_KEY, MOVE_SPEED, TILE_SIZE, VISIBLE_TILES_X, VISIBLE_TILES_Y, PASSABLE_TILES, PLAYER_SPAWN, ENEMY_SPAWNS, MAP } = config;
+export async function startWebSocket(config, url, apiKey) {
+	const { MOVE_SPEED, TILE_SIZE, VISIBLE_TILES_X, VISIBLE_TILES_Y, PASSABLE_TILES, PLAYER_SPAWN, ENEMY_SPAWNS, MAP } = config;
 
 	const server = http.createServer();
 	const wss = new WebSocketServer({ server });
 
-	const supabase = createClient(URL, API_KEY);
+	const supabase = createClient(url, apiKey);
 
 	await updateStats("active_players", 0, supabase); //Set active players to 0
 

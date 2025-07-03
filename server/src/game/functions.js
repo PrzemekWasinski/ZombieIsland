@@ -10,7 +10,13 @@ export function broadcast(data, wss) { //Send data to all clients
 export async function saveProgress(player, supabase) {
 	const { error } = await supabase
 		.from("Characters")
-		.update({ "level": player.level, "gold": player.gold, "health": player.health, "mapX": player.mapX, "mapY": player.mapY })
+		.update({ 
+			"level": player.level, 
+			"gold": player.gold, 
+			"health": Math.floor(player.health), 
+			"mapX": player.mapX, 
+			"mapY": player.mapY 
+		})
 		.eq("id", player.dbID)
 		.select();
 
