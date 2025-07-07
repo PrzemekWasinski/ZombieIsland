@@ -10,7 +10,13 @@ export function broadcast(data, wss) { //Send data to all clients
 export async function saveProgress(player, supabase) {
 	const { error } = await supabase
 		.from("Characters")
-		.update({ "level": player.level, "gold": player.gold, "health": player.health, "mapX": player.mapX, "mapY": player.mapY })
+		.update({ 
+			"level": player.level, 
+			"gold": player.gold, 
+			"health": Math.floor(player.health), 
+			"mapX": player.mapX, 
+			"mapY": player.mapY 
+		})
 		.eq("id", player.dbID)
 		.select();
 
@@ -86,7 +92,7 @@ export function getMap(mapY, mapX, MAP, VISIBLE_TILES_X, VISIBLE_TILES_Y) { //Ge
 export function isNearby(coord1, coord2) {
     const dx = Math.abs(coord1[0] - coord2[0]);
     const dy = Math.abs(coord1[1] - coord2[1]);
-    return dx + dy <= 25;
+    return dx + dy <= 50;
 }
 
 

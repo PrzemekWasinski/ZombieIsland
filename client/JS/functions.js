@@ -2,15 +2,15 @@ import { tileImages } from "./images.js";
 
 const canvas = document.getElementById('game');
 const ctx = canvas.getContext('2d');
-const tileSize = 61; //Tile size in pixels
+const tileSize = 64; //Tile size in pixels
 
 const halfCanvasWidth = canvas.width / 2; //Half canvas width
 const halfCanvasHeight = canvas.height / 2; //Half canvas height
 const halfTileSize = tileSize / 2; //Half tile size
 
 const tempRect = { x: 0, y: 0, width: tileSize, height: tileSize }; //Reusable rect
-const healthBarBg = { x: 4, y: 65, width: 50, height: 10 }; //Health bar bg
-const healthBarFg = { x: 5, y: 66, width: 0, height: 8 }; //Health bar fg
+const healthBarBg = { x: 6, y: 65, width: 50, height: 10 }; //Health bar bg
+const healthBarFg = { x: 7, y: 66, width: 0, height: 8 }; //Health bar fg
 
 export function drawMap(currentPlayer) { //Draw game map
   if (!currentPlayer.map) {
@@ -66,7 +66,7 @@ export function drawPlayer(player, isCurrentPlayer, currentPlayer) { //Draw play
   ctx.fillRect(tempRect.x, tempRect.y, healthBarBg.width, healthBarBg.height);
 
   if (player.health > 0) { //Fill in health bar with player health
-    healthBarFg.width = Math.round(player.health / 2);
+    healthBarFg.width = Math.round(player.health / 2) - 1;
     ctx.fillStyle = "rgb(255, 0, 0)";
     ctx.fillRect(
       screenX + healthBarFg.x,
@@ -130,7 +130,6 @@ export function drawEnemy(enemy, currentPlayer, sprite) {
   );
 }
 
-
 export function drawDrop(drop, currentPlayer) { //Draw drop
   const relativeX = drop.pixelX - currentPlayer.pixelX;
   const relativeY = drop.pixelY - currentPlayer.pixelY;
@@ -144,5 +143,5 @@ export function drawDrop(drop, currentPlayer) { //Draw drop
 export function isNearby(coord1, coord2) {
   const dx = coord1[0] - coord2[0]; // X-axis difference
   const dy = coord1[1] - coord2[1]; // Y-axis difference
-  return dx * dx + dy * dy <= 2500; // 50^2 = 2500
+  return dx * dx + dy * dy <= 5000; // 50squares
 }

@@ -8,6 +8,6 @@ def format_csv_lines(input_file, output_file):
             formatted_line = f'[{line}],\n'
             outfile.write(formatted_line)
 
-input_file = 'test_map.csv'
+input_file = 'newmap.csv'
 output_file = 'map.csv'
 format_csv_lines(input_file, output_file)

@@ -1,3 +1,2 @@
 /server/node_modules
-/server/src/config/config.js
-/client/JS/config.js
+/server/.env
