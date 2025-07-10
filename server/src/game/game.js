@@ -156,6 +156,21 @@ export function startGame(wss, TILE_SIZE, VISIBLE_TILES_X, VISIBLE_TILES_Y, PASS
                 }));
             }
 
+            broadcast({
+                type: "update",
+                id: player.id,
+                mapX: player.mapX,
+                mapY: player.mapY,
+                pixelX: player.pixelX,
+                pixelY: player.pixelY,
+                targetX: player.targetX,
+                targetY: player.targetY,
+                health: player.health,
+                username: player.username,
+                level: player.level,
+                gold: player.gold
+            }, wss, ws_client);
+
 
             for (const enemyID in enemies) { //Check enemy collisions
                 const enemy = enemies[enemyID];

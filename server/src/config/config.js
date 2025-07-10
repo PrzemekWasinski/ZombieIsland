@@ -1,6 +1,5 @@
 import { map } from "../game/map.js"
 
-//VISIBLE_TILES_X, VISIBLE_TILES_Y, PASSABLE_TILES, PLAYER_SPAWN, ENEMY_SPAWNS, MAP
 export const config = {
     MOVE_SPEED: 3,
     TILE_SIZE: 64,

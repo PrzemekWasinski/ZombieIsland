@@ -45,7 +45,7 @@ export function startGame({ userId, token }) {
 			}
 
 		} else if (msg.type === 'join') { //New player joined
-			if (isNearby([players[playerId].mapX, players[playerId.mapY]], [msg.player.mapX, msg.player.mapY])) {
+			if (1 == 1 || isNearby([players[playerId].mapX, players[playerId.mapY]], [msg.player.mapX, msg.player.mapY])) {
 				players[msg.player.id] = msg.player;
 				const player = players[msg.player.id];
 				if (!player.pixelX) player.pixelX = player.mapX * TILE_SIZE;
@@ -88,7 +88,6 @@ export function startGame({ userId, token }) {
 
 		} else if (msg.type === 'enemy') { //enemy update
 			if (isNearby([players[playerId].mapX, players[playerId].mapY], [msg.mapX, msg.mapY])) {
-				console.log(msg.name)
 				if (!enemies[msg.id]) { //New 
 					let enemy = {};
     
@@ -255,6 +254,8 @@ export function startGame({ userId, token }) {
 
 		for (const id in players) { //Draw other players
 			if (id !== playerId) {
+				console.log("draw")
+
 				drawPlayer(players[id], false, currentPlayer);
 			}
 		}

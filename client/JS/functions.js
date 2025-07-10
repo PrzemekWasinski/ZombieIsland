@@ -49,10 +49,11 @@ export function drawPlayer(player, isCurrentPlayer, currentPlayer) { //Draw play
     const relativeY = player.pixelY - currentPlayer.pixelY;
     screenX = Math.round(halfCanvasWidth - halfTileSize + relativeX);
     screenY = Math.round(halfCanvasHeight - halfTileSize + relativeY);
+    
     if (
-		screenX < -tileSize || screenX > canvas.width || 
-		screenY < -tileSize || screenY > canvas.height
-      ) { //Skip if off-screen
+      screenX < -tileSize || screenX > canvas.width || 
+      screenY < -tileSize || screenY > canvas.height
+    ) { //Skip if off-screen
       	return;
     }
   }
@@ -143,5 +144,5 @@ export function drawDrop(drop, currentPlayer) { //Draw drop
 export function isNearby(coord1, coord2) {
   const dx = coord1[0] - coord2[0]; // X-axis difference
   const dy = coord1[1] - coord2[1]; // Y-axis difference
-  return dx * dx + dy * dy <= 5000; // 50squares
+  return dx * dx + dy * dy <= 2500; // 50squares
 }
