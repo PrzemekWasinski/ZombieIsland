@@ -15,8 +15,6 @@ export function startGame(wss, TILE_SIZE, VISIBLE_TILES_X, VISIBLE_TILES_Y, PASS
         for (const id of deadEnemies) {
             const enemy = enemies[id];
             const loc = enemy.location;
-
-            console.log(`Enemy ${id} died at (${enemy.pixelX}, ${enemy.pixelY})`);
             locationData[loc]--;
 
             const rand = Math.floor(Math.random() * 100) + 1; // 1–100 inclusive
@@ -25,7 +23,7 @@ export function startGame(wss, TILE_SIZE, VISIBLE_TILES_X, VISIBLE_TILES_Y, PASS
                 spawnDrop(enemy.pixelX, enemy.pixelY, dropID, drops, TILE_SIZE);
             }
 
-            delete enemies[id]; 
+            delete enemies[id];
         }
 
         // 2. Broadcast drops
@@ -82,31 +80,90 @@ export function startGame(wss, TILE_SIZE, VISIBLE_TILES_X, VISIBLE_TILES_Y, PASS
             const newTileX = Math.floor(newPixelX / TILE_SIZE);
             const newTileY = Math.floor(newPixelY / TILE_SIZE);
 
-            if (newTileX !== currentTileX) { //Check horizontal collision
+            // Check horizontal movement
+            if (newTileX !== currentTileX) {
                 const checkX = newTileX;
                 const checkY = currentTileY;
-                if (checkY < 0 || checkY >= MAP.length || checkX < 0 || checkX >= MAP[0].length ||
-                    !PASSABLE_TILES.includes(MAP[checkY][checkX])) {
+
+                // Check bounds
+                if (checkY < 0 || checkY >= MAP.length || checkX < 0 || checkX >= MAP[0].length) {
                     newPixelX = velocityX > 0 ? currentTileX * TILE_SIZE + TILE_SIZE - 1 : currentTileX * TILE_SIZE;
+                } else {
+                    const nextTile = MAP[checkY][checkX];
+                    const isWater = nextTile === 31;
+                    const isPassable = PASSABLE_TILES.includes(nextTile);
+
+                    // Movement rules based on boat state
+                    if (player.inBoat) {
+                        // In boat: can only move on water (tile 31)
+                        if (!isWater) {
+                            newPixelX = velocityX > 0 ? currentTileX * TILE_SIZE + TILE_SIZE - 1 : currentTileX * TILE_SIZE;
+                        }
+                    } else {
+                        // On land: can only move on passable tiles (not water)
+                        if (!isPassable || isWater) {
+                            newPixelX = velocityX > 0 ? currentTileX * TILE_SIZE + TILE_SIZE - 1 : currentTileX * TILE_SIZE;
+                        }
+                    }
                 }
             }
 
-            if (newTileY !== currentTileY) { //Check vertical collision
+            // Check vertical movement
+            if (newTileY !== currentTileY) {
                 const checkX = currentTileX;
                 const checkY = newTileY;
-                if (checkY < 0 || checkY >= MAP.length || checkX < 0 || checkX >= MAP[0].length ||
-                    !PASSABLE_TILES.includes(MAP[checkY][checkX])) {
+
+                // Check bounds
+                if (checkY < 0 || checkY >= MAP.length || checkX < 0 || checkX >= MAP[0].length) {
                     newPixelY = velocityY > 0 ? currentTileY * TILE_SIZE + TILE_SIZE - 1 : currentTileY * TILE_SIZE;
+                } else {
+                    const nextTile = MAP[checkY][checkX];
+                    const isWater = nextTile === 31;
+                    const isPassable = PASSABLE_TILES.includes(nextTile);
+
+                    // Movement rules based on boat state
+                    if (player.inBoat) {
+                        // In boat: can only move on water (tile 31)
+                        if (!isWater) {
+                            newPixelY = velocityY > 0 ? currentTileY * TILE_SIZE + TILE_SIZE - 1 : currentTileY * TILE_SIZE;
+                        }
+                    } else {
+                        // On land: can only move on passable tiles (not water)
+                        if (!isPassable || isWater) {
+                            newPixelY = velocityY > 0 ? currentTileY * TILE_SIZE + TILE_SIZE - 1 : currentTileY * TILE_SIZE;
+                        }
+                    }
                 }
             }
 
-            if (newTileX !== currentTileX && newTileY !== currentTileY) { //Check diagonal collision
+            // Check diagonal movement
+            if (newTileX !== currentTileX && newTileY !== currentTileY) {
                 const checkX = newTileX;
                 const checkY = newTileY;
-                if (checkY < 0 || checkY >= MAP.length || checkX < 0 || checkX >= MAP[0].length ||
-                    !PASSABLE_TILES.includes(MAP[checkY][checkX])) {
+
+                // Check bounds
+                if (checkY < 0 || checkY >= MAP.length || checkX < 0 || checkX >= MAP[0].length) {
                     newPixelX = player.pixelX;
                     newPixelY = player.pixelY;
+                } else {
+                    const nextTile = MAP[checkY][checkX];
+                    const isWater = nextTile === 31;
+                    const isPassable = PASSABLE_TILES.includes(nextTile);
+
+                    // Movement rules based on boat state
+                    if (player.inBoat) {
+                        // In boat: can only move on water (tile 31)
+                        if (!isWater) {
+                            newPixelX = player.pixelX;
+                            newPixelY = player.pixelY;
+                        }
+                    } else {
+                        // On land: can only move on passable tiles (not water)
+                        if (!isPassable || isWater) {
+                            newPixelX = player.pixelX;
+                            newPixelY = player.pixelY;
+                        }
+                    }
                 }
             }
 
@@ -119,6 +176,7 @@ export function startGame(wss, TILE_SIZE, VISIBLE_TILES_X, VISIBLE_TILES_Y, PASS
                 player.targetY = player.pixelY;
             }
 
+            // Rest of your player update code (health check, map updates, etc.)
             if (Math.floor(player.health) < 1) {
                 player.mapX = PLAYER_SPAWN[0]
                 player.mapY = PLAYER_SPAWN[1]
@@ -127,6 +185,7 @@ export function startGame(wss, TILE_SIZE, VISIBLE_TILES_X, VISIBLE_TILES_Y, PASS
                 player.targetX = (PLAYER_SPAWN[0] * TILE_SIZE) + (Math.floor(TILE_SIZE / 2))
                 player.targetY = (PLAYER_SPAWN[1] * TILE_SIZE) + (Math.floor(TILE_SIZE / 2))
                 player.health = 100
+                player.inBoat = false; // Reset boat state when respawning
             }
 
             let sendMap = false;
@@ -134,7 +193,6 @@ export function startGame(wss, TILE_SIZE, VISIBLE_TILES_X, VISIBLE_TILES_Y, PASS
             player.lastMapX = player.mapX;
             player.lastMapY = player.mapY;
             sendMap = true;
-
 
             const ws_client = Array.from(wss.clients).find(client => client.playerId === player.id);
             if (ws_client) {
@@ -152,7 +210,8 @@ export function startGame(wss, TILE_SIZE, VISIBLE_TILES_X, VISIBLE_TILES_Y, PASS
                     username: player.username,
                     level: player.level,
                     gold: player.gold,
-                    name: player.name
+                    name: player.name,
+                    inBoat: player.inBoat // Include boat state in updates
                 }));
             }
 
@@ -168,7 +227,8 @@ export function startGame(wss, TILE_SIZE, VISIBLE_TILES_X, VISIBLE_TILES_Y, PASS
                 health: player.health,
                 username: player.username,
                 level: player.level,
-                gold: player.gold
+                gold: player.gold,
+                inBoat: player.inBoat // Include boat state in broadcasts
             }, wss, ws_client);
 
 

@@ -103,7 +103,7 @@ export function drawEnemy(enemy, currentPlayer, sprite) {
   );
 
   // Health bar
-  const multiplier = Math.floor(healthBarBg.width / enemy.maxHealth);
+  const multiplier = healthBarBg.width / enemy.maxHealth;
   
   tempRect.x = screenX + healthBarBg.x;
   tempRect.y = screenY + healthBarBg.y;

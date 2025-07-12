@@ -110,6 +110,4 @@ export const config = {
     },
 
     MAP: map
-
-
 }

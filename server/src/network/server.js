@@ -76,7 +76,8 @@ export async function startWebSocket(config, url, apiKey) {
 					lastMapY: characterData.mapY,
 					username: characterData.username,
 					level: characterData.level,
-					gold: characterData.gold
+					gold: characterData.gold,
+					inBoat: true
 				};
 
 				console.log(`Player ${id} connected and authenticated.`);
@@ -116,7 +117,7 @@ export async function startWebSocket(config, url, apiKey) {
 				else if (data.dir === "right") { player.movingRight = data.pressed; }
 				else if (data.dir === "attack") { // Fixed: was msg.dir
 					let hasUpdated = false;
-					
+
 					for (const enemyID in enemies) {
 						const enemy = enemies[enemyID];
 						const dx = Math.abs(player.pixelX - enemy.pixelX);
@@ -138,12 +139,77 @@ export async function startWebSocket(config, url, apiKey) {
 								health: enemy.health,
 								maxHealth: enemy.maxHealth,
 								name: enemy.name,
-								level:enemy.level
+								level: enemy.level
 							}, wss);
 
 							break; //Allows the user to only attack 1 enemy at a time
 						}
 					}
+				} else if (data.dir === "interact") {
+
+					// Try to ENTER boat
+					if (MAP[player.mapY - 1][player.mapX] == 31 && !player.inBoat) {
+						player.mapY -= 1;
+						player.pixelY -= TILE_SIZE;
+						player.targetY -= TILE_SIZE;
+						player.inBoat = true;
+					} else if (MAP[player.mapY + 1][player.mapX] == 31 && !player.inBoat) {
+						player.mapY += 1;
+						player.pixelY += TILE_SIZE; // was pixelX before! wrong
+						player.targetY += TILE_SIZE;
+						player.inBoat = true;
+
+					} else if (MAP[player.mapY][player.mapX + 1] == 31 && !player.inBoat) {
+						player.mapX += 1;
+						player.pixelX += TILE_SIZE; // was pixelY before! wrong
+						player.targetX += TILE_SIZE;
+						player.inBoat = true;
+
+					} else if (MAP[player.mapY][player.mapX - 1] == 31 && !player.inBoat) {
+						player.mapX -= 1;
+						player.pixelX -= TILE_SIZE;
+						player.targetX -= TILE_SIZE;
+						player.inBoat = true;
+
+					}
+					// Try to EXIT boat
+					else if (PASSABLE_TILES.includes(MAP[player.mapY - 1][player.mapX]) && player.inBoat) {
+						player.mapY -= 1;
+						player.pixelY -= TILE_SIZE;
+						player.targetY -= TILE_SIZE;
+						player.inBoat = false;
+					} else if (PASSABLE_TILES.includes(MAP[player.mapY + 1][player.mapX]) && player.inBoat) {
+						player.mapY += 1;
+						player.pixelY += TILE_SIZE;
+						player.targetY += TILE_SIZE;
+						player.inBoat = false;
+					} else if (PASSABLE_TILES.includes(MAP[player.mapY][player.mapX + 1]) && player.inBoat) {
+						player.mapX += 1;
+						player.pixelX += TILE_SIZE;
+						player.targetX += TILE_SIZE;
+						player.inBoat = false;
+					} else if (PASSABLE_TILES.includes(MAP[player.mapY][player.mapX - 1]) && player.inBoat) {
+						player.mapX -= 1;
+						player.pixelX -= TILE_SIZE;
+						player.targetX -= TILE_SIZE;
+						player.inBoat = false;
+					}
+
+
+					broadcast({
+						type: "update",
+						id: player.id,
+						mapX: player.mapX,
+						mapY: player.mapY,
+						pixelX: player.pixelX,
+						pixelY: player.pixelY,
+						targetX: player.targetX,
+						targetY: player.targetY,
+						health: player.health,
+						username: player.username,
+						level: player.level,
+						gold: player.gold
+					}, wss);
 				}
 			}
 		});

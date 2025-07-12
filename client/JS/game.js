@@ -45,14 +45,13 @@ export function startGame({ userId, token }) {
 			}
 
 		} else if (msg.type === 'join') { //New player joined
-			if (1 == 1 || isNearby([players[playerId].mapX, players[playerId.mapY]], [msg.player.mapX, msg.player.mapY])) {
-				players[msg.player.id] = msg.player;
-				const player = players[msg.player.id];
-				if (!player.pixelX) player.pixelX = player.mapX * TILE_SIZE;
-				if (!player.pixelY) player.pixelY = player.mapY * TILE_SIZE;
-				if (!player.targetX) player.targetX = player.pixelX;
-				if (!player.targetY) player.targetY = player.pixelY;
-			}
+			players[msg.player.id] = msg.player;
+			const player = players[msg.player.id];
+			if (!player.pixelX) player.pixelX = player.mapX * TILE_SIZE;
+			if (!player.pixelY) player.pixelY = player.mapY * TILE_SIZE;
+			if (!player.targetX) player.targetX = player.pixelX;
+			if (!player.targetY) player.targetY = player.pixelY;
+			
 
 		} else if (msg.type === 'update') { //Player update
 			if (!players[msg.id]) {
@@ -156,7 +155,10 @@ export function startGame({ userId, token }) {
 		"S": "down",
 		"d": "right",
 		"D": "right",
-		" ": "attack"
+		" ": "attack",
+		"e": "interact",
+		"E": "interact"
+
 	};
 
 	window.addEventListener('keydown', (event) => { //Key pressed
@@ -223,10 +225,10 @@ export function startGame({ userId, token }) {
 			}
 		}
 
-		for (const id in [players]) {
-			const player = [players][id]
+		for (const id in players) {
+			const player = players[id]
 			if (!isNearby([currentPlayer.mapX, currentPlayer.mapY], [player.mapX, player.mapY])) {
-				delete [players][id]
+				delete players[id]
 			}
 		}
 
@@ -234,7 +236,6 @@ export function startGame({ userId, token }) {
 			const player = players[id];
 			player.pixelX = tileTransition(player.pixelX, player.targetX, time);
 			player.pixelY = tileTransition(player.pixelY, player.targetY, time);
-			console.log(player.mapX, player.mapY)
 		}
 
 		for (const id in enemies) { //Update enemy positions
@@ -254,8 +255,6 @@ export function startGame({ userId, token }) {
 
 		for (const id in players) { //Draw other players
 			if (id !== playerId) {
-				console.log("draw")
-
 				drawPlayer(players[id], false, currentPlayer);
 			}
 		}
