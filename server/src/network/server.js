@@ -77,7 +77,7 @@ export async function startWebSocket(config, url, apiKey) {
 					username: characterData.username,
 					level: characterData.level,
 					gold: characterData.gold,
-					inBoat: true
+					inBoat: characterData.inBoat
 				};
 
 				console.log(`Player ${id} connected and authenticated.`);
@@ -122,10 +122,12 @@ export async function startWebSocket(config, url, apiKey) {
 						const enemy = enemies[enemyID];
 						const dx = Math.abs(player.pixelX - enemy.pixelX);
 						const dy = Math.abs(player.pixelY - enemy.pixelY);
+
 						if (dx < TILE_SIZE * 1.2 && dy < TILE_SIZE * 1.2) { // If enemy in range
 							enemy.health = Math.max(0, enemy.health - 3); // Damage enemy (3 is the default value change this for when players deal theirown damage)
 							hasUpdated = true;
 						}
+
 						if (hasUpdated) {
 							broadcast({
 								type: "enemy",
@@ -145,7 +147,7 @@ export async function startWebSocket(config, url, apiKey) {
 							break; //Allows the user to only attack 1 enemy at a time
 						}
 					}
-				} else if (data.dir === "interact") {
+				} else if (data.dir === "interact" && data.pressed) {
 
 					// Try to ENTER boat
 					if (MAP[player.mapY - 1][player.mapX] == 31 && !player.inBoat) {
@@ -170,8 +172,8 @@ export async function startWebSocket(config, url, apiKey) {
 						player.pixelX -= TILE_SIZE;
 						player.targetX -= TILE_SIZE;
 						player.inBoat = true;
-
 					}
+
 					// Try to EXIT boat
 					else if (PASSABLE_TILES.includes(MAP[player.mapY - 1][player.mapX]) && player.inBoat) {
 						player.mapY -= 1;
@@ -194,7 +196,6 @@ export async function startWebSocket(config, url, apiKey) {
 						player.targetX -= TILE_SIZE;
 						player.inBoat = false;
 					}
-
 
 					broadcast({
 						type: "update",

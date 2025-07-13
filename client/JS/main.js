@@ -62,8 +62,8 @@ document.getElementById('register-button').onclick = async () => {
       gold: 0,
       health: 100,
       mapX: 269,
-      mapY: 245
-
+      mapY: 245,
+      inBoat: false
     });
 
     if (insertError) {

@@ -1,5 +1,5 @@
 import { players, enemies, enemyNextID, drops, getNextDropID, getNextEnemyID } from "./state.js";
-import { broadcast, spawnEnemy, getMap, isNearby, spawnDrop, updateStats, saveProgress } from "./functions.js";
+import { broadcast, spawnEnemy, getMap, isNearby, spawnDrop, updateStats, saveProgress, saveItem } from "./functions.js";
 
 export function startGame(wss, TILE_SIZE, VISIBLE_TILES_X, VISIBLE_TILES_Y, PASSABLE_TILES, PLAYER_SPAWN, ENEMY_SPAWNS, MAP, supabase) {
     let locationData = {};
@@ -525,6 +525,7 @@ export function startGame(wss, TILE_SIZE, VISIBLE_TILES_X, VISIBLE_TILES_Y, PASS
                     //player.gold += 1
 
                     saveProgress(player, supabase)
+                    saveItem(drop, player.dbID, supabase)
 
                     broadcast({
                         type: "update",

@@ -218,6 +218,13 @@ export function startGame({ userId, token }) {
 		const currentPlayer = players[playerId];
 		const time = Math.min(1, deltaTime * INTERPOLATION_SPEED); //Movement smoothing
 
+		for (const id in enemies) { //Delete far away enemies and players
+			const enemy = enemies[id]
+			if (!isNearby([currentPlayer.mapX, currentPlayer.mapY], [enemy.mapX, enemy.mapY])) {
+				delete enemies[id]
+			}
+		}
+
 		for (const id in players) { //Update player positions
 			const player = players[id];
 			player.pixelX = tileTransition(player.pixelX, player.targetX, time);
@@ -234,7 +241,7 @@ export function startGame({ userId, token }) {
 			if (enemy.frameTimer >= frameDelay) {
 				enemy.frameTimer = 0;
 				enemy.frameIndex = (enemy.frameIndex + 1) % 8; // 8 frames in top row
-}
+			}
 		}
 
 		drawMap(currentPlayer); //Draw surrounding areas
