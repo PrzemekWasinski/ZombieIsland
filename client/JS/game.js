@@ -2,7 +2,7 @@ import { loadImages, sprites } from "./images.js";
 import { drawMap, drawPlayer, drawEnemy, drawDrop, isNearby } from "./functions.js"
 
 export function startGame({ userId, token }) {
-	const socket = new WebSocket('wss://ws.zombieisland.online/');
+	const socket = new WebSocket("wss://ws.zombieisland.online/");
 	socket.onopen = () => {
 		console.log("Connected to server");
 
@@ -12,8 +12,8 @@ export function startGame({ userId, token }) {
 		}));
 	};
 
-	const canvas = document.getElementById('game');
-	const ctx = canvas.getContext('2d');
+	const canvas = document.getElementById("game");
+	const ctx = canvas.getContext("2d");
 	const TILE_SIZE = 64; //Tile size in pixels
 
 	let playerId = null; //player ID (not userID)
@@ -33,7 +33,7 @@ export function startGame({ userId, token }) {
 	socket.onmessage = (event) => {
 		const msg = JSON.parse(event.data);
 
-		if (msg.type === 'init') { //Initial game setup
+		if (msg.type === "init") { //Initial game setup
 			playerId = msg.id;
 			players = msg.players;
 			for (const id in players) {
@@ -44,7 +44,7 @@ export function startGame({ userId, token }) {
 				player.targetY = Number(player.targetY) || player.pixelY;
 			}
 
-		} else if (msg.type === 'join') { //New player joined
+		} else if (msg.type === "join") { //New player joined
 			players[msg.player.id] = msg.player;
 			const player = players[msg.player.id];
 			if (!player.pixelX) player.pixelX = player.mapX * TILE_SIZE;
@@ -53,7 +53,7 @@ export function startGame({ userId, token }) {
 			if (!player.targetY) player.targetY = player.pixelY;
 			
 
-		} else if (msg.type === 'update') { //Player update
+		} else if (msg.type === "update") { //Player update
 			if (!players[msg.id]) {
 				return;
 			} //Skip if invalid player
@@ -85,7 +85,7 @@ export function startGame({ userId, token }) {
 				if (player.map !== undefined) player.map = msg.map;
 			}
 
-		} else if (msg.type === 'enemy') { //enemy update
+		} else if (msg.type === "enemy") { //enemy update
 			if (isNearby([players[playerId].mapX, players[playerId].mapY], [msg.mapX, msg.mapY])) {
 				if (!enemies[msg.id]) { //New 
 					let enemy = {};
@@ -140,7 +140,13 @@ export function startGame({ userId, token }) {
 					if (msg.pixelY !== undefined) {drop.pixelY = msg.pixelY};
 				}
 			}
-		} else if (msg.type === 'leave') { //Player left
+		} else if (msg.type === "inventory") { //Request to pull all of th eplayer's items from the db
+			if (!msg.error) {
+				console.log(msg.inv)
+			} else {
+				console.log("Eror with inv", msg.message)
+			}
+		} else if (msg.type === "leave") { //Player left
 			delete players[msg.id];
 		}
 	};
@@ -157,30 +163,34 @@ export function startGame({ userId, token }) {
 		"D": "right",
 		" ": "attack",
 		"e": "interact",
-		"E": "interact"
+		"E": "interact",
+		"i": "inventory",
+		"I": "inventory"
 
 	};
 
-	window.addEventListener('keydown', (event) => { //Key pressed
+	window.addEventListener("keydown", (event) => { //Key pressed
 		const key = controls[event.key];
 		if (key && !keysHeld[key]) {
 			keysHeld[key] = true;
 			socket.send(JSON.stringify({
-				type: 'keydown',
+				type: "keydown",
 				dir: key,
-				pressed: true
+				pressed: true,
+				playerID: userId
 			}));
 		}
 	});
 
-	window.addEventListener('keyup', (event) => { //Key released
+	window.addEventListener("keyup", (event) => { //Key released
 		const key = controls[event.key];
 		if (key) {
 			keysHeld[key] = false;
 			socket.send(JSON.stringify({
-				type: 'keydown',
+				type: "keydown",
 				dir: key,
-				pressed: false
+				pressed: false,
+				playerID: userId
 			}));
 		}
 	});

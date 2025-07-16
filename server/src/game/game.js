@@ -304,14 +304,14 @@ export function startGame(wss, TILE_SIZE, VISIBLE_TILES_X, VISIBLE_TILES_Y, PASS
 
                 const directions = [];
 
-                if (canMoveUp) directions.push("up");
-                if (canMoveDown) directions.push("down");
-                if (canMoveLeft) directions.push("left");
-                if (canMoveRight) directions.push("right");
-                if (canMoveUp && canMoveRight) directions.push("up-right");
-                if (canMoveUp && canMoveLeft) directions.push("up-left");
-                if (canMoveDown && canMoveRight) directions.push("down-right");
-                if (canMoveDown && canMoveLeft) directions.push("down-left");
+                if (canMoveUp) { directions.push("up"); }
+                if (canMoveDown) { directions.push("down"); }
+                if (canMoveLeft) { directions.push("left"); }
+                if (canMoveRight) { directions.push("right"); }
+                if (canMoveUp && canMoveRight) { directions.push("up-right"); }
+                if (canMoveUp && canMoveLeft) { directions.push("up-left"); }
+                if (canMoveDown && canMoveRight) { directions.push("down-right"); }
+                if (canMoveDown && canMoveLeft) { directions.push("down-left"); }
 
                 // Clear previous movement
                 enemy.movingUp = false;
@@ -325,14 +325,14 @@ export function startGame(wss, TILE_SIZE, VISIBLE_TILES_X, VISIBLE_TILES_Y, PASS
 
                 if (targetDistance !== undefined && targetDistance > STOP_DISTANCE) {
                     // Move toward player only if not already close enough
-                    if (targetX > enemy.mapX && targetY > enemy.mapY) enemy.movingDownRight = true;
-                    else if (targetX < enemy.mapX && targetY < enemy.mapY) enemy.movingUpLeft = true;
-                    else if (targetX > enemy.mapX && targetY < enemy.mapY) enemy.movingUpRight = true;
-                    else if (targetX < enemy.mapX && targetY > enemy.mapY) enemy.movingDownLeft = true;
-                    else if (targetX === enemy.mapX && targetY > enemy.mapY) enemy.movingDown = true;
-                    else if (targetX === enemy.mapX && targetY < enemy.mapY) enemy.movingUp = true;
-                    else if (targetY === enemy.mapY && targetX > enemy.mapX) enemy.movingRight = true;
-                    else if (targetY === enemy.mapY && targetX < enemy.mapX) enemy.movingLeft = true;
+                    if (targetX > enemy.mapX && targetY > enemy.mapY) { enemy.movingDownRight = true; }
+                    else if (targetX < enemy.mapX && targetY < enemy.mapY) { enemy.movingUpLeft = true; }
+                    else if (targetX > enemy.mapX && targetY < enemy.mapY) { enemy.movingUpRight = true; }
+                    else if (targetX < enemy.mapX && targetY > enemy.mapY) { enemy.movingDownLeft = true; }
+                    else if (targetX === enemy.mapX && targetY > enemy.mapY) { enemy.movingDown = true; }
+                    else if (targetX === enemy.mapX && targetY < enemy.mapY) { enemy.movingUp = true; }
+                    else if (targetY === enemy.mapY && targetX > enemy.mapX) { enemy.movingRight = true; }
+                    else if (targetY === enemy.mapY && targetX < enemy.mapX) { enemy.movingLeft = true; }
                 }
             } else {
                 // Wander randomly if no players nearby
@@ -347,14 +347,14 @@ export function startGame(wss, TILE_SIZE, VISIBLE_TILES_X, VISIBLE_TILES_Y, PASS
 
                 const directions = [];
 
-                if (canMoveUp) directions.push("up");
-                if (canMoveDown) directions.push("down");
-                if (canMoveLeft) directions.push("left");
-                if (canMoveRight) directions.push("right");
-                if (canMoveUp && canMoveRight) directions.push("up-right");
-                if (canMoveUp && canMoveLeft) directions.push("up-left");
-                if (canMoveDown && canMoveRight) directions.push("down-right");
-                if (canMoveDown && canMoveLeft) directions.push("down-left");
+                if (canMoveUp) { directions.push("up"); }
+                if (canMoveDown) { directions.push("down"); }
+                if (canMoveLeft) { directions.push("left"); }
+                if (canMoveRight) { directions.push("right"); }
+                if (canMoveUp && canMoveRight) { directions.push("up-right"); }
+                if (canMoveUp && canMoveLeft) { directions.push("up-left"); }
+                if (canMoveDown && canMoveRight) { directions.push("down-right"); }
+                if (canMoveDown && canMoveLeft) { directions.push("down-left"); }
 
                 directions.push("none"); // Allow idle behavior sometimes
 
@@ -369,14 +369,14 @@ export function startGame(wss, TILE_SIZE, VISIBLE_TILES_X, VISIBLE_TILES_Y, PASS
                 enemy.movingDownRight = false;
                 enemy.movingDownLeft = false;
 
-                if (randomDir === "up") enemy.movingUp = true;
-                else if (randomDir === "down") enemy.movingDown = true;
-                else if (randomDir === "left") enemy.movingLeft = true;
-                else if (randomDir === "right") enemy.movingRight = true;
-                else if (randomDir === "up-right") enemy.movingUpRight = true;
-                else if (randomDir === "up-left") enemy.movingUpLeft = true;
-                else if (randomDir === "down-right") enemy.movingDownRight = true;
-                else if (randomDir === "down-left") enemy.movingDownLeft = true;
+                if (randomDir === "up") { enemy.movingUp = true; }
+                else if (randomDir === "down") { enemy.movingDown = true; }
+                else if (randomDir === "left") { enemy.movingLeft = true; }
+                else if (randomDir === "right") { enemy.movingRight = true; }
+                else if (randomDir === "up-right") { enemy.movingUpRight = true; }
+                else if (randomDir === "up-left") { enemy.movingUpLeft = true; }
+                else if (randomDir === "down-right") { enemy.movingDownRight = true; }
+                else if (randomDir === "down-left") { enemy.movingDownLeft = true; }
                 // "none" means do nothing
             }
 

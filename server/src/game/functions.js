@@ -145,7 +145,6 @@ export function isNearby(coord1, coord2) {
 	return dx + dy <= 50;
 }
 
-
 export function spawnDrop(x, y, id, drops, TILE_SIZE) {
 	drops[id] = {
 		id: id,

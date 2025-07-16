@@ -211,7 +211,37 @@ export async function startWebSocket(config, url, apiKey) {
 						level: player.level,
 						gold: player.gold
 					}, wss);
+
+				} else if (data.dir === "inventory" && data.pressed) {
+					if (!playerId) {
+						ws.send(JSON.stringify({ 
+							type: "error", 
+							message: "Not authenticated." 
+						}));
+						return;
+					}
+
+					const { data: inv, error } = await supabase
+						.from("InventoryItems")
+						.select("*")
+						.eq("playerID", data.playerID);
+
+					if (error) {
+						console.error("Error fetching inventory:", error);
+						ws.send(JSON.stringify({ 
+							type: "inventory", 
+							error: true, 
+							message: error.message
+						}));
+					} else {
+						ws.send(JSON.stringify({ 
+							type: "inventory", 
+							error: false, 
+							inv: inv 
+						}));
+					}
 				}
+
 			}
 		});
 
