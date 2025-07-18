@@ -1,16 +1,22 @@
-import { players, enemies, enemyNextID, drops, getNextDropID, getNextEnemyID } from "./state.js";
-import { broadcast, spawnEnemy, getMap, isNearby, spawnDrop, updateStats, saveProgress, saveItem } from "./functions.js";
+import { players, enemies, enemyNextID, drops, getNextDropID, getNextEnemyID, objects, getNextObjectID } from "./state.js";
+import { broadcast, spawnEnemy, getMap, isNearby, spawnDrop, updateStats, saveProgress, saveItem, spawnObject } from "./functions.js";
 
-export function startGame(wss, TILE_SIZE, VISIBLE_TILES_X, VISIBLE_TILES_Y, PASSABLE_TILES, PLAYER_SPAWN, ENEMY_SPAWNS, MAP, supabase) {
+export function startGame(wss, TILE_SIZE, VISIBLE_TILES_X, VISIBLE_TILES_Y, PASSABLE_TILES, PLAYER_SPAWN, ENEMY_SPAWNS, OBJECT_SPAWNS, MAP, supabase) {
     let locationData = {};
+    let objectData = {};
 
     for (const key of Object.keys(ENEMY_SPAWNS)) {
         locationData[key] = 0;
     }
 
+    for (const key of Object.keys(OBJECT_SPAWNS)) {
+        objectData[key] = 0;
+    }
+
     setInterval(() => {
         // 1. Handle dead enemies
         const deadEnemies = Object.keys(enemies).filter(id => enemies[id].health <= 0);
+        const deadObjects = Object.keys(objects).filter(id => objects[id].health <= 0);
 
         for (const id of deadEnemies) {
             const enemy = enemies[id];
@@ -24,6 +30,20 @@ export function startGame(wss, TILE_SIZE, VISIBLE_TILES_X, VISIBLE_TILES_Y, PASS
             }
 
             delete enemies[id];
+        }
+
+        for (const id of deadObjects) {
+            const object = objects[id];
+            const loc = object.location;
+            objectData[loc]--;
+
+            const rand = Math.floor(Math.random() * 100) + 1; // 1–100 inclusive
+            if (rand > 50) {
+                const dropID = getNextDropID();
+                spawnDrop(object.pixelX, object.pixelY, dropID, drops, TILE_SIZE);
+            }
+
+            delete objects[id];
         }
 
         // 2. Broadcast drops
@@ -42,6 +62,7 @@ export function startGame(wss, TILE_SIZE, VISIBLE_TILES_X, VISIBLE_TILES_Y, PASS
 
         // 3. Spawn enemies if needed
         const spawnKeys = Object.keys(ENEMY_SPAWNS);
+        const objectKeys = Object.keys(OBJECT_SPAWNS);
 
         for (const key of spawnKeys) {
             const spawnData = ENEMY_SPAWNS[key];
@@ -54,6 +75,36 @@ export function startGame(wss, TILE_SIZE, VISIBLE_TILES_X, VISIBLE_TILES_Y, PASS
                 }
                 tries++;
             }
+        }
+
+        for (const key of objectKeys) {
+            const spawnData = OBJECT_SPAWNS[key];
+            let tries = 0;
+
+            while (objectData[key] < spawnData.objectAmount && tries < 10) {
+                console.log("llllw")
+                const newID = spawnObject(objects, PASSABLE_TILES, MAP, getNextObjectID(), TILE_SIZE, spawnData.topLeft, spawnData.bottomRight, key, spawnData.objectStats);
+                if (newID !== null) {
+                    objectData[key]++;
+                }
+                tries++;
+            }
+        }
+
+        for (const id in objects) {
+            const object = objects[id];
+            broadcast({
+                type: "object",
+                id: object.id,
+                mapX: object.mapX,
+                mapY: object.mapY,
+                pixelX: object.pixelX,
+                pixelY: object.pixelY,
+                health: object.health[0],
+                maxHealth: object.health[1],
+                location: object.location,
+                name: object.name
+            }, wss);
         }
 
         for (const id in players) { //Update all players

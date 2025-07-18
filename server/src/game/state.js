@@ -7,6 +7,9 @@ export let enemyNextID = 1; // Next enemy ID
 export let drops = {};
 export let dropNextID = 1;
 
+export let objects = {};
+export let objectNextID = 1;
+
 export function getNextId() {
     return nextId++;
 }
@@ -17,4 +20,8 @@ export function getNextEnemyID() {
 
 export function getNextDropID() {
     return dropNextID++;
+}
+
+export function getNextObjectID() {
+    return objectNextID++;
 }

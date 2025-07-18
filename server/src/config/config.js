@@ -10,20 +10,6 @@ export const config = {
 
     ENEMY_SPAWNS: {
 
-        "TEST1": {
-            enemyAmount: 15,
-            topLeft: [358, 501],
-            bottomRight: [364, 505],
-
-            enemyStats: {
-                health: [10, 10],
-                level: 1,
-                speed: 1,
-                damage: 1,
-                name: "Green Slime"
-            }
-        },
-
         "TEST2": {
             enemyAmount: 15,
             topLeft: [307, 491],
@@ -109,5 +95,19 @@ export const config = {
         },
     },
 
+    OBJECT_SPAWNS: {
+
+        "OBJECTS1": {
+            objectAmount: 15,
+            topLeft: [358, 501],
+            bottomRight: [364, 505],
+
+            objectStats: {
+                health: [10, 10],
+                name: "Tree"
+            }
+        },
+    },
+    
     MAP: map
 }

@@ -1,5 +1,5 @@
 import { loadImages, sprites } from "./images.js";
-import { drawMap, drawPlayer, drawEnemy, drawDrop, isNearby } from "./functions.js"
+import { drawMap, drawPlayer, drawEnemy, drawDrop, drawObject, isNearby } from "./functions.js"
 
 export function startGame({ userId, token }) {
 	const socket = new WebSocket("wss://ws.zombieisland.online/");
@@ -17,9 +17,11 @@ export function startGame({ userId, token }) {
 	const TILE_SIZE = 64; //Tile size in pixels
 
 	let playerId = null; //player ID (not userID)
+	
 	let players = {}; //All players
 	let enemies = {}; //All enemies
-	let drops = {}
+	let drops = {} //All drops
+	let objects = {} //All objects
 
 	let lastFrameTime = performance.now(); //Last frame time
 	let frameCount = 0;  //Frames counted
@@ -114,6 +116,7 @@ export function startGame({ userId, token }) {
 					if (msg.targetX !== undefined) enemy.targetX = msg.targetX;
 					if (msg.targetY !== undefined) enemy.targetY = msg.targetY;
 					if (msg.health !== undefined) enemy.health = msg.health;
+					if (msg.maxHealth !== undefined) enemy.maxHealth = msg.maxHealth;
 					if (msg.name !== undefined) enemy.name = msg.name;
 					if (msg.level !== undefined) enemy.level = msg.level;
 					enemy.frameIndex = enemy.frameIndex ?? 0;
@@ -140,11 +143,38 @@ export function startGame({ userId, token }) {
 					if (msg.pixelY !== undefined) {drop.pixelY = msg.pixelY};
 				}
 			}
-		} else if (msg.type === "inventory") { //Request to pull all of th eplayer's items from the db
+		} else if (msg.type === "inventory") { //Request to pull all of the player's items from the db
 			if (!msg.error) {
 				console.log(msg.inv)
 			} else {
-				console.log("Eror with inv", msg.message)
+				console.log("Error with inv", msg.message)
+			}
+
+		} else if (msg.type === "object") {
+			if (isNearby([players[playerId].mapX, players[playerId].mapY], [msg.mapX, msg.mapY])) {
+				if (!objects[msg.id]) { //New 
+					let object = {};
+    
+					if (msg.mapX !== undefined) object.mapX = msg.mapX;
+					if (msg.mapY !== undefined) object.mapY = msg.mapY;
+					if (msg.pixelX !== undefined) object.pixelX = msg.pixelX;
+					if (msg.pixelY !== undefined) object.pixelY = msg.pixelY;
+					if (msg.health !== undefined) object.health = msg.health;
+					if (msg.maxHealth !== undefined) object.maxHealth = msg.maxHealth;
+					if (msg.name !== undefined) object.name = msg.name;
+					objects[msg.id] = object;
+
+				} else { //Existing object
+					const object = enemies[msg.id];
+
+					if (msg.mapX !== undefined) object.mapX = msg.mapX;
+					if (msg.mapY !== undefined) object.mapY = msg.mapY;
+					if (msg.pixelX !== undefined) object.pixelX = msg.pixelX;
+					if (msg.pixelY !== undefined) object.pixelY = msg.pixelY;
+					if (msg.health !== undefined) object.health = msg.health;
+					if (msg.maxHealth !== undefined) object.maxHealth = msg.maxHealth;
+					if (msg.name !== undefined) object.name = msg.name;
+				}
 			}
 		} else if (msg.type === "leave") { //Player left
 			delete players[msg.id];
@@ -200,11 +230,20 @@ export function startGame({ userId, token }) {
 	}
 
 	function draw(currentTime) { //Main game loop
+		console.log(Object.keys(objects).length)
 		for (const enemyID in enemies) {
 			const enemy = enemies[enemyID];
 
 			if (Math.floor(enemy.health) < 1) {
 				delete enemies[enemyID]
+			}
+		}
+
+		for (const objectID in objects) {
+			const object = objects[objectID];
+
+			if (Math.floor(object.health) < 1) {
+				delete objects[objectID]
 			}
 		}
 		
@@ -228,10 +267,17 @@ export function startGame({ userId, token }) {
 		const currentPlayer = players[playerId];
 		const time = Math.min(1, deltaTime * INTERPOLATION_SPEED); //Movement smoothing
 
-		for (const id in enemies) { //Delete far away enemies and players
+		for (const id in enemies) { //Delete far away enemies and objects
 			const enemy = enemies[id]
 			if (!isNearby([currentPlayer.mapX, currentPlayer.mapY], [enemy.mapX, enemy.mapY])) {
 				delete enemies[id]
+			}
+		}
+
+		for (const id in objects) {
+			const object = objects[id]
+			if (!isNearby([currentPlayer.mapX, currentPlayer.mapY], [object.mapX, object.mapY])) {
+				delete objects[id]
 			}
 		}
 
@@ -260,6 +306,10 @@ export function startGame({ userId, token }) {
 			if (id !== playerId) {
 				drawPlayer(players[id], false, currentPlayer);
 			}
+		}
+
+		for (const id in objects) { //Draw objects
+			drawObject(objects[id], currentPlayer);
 		}
 
 		for (const id in enemies) { //Draw enemies

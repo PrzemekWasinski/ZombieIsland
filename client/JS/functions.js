@@ -50,10 +50,10 @@ export function drawPlayer(player, isCurrentPlayer, currentPlayer) { //Draw play
     screenX = Math.round(halfCanvasWidth - halfTileSize + relativeX);
     screenY = Math.round(halfCanvasHeight - halfTileSize + relativeY);
     
-    if (
+    if ( //Skip if off-screen
       screenX < -tileSize || screenX > canvas.width || 
       screenY < -tileSize || screenY > canvas.height
-    ) { //Skip if off-screen
+    ) { 
       	return;
     }
   }
@@ -67,7 +67,7 @@ export function drawPlayer(player, isCurrentPlayer, currentPlayer) { //Draw play
   ctx.fillRect(tempRect.x, tempRect.y, healthBarBg.width, healthBarBg.height);
 
   if (player.health > 0) { //Fill in health bar with player health
-    healthBarFg.width = Math.round(player.health / 2) - 1;
+    healthBarFg.width = Math.round(player.health / 2) - 2;
     ctx.fillStyle = "rgb(255, 0, 0)";
     ctx.fillRect(
       screenX + healthBarFg.x,
@@ -111,7 +111,7 @@ export function drawEnemy(enemy, currentPlayer, sprite) {
   ctx.fillRect(tempRect.x, tempRect.y, healthBarBg.width, healthBarBg.height);
 
   if (enemy.health > 0) {
-    healthBarFg.width = Math.round((enemy.health * multiplier) - 1);
+    healthBarFg.width = Math.round((enemy.health * multiplier) - 2);
     ctx.fillStyle = "rgb(255, 0, 0)";
     ctx.fillRect(
       screenX + healthBarFg.x,
@@ -129,6 +129,40 @@ export function drawEnemy(enemy, currentPlayer, sprite) {
     screenX + 30,
     screenY - 10
   );
+}
+
+export function drawObject(object, currentPlayer) { 
+  let screenX, screenY;
+  const relativeX = object.pixelX - currentPlayer.pixelX;
+  const relativeY = object.pixelY - currentPlayer.pixelY;
+  screenX = Math.round(halfCanvasWidth - halfTileSize + relativeX);
+  screenY = Math.round(halfCanvasHeight - halfTileSize + relativeY);
+  
+  if ( //Skip if off-screen
+    screenX < -tileSize || screenX > canvas.width || 
+    screenY < -tileSize || screenY > canvas.height
+  ) { 
+      return;
+  }
+  
+  ctx.fillStyle = "green"
+  ctx.fillRect(screenX, screenY, tileSize, tileSize);
+  
+  // tempRect.x = screenX + healthBarBg.x;
+  // tempRect.y = screenY + healthBarBg.y;
+  // ctx.fillStyle = "rgb(0, 0, 0)";
+  // ctx.fillRect(tempRect.x, tempRect.y, healthBarBg.width, healthBarBg.height);
+
+  // if (object.health > 0) { //Fill in health bar with player health
+  //   healthBarFg.width = Math.round(object.health / 2) - 2;
+  //   ctx.fillStyle = "rgb(255, 0, 0)";
+  //   ctx.fillRect(
+  //     screenX + healthBarFg.x,
+  //     screenY + healthBarFg.y,
+  //     healthBarFg.width,
+  //     healthBarFg.height
+  //   );
+  // }
 }
 
 export function drawDrop(drop, currentPlayer) { //Draw drop

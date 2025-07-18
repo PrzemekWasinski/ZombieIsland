@@ -6,7 +6,7 @@ import { players, enemies, getNextId } from "../game/state.js";
 import { startGame } from "../game/game.js";
 
 export async function startWebSocket(config, url, apiKey) {
-	const { MOVE_SPEED, TILE_SIZE, VISIBLE_TILES_X, VISIBLE_TILES_Y, PASSABLE_TILES, PLAYER_SPAWN, ENEMY_SPAWNS, MAP } = config;
+	const { MOVE_SPEED, TILE_SIZE, VISIBLE_TILES_X, VISIBLE_TILES_Y, PASSABLE_TILES, PLAYER_SPAWN, ENEMY_SPAWNS, OBJECT_SPAWNS, MAP } = config;
 
 	const server = http.createServer();
 	const wss = new WebSocketServer({ server });
@@ -147,6 +147,7 @@ export async function startWebSocket(config, url, apiKey) {
 							break; //Allows the user to only attack 1 enemy at a time
 						}
 					}
+					
 				} else if (data.dir === "interact" && data.pressed) {
 
 					// Try to ENTER boat
@@ -259,5 +260,5 @@ export async function startWebSocket(config, url, apiKey) {
 		});
 	});
 
-	startGame(wss, TILE_SIZE, VISIBLE_TILES_X, VISIBLE_TILES_Y, PASSABLE_TILES, PLAYER_SPAWN, ENEMY_SPAWNS, MAP, supabase);
+	startGame(wss, TILE_SIZE, VISIBLE_TILES_X, VISIBLE_TILES_Y, PASSABLE_TILES, PLAYER_SPAWN, ENEMY_SPAWNS, OBJECT_SPAWNS, MAP, supabase);
 }

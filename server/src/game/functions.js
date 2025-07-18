@@ -120,6 +120,29 @@ export function spawnEnemy(enemies, PASSABLE_TILES, MAP, enemyID, TILE_SIZE, top
 	return enemyID;
 }
 
+export function spawnObject(objects, PASSABLE_TILES, MAP, objectID, TILE_SIZE, topLeft, bottomRight, spawnLocation, objectStats) {
+	const x = Math.floor(Math.random() * (bottomRight[0] - topLeft[0] + 1)) + topLeft[0];
+	const y = Math.floor(Math.random() * (bottomRight[1] - topLeft[1] + 1)) + topLeft[1];
+
+	if (!PASSABLE_TILES.includes(MAP[y][x])) {
+		return null; // Invalid tile, cancel spawn
+	}
+
+	objects[objectID] = {
+		id: objectID,
+		mapX: x,
+		mapY: y,
+		pixelX: x * TILE_SIZE,
+		pixelY: y * TILE_SIZE,
+		health: objectStats.health[0],
+		maxHealth: objectStats.health[1],
+		location: spawnLocation,
+		name: objectStats.name,
+	};
+
+	return objectID;
+}
+
 export function getMap(mapY, mapX, MAP, VISIBLE_TILES_X, VISIBLE_TILES_Y) { //Get visible map area
 	if (VISIBLE_TILES_X % 2 === 0) VISIBLE_TILES_X -= 1; //Make odd
 	if (VISIBLE_TILES_Y % 2 === 0) VISIBLE_TILES_Y -= 1; //Make odd

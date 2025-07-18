@@ -61,8 +61,8 @@ document.getElementById('register-button').onclick = async () => {
       level: 1,
       gold: 0,
       health: 100,
-      mapX: 269,
-      mapY: 245,
+      mapX: 355,
+      mapY: 491,
       inBoat: false
     });
 
