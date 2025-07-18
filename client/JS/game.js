@@ -165,7 +165,7 @@ export function startGame({ userId, token }) {
 					objects[msg.id] = object;
 
 				} else { //Existing object
-					const object = enemies[msg.id];
+					const object = objects[msg.id];
 
 					if (msg.mapX !== undefined) object.mapX = msg.mapX;
 					if (msg.mapY !== undefined) object.mapY = msg.mapY;
