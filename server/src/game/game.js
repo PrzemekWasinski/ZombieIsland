@@ -82,7 +82,6 @@ export function startGame(wss, TILE_SIZE, VISIBLE_TILES_X, VISIBLE_TILES_Y, PASS
             let tries = 0;
 
             while (objectData[key] < spawnData.objectAmount && tries < 10) {
-                console.log("llllw")
                 const newID = spawnObject(objects, PASSABLE_TILES, MAP, getNextObjectID(), TILE_SIZE, spawnData.topLeft, spawnData.bottomRight, key, spawnData.objectStats);
                 if (newID !== null) {
                     objectData[key]++;

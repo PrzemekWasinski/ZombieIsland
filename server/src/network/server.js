@@ -2,7 +2,7 @@ import { WebSocketServer } from "ws";
 import http from "http";
 import { createClient } from "@supabase/supabase-js";
 import { broadcast, updateStats, getMap } from "../game/functions.js";
-import { players, enemies, getNextId } from "../game/state.js";
+import { players, enemies, getNextId, objects } from "../game/state.js";
 import { startGame } from "../game/game.js";
 
 export async function startWebSocket(config, url, apiKey) {
@@ -147,7 +147,36 @@ export async function startWebSocket(config, url, apiKey) {
 							break; //Allows the user to only attack 1 enemy at a time
 						}
 					}
-					
+
+					for (const objectID in objects) {
+						const object = objects[objectID];
+						const dx = Math.abs(player.pixelX - object.pixelX);
+						const dy = Math.abs(player.pixelY - object.pixelY);
+
+						if (dx < TILE_SIZE * 1.2 && dy < TILE_SIZE * 1.2) { // If object in range
+							object.health = Math.max(0, object.health - 3); // Damage object (3 is the default value change this for when players deal theirown damage)
+							hasUpdated = true;
+						}
+
+						if (hasUpdated) {
+							broadcast({
+								type: "object",
+								id: object.id,
+								mapX: object.mapX,
+								mapY: object.mapY,
+								pixelX: object.pixelX,
+								pixelY: object.pixelY,
+								targetX: object.targetX,
+								targetY: object.targetY,
+								health: object.health,
+								maxHealth: object.maxHealth,
+								name: object.name,
+								level: object.level
+							}, wss);
+
+							break; //Allows the user to only destroy 1 object at a time
+						}
+					}
 				} else if (data.dir === "interact" && data.pressed) {
 
 					// Try to ENTER boat
