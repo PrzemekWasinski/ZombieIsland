@@ -73,8 +73,6 @@ export async function saveItem(drop, playerID, supabase) {
   return true;
 }
 
-
-
 export async function updateStats(key, newValue, supabase) {
 	const { data, error } = await supabase
 		.from("Statistics")
@@ -88,7 +86,6 @@ export async function updateStats(key, newValue, supabase) {
 		console.log(`Metric '${key}' updated to:`, data[0]?.value);
 	}
 }
-
 
 export function spawnEnemy(enemies, PASSABLE_TILES, MAP, enemyID, TILE_SIZE, topLeft, bottomRight, spawnLocation, enemyStats) {
 	const x = Math.floor(Math.random() * (bottomRight[0] - topLeft[0] + 1)) + topLeft[0];
