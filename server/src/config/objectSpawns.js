@@ -1,3 +1,5 @@
+import { objectDrops } from "./objectDrops.js"
+
 export const objectSpawns = {
     "OBJECTS1": {
         objectAmount: 15,
@@ -6,7 +8,8 @@ export const objectSpawns = {
 
         objectStats: {
             health: [10, 10],
-            name: "Tree"
+            name: "Tree",
+            possibleDrops: [objectDrops.wood, objectDrops.apple]
         }
     },
 }

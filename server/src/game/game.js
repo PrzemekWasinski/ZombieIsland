@@ -23,10 +23,15 @@ export function startGame(wss, TILE_SIZE, VISIBLE_TILES_X, VISIBLE_TILES_Y, PASS
             const loc = enemy.location;
             locationData[loc]--;
 
-            const rand = Math.floor(Math.random() * 100) + 1; // 1–100 inclusive
-            if (rand > 50) {
-                const dropID = getNextDropID();
-                spawnDrop(enemy.pixelX, enemy.pixelY, dropID, drops, TILE_SIZE);
+            const rand = Math.floor(Math.random() * 100) + 1; //1–100
+
+            for (let i = 0; i < ENEMY_SPAWNS[loc].enemyStats.possibleDrops.length; i++) {
+                let possibleDrop = ENEMY_SPAWNS[loc].enemyStats.possibleDrops[i]
+
+                if (rand < possibleDrop.chance) {
+                    const dropID = getNextDropID();
+                    spawnDrop(possibleDrop, enemy.pixelX, enemy.pixelY, dropID, drops, TILE_SIZE);
+                }
             }
 
             delete enemies[id];
@@ -38,9 +43,15 @@ export function startGame(wss, TILE_SIZE, VISIBLE_TILES_X, VISIBLE_TILES_Y, PASS
             objectData[loc]--;
 
             const rand = Math.floor(Math.random() * 100) + 1; // 1–100 inclusive
-            if (rand > 50) {
-                const dropID = getNextDropID();
-                spawnDrop(object.pixelX, object.pixelY, dropID, drops, TILE_SIZE);
+            for (let i = 0; i < OBJECT_SPAWNS[loc].objectStats.possibleDrops.length; i++) {
+                let possibleDrop = OBJECT_SPAWNS[loc].objectStats.possibleDrops[i]
+                console.log(possibleDrop)
+                
+                if (rand < possibleDrop.chance) {
+                    const dropID = getNextDropID();
+                    if (possibleDrop.name == "Apple") { console.log(possibleDrop.name) }
+                    spawnDrop(possibleDrop, object.pixelX, object.pixelY, dropID, drops, TILE_SIZE);
+                }
             }
 
             delete objects[id];
@@ -555,6 +566,8 @@ export function startGame(wss, TILE_SIZE, VISIBLE_TILES_X, VISIBLE_TILES_Y, PASS
             }
         }
 
+        let deadDrops = []
+
         for (const dropID in drops) {
             const drop = drops[dropID]
 
@@ -562,9 +575,7 @@ export function startGame(wss, TILE_SIZE, VISIBLE_TILES_X, VISIBLE_TILES_Y, PASS
                 const player = players[playerID]
                 const dx = Math.abs(player.pixelX - drop.pixelX);
                 const dy = Math.abs(player.pixelY - drop.pixelY);
-                if (dx < TILE_SIZE - 0.5 && dy < TILE_SIZE - 0.5) { //If too close to drop
-                    delete drops[dropID];
-
+                if (dx < TILE_SIZE - 0.5 && dy < TILE_SIZE - 0.5) { //If picked up a drop
                     if (player.health > 90) {
                         player.health = 100
                     } else {
@@ -576,6 +587,8 @@ export function startGame(wss, TILE_SIZE, VISIBLE_TILES_X, VISIBLE_TILES_Y, PASS
 
                     saveProgress(player, supabase)
                     saveItem(drop, player.dbID, supabase)
+
+                    deadDrops.push(dropID)
 
                     broadcast({
                         type: "update",
@@ -595,9 +608,13 @@ export function startGame(wss, TILE_SIZE, VISIBLE_TILES_X, VISIBLE_TILES_Y, PASS
                 }
             }
         }
+
+        for (let i = 0; i < deadDrops.length; i++) {
+            delete drops[deadDrops[i]]
+        }
     }, 20);
 
-    setInterval(() => { //Loop to save every player's current progress
+    setInterval(() => { //Loop to save every player's current progress every 5 sec
         for (const id in players) {
             const player = players[id];
 

@@ -27,50 +27,52 @@ export async function saveProgress(player, supabase) {
 }
 
 export async function saveItem(drop, playerID, supabase) {
-  const { data: dropData, error: fetchError } = await supabase
-    .from("InventoryItems")
-    .select("*")
-    .eq("playerID", playerID)
-    .single();
+	const { data: dropData, error: fetchError } = await supabase
+		.from("InventoryItems")
+		.select("*")
+		.eq("playerID", playerID)
+		.eq("itemName", drop.name)
+		.single();
 
-  if (fetchError && fetchError.code !== 'PGRST116') { // PGRST116 = no rows
-    console.log(`Failed to fetch item: ${drop.name}`, fetchError);
-    return false;
-  }
+	if (fetchError && fetchError.code !== 'PGRST116') { // PGRST116 = no rows
+		console.log(`Failed to fetch item: ${drop.name}`, fetchError);
+		return false;
+	}
 
-  if (dropData) {
-    if (dropData.itemAmount >= 99) {
-      return false;
-    } else {
-      const { error: updateError } = await supabase
-        .from("InventoryItems")
-        .update({
-          "itemAmount": dropData.itemAmount + 1,
-          "itemName": drop.name, // update name if needed
-        })
-        .eq("playerID", playerID);
+	if (dropData) {
+		if (dropData.itemAmount >= 99) {
+			return false;
+		} else {
+			const { error: updateError } = await supabase
+				.from("InventoryItems")
+				.update({
+					"itemAmount": dropData.itemAmount + 1,
+					"itemName": drop.name // update name if needed
+				})
+				.eq("playerID", playerID)
+				.eq("itemName", drop.name);
 
-      if (updateError) {
-        console.log(`Failed to update item: ${drop.name}`, updateError);
-        return false;
-      }
-    }
-  } else {
-    const { error: insertError } = await supabase
-      .from("InventoryItems")
-      .insert({
-        "playerID": playerID,
-        "itemName": drop.name,
-        "itemAmount": 1,
-      });
+			if (updateError) {
+				console.log(`Failed to update item: ${drop.name}`, updateError);
+				return false;
+			}
+		}
+	} else {
+		const { error: insertError } = await supabase
+			.from("InventoryItems")
+			.insert({
+				"playerID": playerID,
+				"itemName": drop.name,
+				"itemAmount": 1
+			});
 
-    if (insertError) {
-      console.log(`Failed to insert item: ${drop.name}`, insertError);
-      return false;
-    }
-  }
+		if (insertError) {
+			console.log(`Failed to insert item: ${drop.name}`, insertError);
+			return false;
+		}
+	}
 
-  return true;
+	return true;
 }
 
 export async function updateStats(key, newValue, supabase) {
@@ -165,13 +167,14 @@ export function isNearby(coord1, coord2) {
 	return dx + dy <= 50;
 }
 
-export function spawnDrop(x, y, id, drops, TILE_SIZE) {
+export function spawnDrop(dropData, x, y, id, drops, TILE_SIZE) {
 	drops[id] = {
 		id: id,
-		name: "drop",
+		name: dropData.name,
 		mapX: Math.floor(x / TILE_SIZE),
 		mapY: Math.floor(y / TILE_SIZE),
 		pixelX: x,
-		pixelY: y
+		pixelY: y,
+		value: dropData.value
 	}
 }

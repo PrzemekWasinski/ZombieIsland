@@ -1,5 +1,7 @@
+import { enemyDrops } from "./enemyDrops.js"
+
 export const enemySpawns = {
-    "TEST2": {
+    TEST2: {
         enemyAmount: 15,
         topLeft: [307, 491],
         bottomRight: [316, 500],
@@ -9,11 +11,12 @@ export const enemySpawns = {
             level: 1,
             speed: 1,
             damage: 1,
-            name: "Toxic Slime"
+            name: "Toxic Slime",
+            possibleDrops: [enemyDrops.bone, enemyDrops.slime]
         }
     },
 
-    "TEST3": {
+    TEST3: {
         enemyAmount: 15,
         topLeft: [295, 466],
         bottomRight: [305, 475],
@@ -23,11 +26,12 @@ export const enemySpawns = {
             level: 3,
             speed: 1,
             damage: 2,
-            name: "Magma Slime"
+            name: "Magma Slime",
+            possibleDrops: [enemyDrops.bone, enemyDrops.slime]
         }
     },
 
-    "TEST4": {
+    TEST4: {
         enemyAmount: 15,
         topLeft: [306, 438],
         bottomRight: [314, 445],
@@ -37,11 +41,12 @@ export const enemySpawns = {
             level: 5,
             speed: 2,
             damage: 3,
-            name: "Toxic Slime"
+            name: "Toxic Slime",
+            possibleDrops: [enemyDrops.bone, enemyDrops.slime]
         }
     },
 
-    "TEST5": {
+    TEST5: {
         enemyAmount: 15,
         topLeft: [264, 449],
         bottomRight: [274, 457],
@@ -51,11 +56,12 @@ export const enemySpawns = {
             level: 6,
             speed: 5,
             damage: 1,
-            name: "Green Slime"
+            name: "Green Slime",
+            possibleDrops: [enemyDrops.bone, enemyDrops.slime]
         }
     },
 
-    "TEST6": {
+    TEST6: {
         enemyAmount: 15,
         topLeft: [266, 476],
         bottomRight: [276, 485],
@@ -65,11 +71,12 @@ export const enemySpawns = {
             level: 7,
             speed: 2,
             damage: 5,
-            name: "Toxic Slime"
+            name: "Toxic Slime",
+            possibleDrops: [enemyDrops.bone, enemyDrops.slime]
         }
     },
 
-    "TEST7": {
+    TEST7: {
         enemyAmount: 15,
         topLeft: [274, 506],
         bottomRight: [289, 521],
@@ -79,7 +86,8 @@ export const enemySpawns = {
             level: 10,
             speed: 5,
             damage: 5,
-            name: "Magma Slime"
+            name: "Magma Slime",
+            possibleDrops: [enemyDrops.bone, enemyDrops.slime]
         }
     },
 }

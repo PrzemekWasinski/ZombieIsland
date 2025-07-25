@@ -116,7 +116,6 @@ export async function startWebSocket(config, url, apiKey) {
 				else if (data.dir === "left") { player.movingLeft = data.pressed; }
 				else if (data.dir === "right") { player.movingRight = data.pressed; }
 				else if (data.dir === "attack") { // Fixed: was msg.dir
-					let hasUpdated = false;
 
 					for (const enemyID in enemies) {
 						const enemy = enemies[enemyID];
@@ -125,10 +124,7 @@ export async function startWebSocket(config, url, apiKey) {
 
 						if (dx < TILE_SIZE * 1.2 && dy < TILE_SIZE * 1.2) { // If enemy in range
 							enemy.health = Math.max(0, enemy.health - 3); // Damage enemy (3 is the default value change this for when players deal theirown damage)
-							hasUpdated = true;
-						}
-
-						if (hasUpdated) {
+							
 							broadcast({
 								type: "enemy",
 								id: enemy.id,
@@ -155,10 +151,7 @@ export async function startWebSocket(config, url, apiKey) {
 
 						if (dx < TILE_SIZE * 1.2 && dy < TILE_SIZE * 1.2) { // If object in range
 							object.health = Math.max(0, object.health - 3); // Damage object (3 is the default value change this for when players deal theirown damage)
-							hasUpdated = true;
-						}
-
-						if (hasUpdated) {
+							
 							broadcast({
 								type: "object",
 								id: object.id,
@@ -166,20 +159,16 @@ export async function startWebSocket(config, url, apiKey) {
 								mapY: object.mapY,
 								pixelX: object.pixelX,
 								pixelY: object.pixelY,
-								targetX: object.targetX,
-								targetY: object.targetY,
 								health: object.health,
 								maxHealth: object.maxHealth,
 								name: object.name,
 								level: object.level
 							}, wss);
 
-							break; //Allows the user to only destroy 1 object at a time
+							break; //Allows the user to only damage 1 object at a time
 						}
 					}
 				} else if (data.dir === "interact" && data.pressed) {
-
-					// Try to ENTER boat
 					if (MAP[player.mapY - 1][player.mapX] == 31 && !player.inBoat) {
 						player.mapY -= 1;
 						player.pixelY -= TILE_SIZE;
@@ -204,7 +193,6 @@ export async function startWebSocket(config, url, apiKey) {
 						player.inBoat = true;
 					}
 
-					// Try to EXIT boat
 					else if (PASSABLE_TILES.includes(MAP[player.mapY - 1][player.mapX]) && player.inBoat) {
 						player.mapY -= 1;
 						player.pixelY -= TILE_SIZE;
@@ -271,7 +259,6 @@ export async function startWebSocket(config, url, apiKey) {
 						}));
 					}
 				}
-
 			}
 		});
 

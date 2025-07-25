@@ -337,7 +337,7 @@ export function startGame({ userId, token }) {
 				const player = players[playerID];
 				const dx = Math.abs(player.pixelX - drop.pixelX);
                 const dy = Math.abs(player.pixelY - drop.pixelY);
-                if (dx < TILE_SIZE - 0.5 && dy < TILE_SIZE - 0.5) { //If too close to drop
+                if (dx < TILE_SIZE - 0.5 && dy < TILE_SIZE - 0.5) { //If drop was picked up
 					delete drops[id]
 				}
 			}
