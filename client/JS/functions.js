@@ -40,6 +40,7 @@ export function drawMap(currentPlayer) { //Draw game map
 }
 
 export function drawPlayer(player, isCurrentPlayer, currentPlayer) { //Draw player
+    console.log(player.messages)
     let screenX, screenY;
     if (isCurrentPlayer) { //You
         screenX = Math.round((canvas.width - tileSize) / 2);
@@ -80,7 +81,13 @@ export function drawPlayer(player, isCurrentPlayer, currentPlayer) { //Draw play
     ctx.fillStyle = "rgb(255, 255, 255)" //Write player name and level
     ctx.font = "18px Arial";
     ctx.textAlign = "center"
-    ctx.fillText(`${player.username} lv.${player.level}`, screenX + 30, screenY - 10)
+    ctx.fillText(`${player.username} lv.${player.level}`, screenX + 32, screenY - 10)
+    
+    let space = 0
+    for (let i = 0; i < player.messages.length; i++) {
+        ctx.fillText(player.messages[i].text, screenX + 32, (screenY - 25) - space)
+        space += 15
+    }
 }
 
 export function drawEnemy(enemy, currentPlayer, sprite) {

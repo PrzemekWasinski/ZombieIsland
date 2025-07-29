@@ -77,7 +77,8 @@ export async function startWebSocket(config, url, apiKey) {
 					username: characterData.username,
 					level: characterData.level,
 					gold: characterData.gold,
-					inBoat: characterData.inBoat
+					inBoat: characterData.inBoat,
+					messages: []
 				};
 
 				console.log(`Player ${id} connected and authenticated.`);
@@ -258,6 +259,14 @@ export async function startWebSocket(config, url, apiKey) {
 							inv: inv 
 						}));
 					}
+				} else if (data.dir === "message" && data.pressed) {
+					for (const id in players) {
+						let player = players[id]
+						if (player.dbID == data.playerID) {
+							player.messages.push({ text: data.message, timestamp: Date.now() })
+						}
+					}
+					
 				}
 			}
 		});

@@ -45,11 +45,9 @@ export function startGame(wss, TILE_SIZE, VISIBLE_TILES_X, VISIBLE_TILES_Y, PASS
             const rand = Math.floor(Math.random() * 100) + 1; // 1–100 inclusive
             for (let i = 0; i < OBJECT_SPAWNS[loc].objectStats.possibleDrops.length; i++) {
                 let possibleDrop = OBJECT_SPAWNS[loc].objectStats.possibleDrops[i]
-                console.log(possibleDrop)
                 
                 if (rand < possibleDrop.chance) {
                     const dropID = getNextDropID();
-                    if (possibleDrop.name == "Apple") { console.log(possibleDrop.name) }
                     spawnDrop(possibleDrop, object.pixelX, object.pixelY, dropID, drops, TILE_SIZE);
                 }
             }
@@ -119,6 +117,13 @@ export function startGame(wss, TILE_SIZE, VISIBLE_TILES_X, VISIBLE_TILES_Y, PASS
 
         for (const id in players) { //Update all players
             const player = players[id];
+
+            for (let i = player.messages.length - 1; i >= 0; i--) {
+                if (player.messages[i] && Date.now() - player.messages[i].timestamp > 3000) {
+                    player.messages.splice(i, 1);
+                }
+            }
+
 
             const currentTileX = Math.floor(player.pixelX / TILE_SIZE);
             const currentTileY = Math.floor(player.pixelY / TILE_SIZE);
@@ -272,7 +277,8 @@ export function startGame(wss, TILE_SIZE, VISIBLE_TILES_X, VISIBLE_TILES_Y, PASS
                     level: player.level,
                     gold: player.gold,
                     name: player.name,
-                    inBoat: player.inBoat // Include boat state in updates
+                    inBoat: player.inBoat, // Include boat state in updates
+                    messages: player.messages
                 }));
             }
 
@@ -289,7 +295,8 @@ export function startGame(wss, TILE_SIZE, VISIBLE_TILES_X, VISIBLE_TILES_Y, PASS
                 username: player.username,
                 level: player.level,
                 gold: player.gold,
-                inBoat: player.inBoat // Include boat state in broadcasts
+                inBoat: player.inBoat, // Include boat state in broadcasts
+                messages: player.messages
             }, wss, ws_client);
 
 

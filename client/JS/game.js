@@ -71,6 +71,7 @@ export function startGame({ userId, token }) {
 				if (player.username !== undefined) player.username = msg.username;
 				if (player.level !== undefined) player.level = msg.level;
 				if (player.gold !== undefined) player.gold = msg.gold;
+				if (player.messages !== undefined) player.messages = msg.messages;
 			}
 
 			if (msg.id === playerId && msg.map) {
@@ -85,6 +86,7 @@ export function startGame({ userId, token }) {
 				if (player.level !== undefined) player.level = msg.level;
 				if (player.gold !== undefined) player.gold = msg.gold;
 				if (player.map !== undefined) player.map = msg.map;
+				if (player.messages !== undefined) player.messages = msg.messages;
 			}
 
 		} else if (msg.type === "enemy") { //enemy update
@@ -145,9 +147,9 @@ export function startGame({ userId, token }) {
 			}
 		} else if (msg.type === "inventory") { //Request to pull all of the player's items from the db
 			if (!msg.error) {
-				console.log(msg.inv)
+				//console.log(msg.inv)
 			} else {
-				console.log("Error with inv", msg.message)
+				//console.log("Error with inv", msg.message)
 			}
 
 		} else if (msg.type === "object") {
@@ -196,31 +198,58 @@ export function startGame({ userId, token }) {
 		"E": "interact",
 		"i": "inventory",
 		"I": "inventory"
-
 	};
+
+	let isTyping = false;
+	let inputString = "";
+
+	window.addEventListener("keydown", (e) => {
+	if (!isTyping && e.key === "t") {
+		isTyping = true;
+		inputString = "";
+	} else if (isTyping) {
+		if (e.key === "Enter") {
+			isTyping = false;
+			socket.send(JSON.stringify({
+				type: "keydown",
+				dir: "message",
+				pressed: true,
+				playerID: userId,
+				message: inputString
+			}));
+		} else if (e.key === "Escape") {
+			isTyping = false
+		} else if (e.key.length === 1) {
+			inputString += e.key;
+		} else if (e.key === "Backspace") {
+			inputString = inputString.slice(0, -1);
+		}
+	}
+	});
+
 
 	window.addEventListener("keydown", (event) => { //Key pressed
 		const key = controls[event.key];
-		if (key && !keysHeld[key]) {
+		if (key && !keysHeld[key] && !isTyping) {
 			keysHeld[key] = true;
 			socket.send(JSON.stringify({
 				type: "keydown",
 				dir: key,
 				pressed: true,
-				playerID: userId
+				playerID: userId,
 			}));
 		}
 	});
 
 	window.addEventListener("keyup", (event) => { //Key released
 		const key = controls[event.key];
-		if (key) {
+		if (key && !isTyping) {
 			keysHeld[key] = false;
 			socket.send(JSON.stringify({
 				type: "keydown",
 				dir: key,
 				pressed: false,
-				playerID: userId
+				playerID: userId,
 			}));
 		}
 	});
@@ -230,7 +259,6 @@ export function startGame({ userId, token }) {
 	}
 
 	function draw(currentTime) { //Main game loop
-		console.log(Object.keys(objects).length)
 		for (const enemyID in enemies) {
 			const enemy = enemies[enemyID];
 
