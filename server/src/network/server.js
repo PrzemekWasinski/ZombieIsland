@@ -125,7 +125,7 @@ export async function startWebSocket(config, url, apiKey) {
 
 						if (dx < TILE_SIZE * 1.2 && dy < TILE_SIZE * 1.2) { // If enemy in range
 							enemy.health = Math.max(0, enemy.health - 3); // Damage enemy (3 is the default value change this for when players deal theirown damage)
-							
+
 							broadcast({
 								type: "enemy",
 								id: enemy.id,
@@ -152,7 +152,7 @@ export async function startWebSocket(config, url, apiKey) {
 
 						if (dx < TILE_SIZE * 1.2 && dy < TILE_SIZE * 1.2) { // If object in range
 							object.health = Math.max(0, object.health - 3); // Damage object (3 is the default value change this for when players deal theirown damage)
-							
+
 							broadcast({
 								type: "object",
 								id: object.id,
@@ -233,9 +233,9 @@ export async function startWebSocket(config, url, apiKey) {
 
 				} else if (data.dir === "inventory" && data.pressed) {
 					if (!playerId) {
-						ws.send(JSON.stringify({ 
-							type: "error", 
-							message: "Not authenticated." 
+						ws.send(JSON.stringify({
+							type: "error",
+							message: "Not authenticated."
 						}));
 						return;
 					}
@@ -247,16 +247,16 @@ export async function startWebSocket(config, url, apiKey) {
 
 					if (error) {
 						console.error("Error fetching inventory:", error);
-						ws.send(JSON.stringify({ 
-							type: "inventory", 
-							error: true, 
+						ws.send(JSON.stringify({
+							type: "inventory",
+							error: true,
 							message: error.message
 						}));
 					} else {
-						ws.send(JSON.stringify({ 
-							type: "inventory", 
-							error: false, 
-							inv: inv 
+						ws.send(JSON.stringify({
+							type: "inventory",
+							error: false,
+							inv: inv
 						}));
 					}
 				} else if (data.dir === "message" && data.pressed) {
@@ -266,8 +266,67 @@ export async function startWebSocket(config, url, apiKey) {
 							player.messages.push({ text: data.message, timestamp: Date.now() })
 						}
 					}
-					
+				} else if (data.dir === "deleteItem") {
+					const { data: itemData, error: fetchError } = await supabase
+						.from("InventoryItems")
+						.select("*")
+						.eq("playerID", data.playerID)
+						.eq("itemName", data.item)
+						.single();
+
+					if (fetchError || !itemData) {
+						return;
+					}
+
+					const newAmount = Math.max(0, itemData.itemAmount - 1);
+
+					let result;
+					if (newAmount === 0) {
+						const { data: deletedData, error: deleteError } = await supabase
+							.from("InventoryItems")
+							.delete()
+							.eq("playerID", data.playerID)
+							.eq("itemName", data.item);
+						result = deletedData;
+					} else {
+						const { data: updatedData, error: updateError } = await supabase
+							.from("InventoryItems")
+							.update({ itemAmount: newAmount })
+							.eq("playerID", data.playerID)
+							.eq("itemName", data.item)
+							.single();
+						result = updatedData;
+					}
+
+					if (!playerId) {
+						ws.send(JSON.stringify({
+							type: "error",
+							message: "Not authenticated."
+						}));
+						return;
+					}
+
+					const { data: inv, error } = await supabase
+						.from("InventoryItems")
+						.select("*")
+						.eq("playerID", data.playerID);
+
+					if (error) {
+						console.error("Error fetching inventory:", error);
+						ws.send(JSON.stringify({
+							type: "inventory",
+							error: true,
+							message: error.message
+						}));
+					} else {
+						ws.send(JSON.stringify({
+							type: "inventory",
+							error: false,
+							inv: inv
+						}));
+					}
 				}
+
 			}
 		});
 

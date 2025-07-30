@@ -40,7 +40,6 @@ export function drawMap(currentPlayer) { //Draw game map
 }
 
 export function drawPlayer(player, isCurrentPlayer, currentPlayer) { //Draw player
-    console.log(player.messages)
     let screenX, screenY;
     if (isCurrentPlayer) { //You
         screenX = Math.round((canvas.width - tileSize) / 2);
@@ -186,4 +185,14 @@ export function isNearby(coord1, coord2) {
     const dx = coord1[0] - coord2[0]; // X-axis difference
     const dy = coord1[1] - coord2[1]; // Y-axis difference
     return dx * dx + dy * dy <= 2500; // 50squares
+}
+
+export function drawInventory(inventory) {
+    let y = 30
+    let x = 100
+    for (let i = 0; i < inventory.length; (i++, y += 30)) {
+        ctx.fillText(`${inventory[i].itemName}: ${inventory[i].itemAmount}`, x, y);
+        inventory[i].xPosition = x;
+        inventory[i].yPosition = y;
+    }
 }

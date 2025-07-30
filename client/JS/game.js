@@ -1,5 +1,5 @@
 import { loadImages, sprites } from "./images.js";
-import { drawMap, drawPlayer, drawEnemy, drawDrop, drawObject, isNearby } from "./functions.js"
+import { drawMap, drawPlayer, drawEnemy, drawDrop, drawObject, drawInventory, isNearby } from "./functions.js"
 
 export function startGame({ userId, token }) {
 	const socket = new WebSocket("wss://ws.zombieisland.online/");
@@ -16,12 +16,41 @@ export function startGame({ userId, token }) {
 	const ctx = canvas.getContext("2d");
 	const TILE_SIZE = 64; //Tile size in pixels
 
+	let mouseRightX = 0;
+	let mouseRightY = 0;
+	let mouseRightClicked = false;
+
+	let mouseLeftX = 0;
+	let mouseLeftY = 0;
+	let mouseLeftClicked = false;
+
+	let selectedItem = null;   // <- Track the item for the popup
+	let itemMenuOpen = false;
+
+	canvas.addEventListener('contextmenu', (e) => {
+		e.preventDefault();
+		const rect = canvas.getBoundingClientRect();
+		mouseRightX = e.clientX - rect.left;
+		mouseRightY = e.clientY - rect.top;
+		mouseRightClicked = true;
+	});
+
+	canvas.addEventListener('mousedown', (e) => {
+		const rect = canvas.getBoundingClientRect();
+		mouseLeftX = e.clientX - rect.left;
+		mouseLeftY = e.clientY - rect.top;
+		mouseLeftClicked = true;
+	});
+
 	let playerId = null; //player ID (not userID)
-	
+
 	let players = {}; //All players
 	let enemies = {}; //All enemies
 	let drops = {} //All drops
 	let objects = {} //All objects
+
+	let inInventory = false;
+	let inventory = {};
 
 	let lastFrameTime = performance.now(); //Last frame time
 	let frameCount = 0;  //Frames counted
@@ -53,7 +82,7 @@ export function startGame({ userId, token }) {
 			if (!player.pixelY) player.pixelY = player.mapY * TILE_SIZE;
 			if (!player.targetX) player.targetX = player.pixelX;
 			if (!player.targetY) player.targetY = player.pixelY;
-			
+
 
 		} else if (msg.type === "update") { //Player update
 			if (!players[msg.id]) {
@@ -93,7 +122,7 @@ export function startGame({ userId, token }) {
 			if (isNearby([players[playerId].mapX, players[playerId].mapY], [msg.mapX, msg.mapY])) {
 				if (!enemies[msg.id]) { //New 
 					let enemy = {};
-    
+
 					if (msg.mapX !== undefined) enemy.mapX = msg.mapX;
 					if (msg.mapY !== undefined) enemy.mapY = msg.mapY;
 					if (msg.pixelX !== undefined) enemy.pixelX = msg.pixelX;
@@ -125,38 +154,39 @@ export function startGame({ userId, token }) {
 					enemy.frameTimer = enemy.frameTimer ?? 0;
 				}
 			}
-		
+
 		} else if (msg.type === "drop") {
 			if (isNearby([msg.mapX, msg.mapY], [players[playerId].mapX, players[playerId].mapY])) {
 				if (!drops[msg.id]) { //New drop
 					let drop = {}
 
-					if (msg.mapX !== undefined) {drop.mapX = msg.mapX};
-					if (msg.mapY !== undefined) {drop.mapY = msg.mapY};
-					if (msg.pixelX !== undefined) {drop.pixelX = msg.pixelX};
-					if (msg.pixelY !== undefined) {drop.pixelY = msg.pixelY};
+					if (msg.mapX !== undefined) { drop.mapX = msg.mapX };
+					if (msg.mapY !== undefined) { drop.mapY = msg.mapY };
+					if (msg.pixelX !== undefined) { drop.pixelX = msg.pixelX };
+					if (msg.pixelY !== undefined) { drop.pixelY = msg.pixelY };
 
 					drops[msg.id] = drop;
 				} else { //Existing drop
 					const drop = drops[msg.id];
-					if (msg.mapX !== undefined) {drop.mapX = msg.mapX};
-					if (msg.mapY !== undefined) {drop.mapY = msg.mapY};
-					if (msg.pixelX !== undefined) {drop.pixelX = msg.pixelX};
-					if (msg.pixelY !== undefined) {drop.pixelY = msg.pixelY};
+					if (msg.mapX !== undefined) { drop.mapX = msg.mapX };
+					if (msg.mapY !== undefined) { drop.mapY = msg.mapY };
+					if (msg.pixelX !== undefined) { drop.pixelX = msg.pixelX };
+					if (msg.pixelY !== undefined) { drop.pixelY = msg.pixelY };
 				}
 			}
 		} else if (msg.type === "inventory") { //Request to pull all of the player's items from the db
 			if (!msg.error) {
-				//console.log(msg.inv)
+				inInventory = true
+				inventory = msg.inv
 			} else {
-				//console.log("Error with inv", msg.message)
+				console.log("Error with inv", msg.message)
 			}
 
 		} else if (msg.type === "object") {
 			if (isNearby([players[playerId].mapX, players[playerId].mapY], [msg.mapX, msg.mapY])) {
 				if (!objects[msg.id]) { //New 
 					let object = {};
-    
+
 					if (msg.mapX !== undefined) object.mapX = msg.mapX;
 					if (msg.mapY !== undefined) object.mapY = msg.mapY;
 					if (msg.pixelX !== undefined) object.pixelX = msg.pixelX;
@@ -204,29 +234,34 @@ export function startGame({ userId, token }) {
 	let inputString = "";
 
 	window.addEventListener("keydown", (e) => {
-	if (!isTyping && e.key === "t") {
-		isTyping = true;
-		inputString = "";
-	} else if (isTyping) {
-		if (e.key === "Enter") {
-			isTyping = false;
-			socket.send(JSON.stringify({
-				type: "keydown",
-				dir: "message",
-				pressed: true,
-				playerID: userId,
-				message: inputString
-			}));
+		if (!isTyping && e.key === "t") {
+			isTyping = true;
+			inputString = "";
+		} else if (isTyping) {
+			if (e.key === "Enter") {
+				isTyping = false;
+				socket.send(JSON.stringify({
+					type: "keydown",
+					dir: "message",
+					pressed: true,
+					playerID: userId,
+					message: inputString
+				}));
+			} else if (e.key === "Escape") {
+				isTyping = false;
+			} else if (e.key.length === 1) {
+				inputString += e.key;
+			} else if (e.key === "Backspace") {
+				inputString = inputString.slice(0, -1);
+			}
 		} else if (e.key === "Escape") {
-			isTyping = false
-		} else if (e.key.length === 1) {
-			inputString += e.key;
-		} else if (e.key === "Backspace") {
-			inputString = inputString.slice(0, -1);
+			inInventory = false;
+			itemMenuOpen = false;
+		} else if (e.key === "i") {
+			inInventory = !inInventory;
+			itemMenuOpen = false;
 		}
-	}
 	});
-
 
 	window.addEventListener("keydown", (event) => { //Key pressed
 		const key = controls[event.key];
@@ -243,7 +278,7 @@ export function startGame({ userId, token }) {
 
 	window.addEventListener("keyup", (event) => { //Key released
 		const key = controls[event.key];
-		if (key && !isTyping) {
+		if (key && !isTyping && !(inInventory && key === "inventory")) {
 			keysHeld[key] = false;
 			socket.send(JSON.stringify({
 				type: "keydown",
@@ -257,6 +292,8 @@ export function startGame({ userId, token }) {
 	function tileTransition(start, end, time) { //Smooth movement
 		return start + (end - start) * time;
 	}
+
+
 
 	function draw(currentTime) { //Main game loop
 		for (const enemyID in enemies) {
@@ -274,7 +311,7 @@ export function startGame({ userId, token }) {
 				delete objects[objectID]
 			}
 		}
-		
+
 		frameCount++;
 		if (currentTime - lastFpsUpdate >= 1000) { //Update FPS counter
 			currentFps = frameCount;
@@ -284,7 +321,7 @@ export function startGame({ userId, token }) {
 
 		const deltaTime = Math.min(0.1, (currentTime - lastFrameTime) / 1000);
 		lastFrameTime = currentTime;
-		
+
 		ctx.clearRect(0, 0, canvas.width, canvas.height); //Clear screen
 
 		if (!playerId || !players[playerId]) { //Skip if not initialized
@@ -364,9 +401,17 @@ export function startGame({ userId, token }) {
 			for (const playerID in players) {
 				const player = players[playerID];
 				const dx = Math.abs(player.pixelX - drop.pixelX);
-                const dy = Math.abs(player.pixelY - drop.pixelY);
-                if (dx < TILE_SIZE - 0.5 && dy < TILE_SIZE - 0.5) { //If drop was picked up
+				const dy = Math.abs(player.pixelY - drop.pixelY);
+				if (dx < TILE_SIZE - 0.5 && dy < TILE_SIZE - 0.5) { //If drop was picked up
 					delete drops[id]
+					if (inInventory) { //Provide realtime updates if player picks up an item and is viewing inv
+						socket.send(JSON.stringify({
+							type: "keydown",
+							dir: "inventory",
+							pressed: true,
+							playerID: userId,
+						}));
+					}
 				}
 			}
 		}
@@ -375,6 +420,62 @@ export function startGame({ userId, token }) {
 			drawPlayer(currentPlayer, true, currentPlayer);
 		}
 
+		if (inInventory) {
+			drawInventory(inventory)
+		}
+
+		if (mouseRightClicked) {
+			selectedItem = null;
+			for (let i = 0; i < inventory.length; i++) {
+				if (
+					mouseRightX >= inventory[i].xPosition - 10 && mouseRightX <= inventory[i].xPosition + 10 &&
+					mouseRightY >= inventory[i].yPosition - 10 && mouseRightY <= inventory[i].yPosition + 10
+				) {
+					selectedItem = inventory[i];
+					itemMenuOpen = true;
+					break; // Stop after the first match
+				}
+			}
+		}
+
+		// Reset right click so it only triggers once per click
+		mouseRightClicked = false;
+
+		if (itemMenuOpen && selectedItem && selectedItem.itemAmount > 0) { //Check if item exists before showing item popup
+			// Draw popup text
+			ctx.fillStyle = "black";
+			ctx.fillText(selectedItem.itemName, selectedItem.xPosition + 70, selectedItem.yPosition);
+
+			// Draw delete button
+			const deleteButtonX = selectedItem.xPosition + 70;
+			const deleteButtonY = selectedItem.yPosition + 10;
+			const deleteButtonWidth = 40;
+			const deleteButtonHeight = 40;
+
+			ctx.fillStyle = "red";
+			ctx.fillRect(deleteButtonX, deleteButtonY, deleteButtonWidth, deleteButtonHeight);
+
+			if (mouseLeftClicked) { //If user clicks delete button
+				if (
+					mouseLeftX > deleteButtonX && mouseLeftX < deleteButtonX + deleteButtonWidth &&
+					mouseLeftY > deleteButtonY && mouseLeftY < deleteButtonY + deleteButtonHeight
+				) {
+					selectedItem.itemAmount -= 1
+					// Send delete request
+					socket.send(JSON.stringify({
+						type: "keydown",
+						dir: "deleteItem",
+						pressed: true,
+						playerID: userId,
+						item: selectedItem.itemName
+					}));
+				}
+			}
+		}
+
+		// Reset left click so it only triggers once per click
+		mouseLeftClicked = false;
+		
 		requestAnimationFrame(draw)
 	}
 
