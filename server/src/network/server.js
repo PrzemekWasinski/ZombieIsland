@@ -1,7 +1,7 @@
 import { WebSocketServer } from "ws";
 import http from "http";
 import { createClient } from "@supabase/supabase-js";
-import { broadcast, updateStats, getMap } from "../game/functions.js";
+import { broadcast, updateStats, getMap, deleteItem } from "../game/functions.js";
 import { players, enemies, getNextId, objects } from "../game/state.js";
 import { startGame } from "../game/game.js";
 
@@ -56,6 +56,21 @@ export async function startWebSocket(config, url, apiKey) {
 				ws.playerId = id;
 
 				// Create and store the player object
+				let inventory = {};
+				const { data: inv, invError } = await supabase
+					.from("InventoryItems")
+					.select("*")
+					.eq("playerID", ws.userId);
+
+				if (!invError) {
+					for (let i = 0; i < inv.length; i++) {
+						inventory[inv[i].itemName] = { 
+							itemName: inv[i].itemName, 
+							itemAmount: inv[i].itemAmount 
+						}
+					}
+				}
+
 				players[id] = {
 					id,
 					dbID: ws.userId,
@@ -78,8 +93,11 @@ export async function startWebSocket(config, url, apiKey) {
 					level: characterData.level,
 					gold: characterData.gold,
 					inBoat: characterData.inBoat,
-					messages: []
+					messages: [],
+					inventory: inventory
 				};
+
+				console.log(players[id].inventory)
 
 				console.log(`Player ${id} connected and authenticated.`);
 				await updateStats("active_players", Object.keys(players).length, supabase);
@@ -228,37 +246,9 @@ export async function startWebSocket(config, url, apiKey) {
 						health: player.health,
 						username: player.username,
 						level: player.level,
-						gold: player.gold
+						gold: player.gold,
+						inventory: player.inventory
 					}, wss);
-
-				} else if (data.dir === "inventory" && data.pressed) {
-					if (!playerId) {
-						ws.send(JSON.stringify({
-							type: "error",
-							message: "Not authenticated."
-						}));
-						return;
-					}
-
-					const { data: inv, error } = await supabase
-						.from("InventoryItems")
-						.select("*")
-						.eq("playerID", data.playerID);
-
-					if (error) {
-						console.error("Error fetching inventory:", error);
-						ws.send(JSON.stringify({
-							type: "inventory",
-							error: true,
-							message: error.message
-						}));
-					} else {
-						ws.send(JSON.stringify({
-							type: "inventory",
-							error: false,
-							inv: inv
-						}));
-					}
 				} else if (data.dir === "message" && data.pressed) {
 					for (const id in players) {
 						let player = players[id]
@@ -267,63 +257,15 @@ export async function startWebSocket(config, url, apiKey) {
 						}
 					}
 				} else if (data.dir === "deleteItem") {
-					const { data: itemData, error: fetchError } = await supabase
-						.from("InventoryItems")
-						.select("*")
-						.eq("playerID", data.playerID)
-						.eq("itemName", data.item)
-						.single();
+					console.log("yes")
+					for (const id in players) {
+						const player = players[id];
 
-					if (fetchError || !itemData) {
-						return;
-					}
-
-					const newAmount = Math.max(0, itemData.itemAmount - 1);
-
-					let result;
-					if (newAmount === 0) {
-						const { data: deletedData, error: deleteError } = await supabase
-							.from("InventoryItems")
-							.delete()
-							.eq("playerID", data.playerID)
-							.eq("itemName", data.item);
-						result = deletedData;
-					} else {
-						const { data: updatedData, error: updateError } = await supabase
-							.from("InventoryItems")
-							.update({ itemAmount: newAmount })
-							.eq("playerID", data.playerID)
-							.eq("itemName", data.item)
-							.single();
-						result = updatedData;
-					}
-
-					if (!playerId) {
-						ws.send(JSON.stringify({
-							type: "error",
-							message: "Not authenticated."
-						}));
-						return;
-					}
-
-					const { data: inv, error } = await supabase
-						.from("InventoryItems")
-						.select("*")
-						.eq("playerID", data.playerID);
-
-					if (error) {
-						console.error("Error fetching inventory:", error);
-						ws.send(JSON.stringify({
-							type: "inventory",
-							error: true,
-							message: error.message
-						}));
-					} else {
-						ws.send(JSON.stringify({
-							type: "inventory",
-							error: false,
-							inv: inv
-						}));
+						if (player.dbID === data.playerID) {
+							console.log("try")
+							player.inventory[data.item].itemAmount -= 1;
+							deleteItem(player.inventory[data.item].itemName, player.dbID, supabase)
+						}
 					}
 				}
 

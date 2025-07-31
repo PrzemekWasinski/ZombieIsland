@@ -26,53 +26,108 @@ export async function saveProgress(player, supabase) {
 	}
 }
 
-export async function saveItem(drop, playerID, supabase) {
-	const { data: dropData, error: fetchError } = await supabase
-		.from("InventoryItems")
-		.select("*")
-		.eq("playerID", playerID)
-		.eq("itemName", drop.name)
-		.single();
-
-	if (fetchError && fetchError.code !== 'PGRST116') { // PGRST116 = no rows
-		console.log(`Failed to fetch item: ${drop.name}`, fetchError);
-		return false;
-	}
-
-	if (dropData) {
-		if (dropData.itemAmount >= 99) {
+    
+export async function saveItem(dropName, playerID, supabase) {
+	const key = `${playerID}-${dropName}`;
+	try {
+		const { data: dropData, error: fetchError } = await supabase
+			.from("InventoryItems")
+			.select("*")
+			.eq("playerID", playerID)
+			.eq("itemName", dropName)
+			.single();
+			
+		if (fetchError && fetchError.code !== 'PGRST116') {
+			console.log(`Failed to fetch item: ${dropName}`, fetchError);
 			return false;
+		}
+		
+		if (dropData) {
+			if (dropData.itemAmount >= 99) {
+				return false;
+			} else {
+				const { error: updateError } = await supabase
+					.from("InventoryItems")
+					.update({
+						"itemAmount": dropData.itemAmount + 1,
+						"itemName": dropName
+					})
+					.eq("playerID", playerID)
+					.eq("itemName", dropName);
+					
+				if (updateError) {
+					console.log(`Failed to update item: ${dropName}`, updateError);
+					return false;
+				}
+			}
 		} else {
-			const { error: updateError } = await supabase
+			const { error: insertError } = await supabase
 				.from("InventoryItems")
-				.update({
-					"itemAmount": dropData.itemAmount + 1,
-					"itemName": drop.name // update name if needed
-				})
-				.eq("playerID", playerID)
-				.eq("itemName", drop.name);
-
-			if (updateError) {
-				console.log(`Failed to update item: ${drop.name}`, updateError);
+				.insert({
+					"playerID": playerID,
+					"itemName": dropName,
+					"itemAmount": 1
+				});
+				
+			if (insertError) {
+				console.log(`Failed to insert item: ${dropName}`, insertError);
 				return false;
 			}
 		}
-	} else {
-		const { error: insertError } = await supabase
-			.from("InventoryItems")
-			.insert({
-				"playerID": playerID,
-				"itemName": drop.name,
-				"itemAmount": 1
-			});
+		
+		return true;
+	} catch (error) {
+		console.log(`Error saving item ${dropName}:`, error);
+		return false;
+	}
+}
 
-		if (insertError) {
-			console.log(`Failed to insert item: ${drop.name}`, insertError);
+export async function deleteItem(dropName, playerID, supabase) {
+	const key = `${playerID}-${dropName}`;
+	try {
+		const { data: dropData, error: fetchError } = await supabase
+			.from("InventoryItems")
+			.select("*")
+			.eq("playerID", playerID)
+			.eq("itemName", dropName)
+			.single();
+			
+		if (fetchError && fetchError.code !== 'PGRST116') {
+			console.log(`Failed to fetch item: ${dropName}`, fetchError);
 			return false;
 		}
+		
+		if (dropData) {
+			if (dropData.itemAmount < 1) {
+				console.log("no")
+				return false;
+			} else {
+				const { error: updateError } = await supabase
+					.from("InventoryItems")
+					.update({
+						"itemAmount": dropData.itemAmount - 1,
+						"itemName": dropName
+					})
+					.eq("playerID", playerID)
+					.eq("itemName", dropName);
+					console.log("item")
+					
+				if (updateError) {
+					console.log(`Failed to update item: ${dropName}`, updateError);
+					return false;
+				}
+			}
+		} else {
+			console.log("idk")
+			return false;
+			
+		}
+		
+		return true;
+	} catch (error) {
+		console.log(`Error saving item ${dropName}:`, error);
+		return false;
 	}
-
-	return true;
 }
 
 export async function updateStats(key, newValue, supabase) {

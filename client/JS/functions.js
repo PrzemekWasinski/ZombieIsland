@@ -190,9 +190,11 @@ export function isNearby(coord1, coord2) {
 export function drawInventory(inventory) {
     let y = 30
     let x = 100
-    for (let i = 0; i < inventory.length; (i++, y += 30)) {
-        ctx.fillText(`${inventory[i].itemName}: ${inventory[i].itemAmount}`, x, y);
-        inventory[i].xPosition = x;
-        inventory[i].yPosition = y;
+    for (const item in inventory) {
+        const currentItem = inventory[item]
+        ctx.fillText(`${currentItem.itemName}: ${currentItem.itemAmount}`, x, y);
+        currentItem.xPosition = x;
+        currentItem.yPosition = y;
+        y += 30
     }
 }

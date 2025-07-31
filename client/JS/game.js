@@ -32,6 +32,7 @@ export function startGame({ userId, token }) {
 		const rect = canvas.getBoundingClientRect();
 		mouseRightX = e.clientX - rect.left;
 		mouseRightY = e.clientY - rect.top;
+		console.log(mouseRightX, mouseRightY)
 		mouseRightClicked = true;
 	});
 
@@ -39,6 +40,7 @@ export function startGame({ userId, token }) {
 		const rect = canvas.getBoundingClientRect();
 		mouseLeftX = e.clientX - rect.left;
 		mouseLeftY = e.clientY - rect.top;
+		console.log(mouseLeftX, mouseLeftY)
 		mouseLeftClicked = true;
 	});
 
@@ -116,6 +118,7 @@ export function startGame({ userId, token }) {
 				if (player.gold !== undefined) player.gold = msg.gold;
 				if (player.map !== undefined) player.map = msg.map;
 				if (player.messages !== undefined) player.messages = msg.messages;
+				inventory = msg.inventory;
 			}
 
 		} else if (msg.type === "enemy") { //enemy update
@@ -174,14 +177,6 @@ export function startGame({ userId, token }) {
 					if (msg.pixelY !== undefined) { drop.pixelY = msg.pixelY };
 				}
 			}
-		} else if (msg.type === "inventory") { //Request to pull all of the player's items from the db
-			if (!msg.error) {
-				inInventory = true
-				inventory = msg.inv
-			} else {
-				console.log("Error with inv", msg.message)
-			}
-
 		} else if (msg.type === "object") {
 			if (isNearby([players[playerId].mapX, players[playerId].mapY], [msg.mapX, msg.mapY])) {
 				if (!objects[msg.id]) { //New 
@@ -292,7 +287,6 @@ export function startGame({ userId, token }) {
 	function tileTransition(start, end, time) { //Smooth movement
 		return start + (end - start) * time;
 	}
-
 
 
 	function draw(currentTime) { //Main game loop
@@ -426,12 +420,13 @@ export function startGame({ userId, token }) {
 
 		if (mouseRightClicked) {
 			selectedItem = null;
-			for (let i = 0; i < inventory.length; i++) {
+			for (const item in inventory) {
+				const currentItem = inventory[item]
 				if (
-					mouseRightX >= inventory[i].xPosition - 10 && mouseRightX <= inventory[i].xPosition + 10 &&
-					mouseRightY >= inventory[i].yPosition - 10 && mouseRightY <= inventory[i].yPosition + 10
+					mouseRightX >= currentItem.xPosition - 10 && mouseRightX <= currentItem.xPosition + 10 &&
+					mouseRightY >= currentItem.yPosition - 10 && mouseRightY <= currentItem.yPosition + 10
 				) {
-					selectedItem = inventory[i];
+					selectedItem = currentItem;
 					itemMenuOpen = true;
 					break; // Stop after the first match
 				}
@@ -448,7 +443,7 @@ export function startGame({ userId, token }) {
 
 			// Draw delete button
 			const deleteButtonX = selectedItem.xPosition + 70;
-			const deleteButtonY = selectedItem.yPosition + 10;
+			const deleteButtonY = selectedItem.yPosition;
 			const deleteButtonWidth = 40;
 			const deleteButtonHeight = 40;
 

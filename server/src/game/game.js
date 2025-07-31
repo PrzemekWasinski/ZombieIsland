@@ -124,7 +124,6 @@ export function startGame(wss, TILE_SIZE, VISIBLE_TILES_X, VISIBLE_TILES_Y, PASS
                 }
             }
 
-
             const currentTileX = Math.floor(player.pixelX / TILE_SIZE);
             const currentTileY = Math.floor(player.pixelY / TILE_SIZE);
             let velocityX = 0;
@@ -278,7 +277,8 @@ export function startGame(wss, TILE_SIZE, VISIBLE_TILES_X, VISIBLE_TILES_Y, PASS
                     gold: player.gold,
                     name: player.name,
                     inBoat: player.inBoat, // Include boat state in updates
-                    messages: player.messages
+                    messages: player.messages,
+                    inventory: player.inventory
                 }));
             }
 
@@ -296,7 +296,8 @@ export function startGame(wss, TILE_SIZE, VISIBLE_TILES_X, VISIBLE_TILES_Y, PASS
                 level: player.level,
                 gold: player.gold,
                 inBoat: player.inBoat, // Include boat state in broadcasts
-                messages: player.messages
+                messages: player.messages,
+                inventory: player.inventory
             }, wss, ws_client);
 
 
@@ -319,7 +320,8 @@ export function startGame(wss, TILE_SIZE, VISIBLE_TILES_X, VISIBLE_TILES_Y, PASS
                         username: player.username,
                         level: player.level,
                         gold: player.gold,
-                        name: player.name
+                        name: player.name,
+                        inventory: player.inventory
                     }, wss);
                 }
             }
@@ -573,59 +575,64 @@ export function startGame(wss, TILE_SIZE, VISIBLE_TILES_X, VISIBLE_TILES_Y, PASS
             }
         }
 
+        
+
         let deadDrops = []
 
-        for (const dropID in drops) {
-            const drop = drops[dropID]
+    for (const dropID in drops) {
+        const drop = drops[dropID]
 
-            for (const playerID in players) {
-                const player = players[playerID]
-                const dx = Math.abs(player.pixelX - drop.pixelX);
-                const dy = Math.abs(player.pixelY - drop.pixelY);
-                if (dx < TILE_SIZE - 0.5 && dy < TILE_SIZE - 0.5) { //If picked up a drop
-                    if (player.health > 90) {
-                        player.health = 100
-                    } else {
-                        player.health += 10
-                    }
-
-                    //player.level += 1
-                    //player.gold += 1
-
-                    saveProgress(player, supabase)
-                    saveItem(drop, player.dbID, supabase)
-
-                    deadDrops.push(dropID)
-
-                    broadcast({
-                        type: "update",
-                        id: player.id,
-                        mapX: player.mapX,
-                        mapY: player.mapY,
-                        pixelX: player.pixelX,
-                        pixelY: player.pixelY,
-                        targetX: player.targetX,
-                        targetY: player.targetY,
-                        health: player.health,
-                        username: player.username,
-                        level: player.level,
-                        gold: player.gold,
-                        name: player.name
-                    }, wss);
+        for (const playerID in players) {
+            const player = players[playerID]
+            const dx = Math.abs(player.pixelX - drop.pixelX);
+            const dy = Math.abs(player.pixelY - drop.pixelY);
+            if (dx < TILE_SIZE - 0.5 && dy < TILE_SIZE - 0.5) { //If picked up a drop
+                if (player.health > 90) {
+                    player.health = 100
+                } else {
+                    player.health += 10
                 }
+
+                // Update inventory in memory
+                player.inventory[drop.name].itemAmount++;
+                
+                // Mark this item as needing database updat
+                
+                // Save immediately to database
+                saveItem(drop.name, player.dbID, supabase);
+                
+                deadDrops.push(dropID)
+
+                broadcast({
+                    type: "update",
+                    id: player.id,
+                    mapX: player.mapX,
+                    mapY: player.mapY,
+                    pixelX: player.pixelX,
+                    pixelY: player.pixelY,
+                    targetX: player.targetX,
+                    targetY: player.targetY,
+                    health: player.health,
+                    username: player.username,
+                    level: player.level,
+                    gold: player.gold,
+                    name: player.name,
+                    inventory: player.inventory
+                }, wss);
             }
         }
+    }
 
         for (let i = 0; i < deadDrops.length; i++) {
             delete drops[deadDrops[i]]
         }
     }, 20);
 
-    setInterval(() => { //Loop to save every player's current progress every 5 sec
+    setInterval(() => { 
         for (const id in players) {
             const player = players[id];
-
             saveProgress(player, supabase);
+            // Remove the saveItem loop - items are saved immediately when picked up
         }
     }, 5_000);
 }
