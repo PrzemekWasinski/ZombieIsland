@@ -99,7 +99,6 @@ export async function deleteItem(dropName, playerID, supabase) {
 		
 		if (dropData) {
 			if (dropData.itemAmount < 1) {
-				console.log("no")
 				return false;
 			} else {
 				const { error: updateError } = await supabase
@@ -110,7 +109,6 @@ export async function deleteItem(dropName, playerID, supabase) {
 					})
 					.eq("playerID", playerID)
 					.eq("itemName", dropName);
-					console.log("item")
 					
 				if (updateError) {
 					console.log(`Failed to update item: ${dropName}`, updateError);
@@ -118,7 +116,6 @@ export async function deleteItem(dropName, playerID, supabase) {
 				}
 			}
 		} else {
-			console.log("idk")
 			return false;
 			
 		}

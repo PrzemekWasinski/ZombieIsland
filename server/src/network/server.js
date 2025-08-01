@@ -257,12 +257,10 @@ export async function startWebSocket(config, url, apiKey) {
 						}
 					}
 				} else if (data.dir === "deleteItem") {
-					console.log("yes")
 					for (const id in players) {
 						const player = players[id];
 
 						if (player.dbID === data.playerID) {
-							console.log("try")
 							player.inventory[data.item].itemAmount -= 1;
 							deleteItem(player.inventory[data.item].itemName, player.dbID, supabase)
 						}
