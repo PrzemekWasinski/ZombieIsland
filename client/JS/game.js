@@ -288,7 +288,6 @@ export function startGame({ userId, token }) {
 		return start + (end - start) * time;
 	}
 
-
 	function draw(currentTime) { //Main game loop
 		for (const enemyID in enemies) {
 			const enemy = enemies[enemyID];

@@ -154,21 +154,21 @@ export function drawObject(object, currentPlayer) {
     ctx.fillStyle = "green"
     ctx.fillRect(screenX, screenY, tileSize, tileSize);
 
-    // tempRect.x = screenX + healthBarBg.x;
-    // tempRect.y = screenY + healthBarBg.y;
-    // ctx.fillStyle = "rgb(0, 0, 0)";
-    // ctx.fillRect(tempRect.x, tempRect.y, healthBarBg.width, healthBarBg.height);
+    tempRect.x = screenX + healthBarBg.x;
+    tempRect.y = screenY + healthBarBg.y;
+    ctx.fillStyle = "rgb(0, 0, 0)";
+    ctx.fillRect(tempRect.x, tempRect.y, healthBarBg.width, healthBarBg.height);
 
-    // if (object.health > 0) { //Fill in health bar with player health
-    //   healthBarFg.width = Math.round(object.health / 2) - 2;
-    //   ctx.fillStyle = "rgb(255, 0, 0)";
-    //   ctx.fillRect(
-    //     screenX + healthBarFg.x,
-    //     screenY + healthBarFg.y,
-    //     healthBarFg.width,
-    //     healthBarFg.height
-    //   );
-    // }
+    if (object.health > 0) { //Fill in health bar with player health
+      healthBarFg.width = Math.round(object.health / 2) - 2;
+      ctx.fillStyle = "rgb(255, 0, 0)";
+      ctx.fillRect(
+        screenX + healthBarFg.x,
+        screenY + healthBarFg.y,
+        healthBarFg.width,
+        healthBarFg.height
+      );
+    }
 }
 
 export function drawDrop(drop, currentPlayer) { //Draw drop
@@ -179,6 +179,13 @@ export function drawDrop(drop, currentPlayer) { //Draw drop
 
     ctx.fillStyle = 'blue';
     ctx.fillRect(screenX, screenY, tileSize, tileSize);
+
+    ctx.textAlign = "center"; //Draw name of drop
+    ctx.fillText(
+        drop.name,
+        screenX + 30,
+        screenY - 10
+    );
 }
 
 export function isNearby(coord1, coord2) {
