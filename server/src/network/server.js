@@ -64,9 +64,9 @@ export async function startWebSocket(config, url, apiKey) {
 
 				if (!invError) {
 					for (let i = 0; i < inv.length; i++) {
-						inventory[inv[i].itemName] = { 
-							itemName: inv[i].itemName, 
-							itemAmount: inv[i].itemAmount 
+						inventory[inv[i].itemName] = {
+							itemName: inv[i].itemName,
+							itemAmount: inv[i].itemAmount
 						}
 					}
 				}
@@ -261,8 +261,20 @@ export async function startWebSocket(config, url, apiKey) {
 						const player = players[id];
 
 						if (player.dbID === data.playerID) {
-							player.inventory[data.item].itemAmount -= 1;
-							deleteItem(player.inventory[data.item].itemName, player.dbID, supabase)
+
+							const itemName = player.inventory[data.item].itemName;
+
+							try {
+								// Wait for DB to confirm deletion
+								await deleteItem(itemName, player.dbID, supabase);
+
+								
+								player.inventory[data.item].itemAmount -= 1;
+
+							} catch (err) {
+								console.error("Failed to delete item:", err);
+								// Optionally notify the player the deletion failed
+							}
 						}
 					}
 				}
@@ -283,6 +295,5 @@ export async function startWebSocket(config, url, apiKey) {
 			}
 		});
 	});
-
 	startGame(wss, TILE_SIZE, VISIBLE_TILES_X, VISIBLE_TILES_Y, PASSABLE_TILES, PLAYER_SPAWN, ENEMY_SPAWNS, OBJECT_SPAWNS, MAP, supabase);
 }

@@ -22,7 +22,7 @@ export async function saveProgress(player, supabase) {
 		.select();
 
 	if (error) {
-		console.log(`Failed to update stats for: ${player.name}`)
+		console.log(`Failed to update stats for: ${player.username}`)
 	}
 }
 

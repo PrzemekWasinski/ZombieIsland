@@ -2,7 +2,9 @@ import { loadImages, sprites } from "./images.js";
 import { drawMap, drawPlayer, drawEnemy, drawDrop, drawObject, drawInventory, isNearby } from "./functions.js"
 
 export function startGame({ userId, token }) {
-	const socket = new WebSocket("wss://ws.zombieisland.online/");
+	//const socket = new WebSocket("wss://ws.zombieisland.online/"); //Remotee server
+	const socket = new WebSocket("ws://localhost:8080"); //Local server
+
 	socket.onopen = () => {
 		console.log("Connected to server");
 
@@ -27,20 +29,24 @@ export function startGame({ userId, token }) {
 	let selectedItem = null;   // <- Track the item for the popup
 	let itemMenuOpen = false;
 
+	const rect = canvas.getBoundingClientRect();
+
+	const scaleX = canvas.width / rect.width;
+	const scaleY = canvas.height / rect.height;
+
 	canvas.addEventListener('contextmenu', (e) => {
 		e.preventDefault();
-		const rect = canvas.getBoundingClientRect();
-		mouseRightX = e.clientX - rect.left;
-		mouseRightY = e.clientY - rect.top;
-		console.log(mouseRightX, mouseRightY)
+
+		mouseRightX = (e.clientX - rect.left) * scaleX;
+		mouseRightY = (e.clientY - rect.top) * scaleY;
+
 		mouseRightClicked = true;
 	});
 
 	canvas.addEventListener('mousedown', (e) => {
-		const rect = canvas.getBoundingClientRect();
-		mouseLeftX = e.clientX - rect.left;
-		mouseLeftY = e.clientY - rect.top;
-		console.log(mouseLeftX, mouseLeftY)
+		mouseLeftX = (e.clientX - rect.left) * scaleX;
+		mouseLeftY = (e.clientY - rect.top) * scaleY;
+
 		mouseLeftClicked = true;
 	});
 
@@ -66,7 +72,7 @@ export function startGame({ userId, token }) {
 	socket.onmessage = (event) => {
 		const msg = JSON.parse(event.data);
 
-		if (msg.type === "init") { //Initial game setup
+		if ("init" === msg.type) { //Initial game setup
 			playerId = msg.id;
 			players = msg.players;
 			for (const id in players) {
@@ -77,7 +83,7 @@ export function startGame({ userId, token }) {
 				player.targetY = Number(player.targetY) || player.pixelY;
 			}
 
-		} else if (msg.type === "join") { //New player joined
+		} else if ("join" === msg.type) { //New player joined
 			players[msg.player.id] = msg.player;
 			const player = players[msg.player.id];
 			if (!player.pixelX) player.pixelX = player.mapX * TILE_SIZE;
@@ -86,56 +92,56 @@ export function startGame({ userId, token }) {
 			if (!player.targetY) player.targetY = player.pixelY;
 
 
-		} else if (msg.type === "update") { //Player update
+		} else if ("update" === msg.type) { //Player update
 			if (!players[msg.id]) {
 				return;
 			} //Skip if invalid player
 			const player = players[msg.id];
 			if (msg.id !== playerId && isNearby([players[playerId].mapX, players[playerId].mapY], [msg.mapX, msg.mapY])) {
-				if (player.health !== undefined) player.health = Number(msg.health);
-				if (player.mapX !== undefined) player.mapX = Number(msg.mapX);
-				if (player.mapY !== undefined) player.mapY = Number(msg.mapY);
-				if (player.pixelX !== undefined) player.pixelX = Number(msg.pixelX) || (player.mapX * TILE_SIZE) + (Math.floor(TILE_SIZE / 2));
-				if (player.pixelY !== undefined) player.pixelY = Number(msg.pixelY) || (player.mapY * TILE_SIZE) + (Math.floor(TILE_SIZE / 2));
-				if (player.targetX !== undefined) player.targetX = Number(msg.targetX);
-				if (player.targetY !== undefined) player.targetY = Number(msg.targetY);
-				if (player.username !== undefined) player.username = msg.username;
-				if (player.level !== undefined) player.level = msg.level;
-				if (player.gold !== undefined) player.gold = msg.gold;
-				if (player.messages !== undefined) player.messages = msg.messages;
+				if (undefined != player.health) player.health = Number(msg.health);
+				if (undefined != player.mapX) player.mapX = Number(msg.mapX);
+				if (undefined != player.mapY) player.mapY = Number(msg.mapY);
+				if (undefined != player.pixelX) player.pixelX = Number(msg.pixelX) || (player.mapX * TILE_SIZE) + (Math.floor(TILE_SIZE / 2));
+				if (undefined != player.pixelY) player.pixelY = Number(msg.pixelY) || (player.mapY * TILE_SIZE) + (Math.floor(TILE_SIZE / 2));
+				if (undefined != player.targetX) player.targetX = Number(msg.targetX);
+				if (undefined != player.targetY) player.targetY = Number(msg.targetY);
+				if (undefined != player.username) player.username = msg.username;
+				if (undefined != player.level) player.level = msg.level;
+				if (undefined != player.gold) player.gold = msg.gold;
+				if (undefined != player.messages) player.messages = msg.messages;
 			}
 
 			if (msg.id === playerId && msg.map) {
-				if (player.health !== undefined) player.health = Number(msg.health);
-				if (player.mapX !== undefined) player.mapX = Number(msg.mapX);
-				if (player.mapY !== undefined) player.mapY = Number(msg.mapY);
-				if (player.pixelX !== undefined) player.pixelX = Number(msg.pixelX) || (player.mapX * TILE_SIZE) + (Math.floor(TILE_SIZE / 2));
-				if (player.pixelY !== undefined) player.pixelY = Number(msg.pixelY) || (player.mapY * TILE_SIZE) + (Math.floor(TILE_SIZE / 2));
-				if (player.targetX !== undefined) player.targetX = Number(msg.targetX);
-				if (player.targetY !== undefined) player.targetY = Number(msg.targetY);
-				if (player.username !== undefined) player.username = msg.username;
-				if (player.level !== undefined) player.level = msg.level;
-				if (player.gold !== undefined) player.gold = msg.gold;
-				if (player.map !== undefined) player.map = msg.map;
-				if (player.messages !== undefined) player.messages = msg.messages;
+				if (undefined != player.health) player.health = Number(msg.health);
+				if (undefined != player.mapX) player.mapX = Number(msg.mapX);
+				if (undefined != player.mapY) player.mapY = Number(msg.mapY);
+				if (undefined != player.pixelX) player.pixelX = Number(msg.pixelX) || (player.mapX * TILE_SIZE) + (Math.floor(TILE_SIZE / 2));
+				if (undefined != player.pixelY) player.pixelY = Number(msg.pixelY) || (player.mapY * TILE_SIZE) + (Math.floor(TILE_SIZE / 2));
+				if (undefined != player.targetX) player.targetX = Number(msg.targetX);
+				if (undefined != player.targetY) player.targetY = Number(msg.targetY);
+				if (undefined != player.username) player.username = msg.username;
+				if (undefined != player.level) player.level = msg.level;
+				if (undefined != player.gold) player.gold = msg.gold;
+				if (undefined != player.map) player.map = msg.map;
+				if (undefined != player.messages) player.messages = msg.messages;
 				inventory = msg.inventory;
 			}
 
-		} else if (msg.type === "enemy") { //enemy update
+		} else if ("enemy" === msg.type) { //enemy update
 			if (isNearby([players[playerId].mapX, players[playerId].mapY], [msg.mapX, msg.mapY])) {
 				if (!enemies[msg.id]) { //New 
 					let enemy = {};
 
-					if (msg.mapX !== undefined) enemy.mapX = msg.mapX;
-					if (msg.mapY !== undefined) enemy.mapY = msg.mapY;
-					if (msg.pixelX !== undefined) enemy.pixelX = msg.pixelX;
-					if (msg.pixelY !== undefined) enemy.pixelY = msg.pixelY;
-					if (msg.targetX !== undefined) enemy.targetX = msg.targetX;
-					if (msg.targetY !== undefined) enemy.targetY = msg.targetY;
-					if (msg.health !== undefined) enemy.health = msg.health;
-					if (msg.maxHealth !== undefined) enemy.maxHealth = msg.maxHealth;
-					if (msg.name !== undefined) enemy.name = msg.name;
-					if (msg.level !== undefined) enemy.level = msg.level;
+					if (undefined != msg.mapX) enemy.mapX = msg.mapX;
+					if (undefined != msg.mapY) enemy.mapY = msg.mapY;
+					if (undefined != msg.pixelX) enemy.pixelX = msg.pixelX;
+					if (undefined != msg.pixelY) enemy.pixelY = msg.pixelY;
+					if (undefined != msg.targetX) enemy.targetX = msg.targetX;
+					if (undefined != msg.targetY) enemy.targetY = msg.targetY;
+					if (undefined != msg.health) enemy.health = msg.health;
+					if (undefined != msg.maxHealth) enemy.maxHealth = msg.maxHealth;
+					if (undefined != msg.name) enemy.name = msg.name;
+					if (undefined != msg.level) enemy.level = msg.level;
 					enemy.frameIndex = enemy.frameIndex ?? 0;
 					enemy.frameTimer = enemy.frameTimer ?? 0;
 					enemies[msg.id] = enemy;
@@ -143,67 +149,67 @@ export function startGame({ userId, token }) {
 				} else { //Existing enemy
 					const enemy = enemies[msg.id];
 
-					if (msg.mapX !== undefined) enemy.mapX = msg.mapX;
-					if (msg.mapY !== undefined) enemy.mapY = msg.mapY;
-					if (msg.pixelX !== undefined) enemy.pixelX = msg.pixelX;
-					if (msg.pixelY !== undefined) enemy.pixelY = msg.pixelY;
-					if (msg.targetX !== undefined) enemy.targetX = msg.targetX;
-					if (msg.targetY !== undefined) enemy.targetY = msg.targetY;
-					if (msg.health !== undefined) enemy.health = msg.health;
-					if (msg.maxHealth !== undefined) enemy.maxHealth = msg.maxHealth;
-					if (msg.name !== undefined) enemy.name = msg.name;
-					if (msg.level !== undefined) enemy.level = msg.level;
+					if (undefined != msg.mapX) enemy.mapX = msg.mapX;
+					if (undefined != msg.mapY) enemy.mapY = msg.mapY;
+					if (undefined != msg.pixelX) enemy.pixelX = msg.pixelX;
+					if (undefined != msg.pixelY) enemy.pixelY = msg.pixelY;
+					if (undefined != msg.targetX) enemy.targetX = msg.targetX;
+					if (undefined != msg.targetY) enemy.targetY = msg.targetY;
+					if (undefined != msg.health) enemy.health = msg.health;
+					if (undefined != msg.maxHealth) enemy.maxHealth = msg.maxHealth;
+					if (undefined != msg.name) enemy.name = msg.name;
+					if (undefined != msg.level) enemy.level = msg.level;
 					enemy.frameIndex = enemy.frameIndex ?? 0;
 					enemy.frameTimer = enemy.frameTimer ?? 0;
 				}
 			}
 
-		} else if (msg.type === "drop") {
+		} else if ("drop" === msg.type) {
 			if (isNearby([msg.mapX, msg.mapY], [players[playerId].mapX, players[playerId].mapY])) {
 				if (!drops[msg.id]) { //New drop
 					let drop = {}
 
-					if (msg.mapX !== undefined) { drop.mapX = msg.mapX };
-					if (msg.mapY !== undefined) { drop.mapY = msg.mapY };
-					if (msg.pixelX !== undefined) { drop.pixelX = msg.pixelX };
-					if (msg.pixelY !== undefined) { drop.pixelY = msg.pixelY };
+					if (undefined != msg.mapX) { drop.mapX = msg.mapX };
+					if (undefined != msg.mapY) { drop.mapY = msg.mapY };
+					if (undefined != msg.pixelX) { drop.pixelX = msg.pixelX };
+					if (undefined != msg.pixelY) { drop.pixelY = msg.pixelY };
 
 					drops[msg.id] = drop;
 				} else { //Existing drop
 					const drop = drops[msg.id];
-					if (msg.mapX !== undefined) { drop.mapX = msg.mapX };
-					if (msg.mapY !== undefined) { drop.mapY = msg.mapY };
-					if (msg.pixelX !== undefined) { drop.pixelX = msg.pixelX };
-					if (msg.pixelY !== undefined) { drop.pixelY = msg.pixelY };
+					if (undefined != msg.mapX) { drop.mapX = msg.mapX };
+					if (undefined != msg.mapY) { drop.mapY = msg.mapY };
+					if (undefined != msg.pixelX) { drop.pixelX = msg.pixelX };
+					if (undefined != msg.pixelY) { drop.pixelY = msg.pixelY };
 				}
 			}
-		} else if (msg.type === "object") {
+		} else if ("object" === msg.type) {
 			if (isNearby([players[playerId].mapX, players[playerId].mapY], [msg.mapX, msg.mapY])) {
 				if (!objects[msg.id]) { //New 
 					let object = {};
 
-					if (msg.mapX !== undefined) object.mapX = msg.mapX;
-					if (msg.mapY !== undefined) object.mapY = msg.mapY;
-					if (msg.pixelX !== undefined) object.pixelX = msg.pixelX;
-					if (msg.pixelY !== undefined) object.pixelY = msg.pixelY;
-					if (msg.health !== undefined) object.health = msg.health;
-					if (msg.maxHealth !== undefined) object.maxHealth = msg.maxHealth;
-					if (msg.name !== undefined) object.name = msg.name;
+					if (undefined != msg.mapX) object.mapX = msg.mapX;
+					if (undefined != msg.mapY) object.mapY = msg.mapY;
+					if (undefined != msg.pixelX) object.pixelX = msg.pixelX;
+					if (undefined != msg.pixelY) object.pixelY = msg.pixelY;
+					if (undefined != msg.health) object.health = msg.health;
+					if (undefined != msg.maxHealth) object.maxHealth = msg.maxHealth;
+					if (undefined != msg.name) object.name = msg.name;
 					objects[msg.id] = object;
 
 				} else { //Existing object
 					const object = objects[msg.id];
 
-					if (msg.mapX !== undefined) object.mapX = msg.mapX;
-					if (msg.mapY !== undefined) object.mapY = msg.mapY;
-					if (msg.pixelX !== undefined) object.pixelX = msg.pixelX;
-					if (msg.pixelY !== undefined) object.pixelY = msg.pixelY;
-					if (msg.health !== undefined) object.health = msg.health;
-					if (msg.maxHealth !== undefined) object.maxHealth = msg.maxHealth;
-					if (msg.name !== undefined) object.name = msg.name;
+					if (undefined != msg.mapX) object.mapX = msg.mapX;
+					if (undefined != msg.mapY) object.mapY = msg.mapY;
+					if (undefined != msg.pixelX) object.pixelX = msg.pixelX;
+					if (undefined != msg.pixelY) object.pixelY = msg.pixelY;
+					if (undefined != msg.health) object.health = msg.health;
+					if (undefined != msg.maxHealth) object.maxHealth = msg.maxHealth;
+					if (undefined != msg.name) object.name = msg.name;
 				}
 			}
-		} else if (msg.type === "leave") { //Player left
+		} else if ("leave" === msg.type) { //Player left
 			delete players[msg.id];
 		}
 	};
@@ -233,7 +239,7 @@ export function startGame({ userId, token }) {
 			isTyping = true;
 			inputString = "";
 		} else if (isTyping) {
-			if (e.key === "Enter") {
+			if ("Enter" === e.key) {
 				isTyping = false;
 				socket.send(JSON.stringify({
 					type: "keydown",
@@ -242,17 +248,17 @@ export function startGame({ userId, token }) {
 					playerID: userId,
 					message: inputString
 				}));
-			} else if (e.key === "Escape") {
+			} else if ("Escape" === e.key) {
 				isTyping = false;
-			} else if (e.key.length === 1) {
+			} else if (1 === e.key.length) {
 				inputString += e.key;
-			} else if (e.key === "Backspace") {
+			} else if ("Backspace" === e.key) {
 				inputString = inputString.slice(0, -1);
 			}
-		} else if (e.key === "Escape") {
+		} else if ("Escape" === e.key) {
 			inInventory = false;
 			itemMenuOpen = false;
-		} else if (e.key === "i") {
+		} else if ("i" === e.key) {
 			inInventory = !inInventory;
 			itemMenuOpen = false;
 		}
@@ -273,7 +279,7 @@ export function startGame({ userId, token }) {
 
 	window.addEventListener("keyup", (event) => { //Key released
 		const key = controls[event.key];
-		if (key && !isTyping && !(inInventory && key === "inventory")) {
+		if (key && !isTyping && !(inInventory && "inventory" === key)) {
 			keysHeld[key] = false;
 			socket.send(JSON.stringify({
 				type: "keydown",
@@ -374,11 +380,11 @@ export function startGame({ userId, token }) {
 			let sprite;
 			let name = enemies[id].name;
 
-			if (name === "Green Slime") {
+			if ("Green Slime" === name) {
 				sprite = sprites[0];
-			} else if (name === "Toxic Slime") {
+			} else if ("Toxic Slime" === name) {
 				sprite = sprites[1];
-			} else if (name === "Magma Slime") {
+			} else if ("Magma Slime" === name) {
 				sprite = sprites[2];
 			} else {
 				continue;
@@ -422,8 +428,8 @@ export function startGame({ userId, token }) {
 			for (const item in inventory) {
 				const currentItem = inventory[item]
 				if (
-					mouseRightX >= currentItem.xPosition - 10 && mouseRightX <= currentItem.xPosition + 10 &&
-					mouseRightY >= currentItem.yPosition - 10 && mouseRightY <= currentItem.yPosition + 10
+					mouseRightX >= currentItem.xPosition && mouseRightX <= currentItem.xPosition + 50 &&
+					mouseRightY >= currentItem.yPosition && mouseRightY <= currentItem.yPosition + 50
 				) {
 					selectedItem = currentItem;
 					itemMenuOpen = true;
@@ -438,11 +444,10 @@ export function startGame({ userId, token }) {
 		if (itemMenuOpen && selectedItem && selectedItem.itemAmount > 0) { //Check if item exists before showing item popup
 			// Draw popup text
 			ctx.fillStyle = "black";
-			ctx.fillText(selectedItem.itemName, selectedItem.xPosition + 70, selectedItem.yPosition);
 
 			// Draw delete button
-			const deleteButtonX = selectedItem.xPosition + 70;
-			const deleteButtonY = selectedItem.yPosition;
+			const deleteButtonX = selectedItem.xPosition + 35
+			const deleteButtonY = selectedItem.yPosition - 20;
 			const deleteButtonWidth = 40;
 			const deleteButtonHeight = 40;
 
@@ -469,7 +474,7 @@ export function startGame({ userId, token }) {
 
 		// Reset left click so it only triggers once per click
 		mouseLeftClicked = false;
-		
+
 		requestAnimationFrame(draw)
 	}
 

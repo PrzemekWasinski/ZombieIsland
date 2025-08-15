@@ -632,7 +632,6 @@ export function startGame(wss, TILE_SIZE, VISIBLE_TILES_X, VISIBLE_TILES_Y, PASS
         for (const id in players) {
             const player = players[id];
             saveProgress(player, supabase);
-            // Remove the saveItem loop - items are saved immediately when picked up
         }
     }, 5_000);
 }
