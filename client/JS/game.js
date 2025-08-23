@@ -2,8 +2,8 @@ import { loadImages, sprites } from "./images.js";
 import { drawMap, drawPlayer, drawEnemy, drawDrop, drawObject, drawInventory, isNearby } from "./functions.js"
 
 export function startGame({ userId, token }) {
-	//const socket = new WebSocket("wss://ws.zombieisland.online/"); //Remotee server
-	const socket = new WebSocket("ws://localhost:8080"); //Local server
+	const socket = new WebSocket("wss://ws.zombieisland.online/"); //Remotee server
+	//const socket = new WebSocket("ws://localhost:8080"); //Local server
 
 	socket.onopen = () => {
 		console.log("Connected to server");
@@ -401,6 +401,7 @@ export function startGame({ userId, token }) {
 				const player = players[playerID];
 				const dx = Math.abs(player.pixelX - drop.pixelX);
 				const dy = Math.abs(player.pixelY - drop.pixelY);
+
 				if (dx < TILE_SIZE - 0.5 && dy < TILE_SIZE - 0.5) { //If drop was picked up
 					delete drops[id]
 					if (inInventory) { //Provide realtime updates if player picks up an item and is viewing inv
@@ -427,7 +428,7 @@ export function startGame({ userId, token }) {
 			selectedItem = null;
 			for (const item in inventory) {
 				const currentItem = inventory[item]
-				if (
+				if ( //Check if the current item is the one that has been clicked on
 					mouseRightX >= currentItem.xPosition && mouseRightX <= currentItem.xPosition + 50 &&
 					mouseRightY >= currentItem.yPosition && mouseRightY <= currentItem.yPosition + 50
 				) {

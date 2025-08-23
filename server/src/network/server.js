@@ -261,23 +261,22 @@ export async function startWebSocket(config, url, apiKey) {
 						const player = players[id];
 
 						if (player.dbID === data.playerID) {
-
 							const itemName = player.inventory[data.item].itemName;
 
 							try {
-								// Wait for DB to confirm deletion
-								await deleteItem(itemName, player.dbID, supabase);
-
-								
-								player.inventory[data.item].itemAmount -= 1;
-
+								const success = await deleteItem(itemName, player.dbID, supabase);
+								if (success) {
+									player.inventory[data.item].itemAmount -= 1;
+								} else {
+									console.log("Failed to delete item in DB");
+								}
 							} catch (err) {
 								console.error("Failed to delete item:", err);
-								// Optionally notify the player the deletion failed
 							}
 						}
 					}
 				}
+
 
 			}
 		});

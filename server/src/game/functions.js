@@ -83,49 +83,27 @@ export async function saveItem(dropName, playerID, supabase) {
 }
 
 export async function deleteItem(dropName, playerID, supabase) {
-	const key = `${playerID}-${dropName}`;
-	try {
-		const { data: dropData, error: fetchError } = await supabase
-			.from("InventoryItems")
-			.select("*")
-			.eq("playerID", playerID)
-			.eq("itemName", dropName)
-			.single();
-			
-		if (fetchError && fetchError.code !== 'PGRST116') {
-			console.log(`Failed to fetch item: ${dropName}`, fetchError);
-			return false;
-		}
-		
-		if (dropData) {
-			if (dropData.itemAmount < 1) {
-				return false;
-			} else {
-				const { error: updateError } = await supabase
-					.from("InventoryItems")
-					.update({
-						"itemAmount": dropData.itemAmount - 1,
-						"itemName": dropName
-					})
-					.eq("playerID", playerID)
-					.eq("itemName", dropName);
-					
-				if (updateError) {
-					console.log(`Failed to update item: ${dropName}`, updateError);
-					return false;
-				}
-			}
-		} else {
-			return false;
-			
-		}
-		
-		return true;
-	} catch (error) {
-		console.log(`Error saving item ${dropName}:`, error);
-		return false;
-	}
+  try {
+    const { data, error } = await supabase
+      .from("InventoryItems")
+      .update({ itemAmount: supabase.rpc('decrement_item', { player_id: playerID, item_name: dropName }) })
+      .eq("playerID", playerID)
+      .eq("itemName", dropName)
+      .gt("itemAmount", 0) // ensures only decrements if > 0
+      .select("itemAmount"); // return new amount
+
+    if (error) {
+      console.log(`Failed to update item: ${dropName}`, error);
+      return false;
+    }
+
+    return data?.length > 0 ? data[0].itemAmount : false;
+  } catch (error) {
+    console.log(`Error deleting item ${dropName}:`, error);
+    return false;
+  }
 }
+
 
 export async function updateStats(key, newValue, supabase) {
 	const { data, error } = await supabase
