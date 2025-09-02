@@ -14,9 +14,11 @@ The game is currently playable at https://zombieisland.online but its not yet co
 - Randomly generated objects
 - Destroying objects
 - Object drops
+- Player chat
+- Inventory management
 
 # Upcoming features
 - Fishing
-- Player chat
-- Inventory management
 - Shops
+- Player upgardes
+
