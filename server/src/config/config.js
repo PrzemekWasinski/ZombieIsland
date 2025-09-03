@@ -7,8 +7,8 @@ export const config = {
     TILE_SIZE: 64,
     VISIBLE_TILES_X: 32,
     VISIBLE_TILES_Y: 24,
-    PASSABLE_TILES: [32, 33, 34, 37],
-    PLAYER_SPAWN: [355, 491],
+    PASSABLE_TILES: [0, 1, 2],
+    PLAYER_SPAWN: [392, 727],
     ENEMY_SPAWNS: enemySpawns,
     OBJECT_SPAWNS: objectSpawns,
     MAP: map

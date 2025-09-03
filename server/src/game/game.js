@@ -323,6 +323,23 @@ export function startGame(wss, TILE_SIZE, VISIBLE_TILES_X, VISIBLE_TILES_Y, PASS
                         name: player.name,
                         inventory: player.inventory
                     }, wss);
+
+                    broadcast({
+                        type: "enemy",
+                        id: enemy.id,
+                        mapX: enemy.mapX,
+                        mapY: enemy.mapY,
+                        pixelX: enemy.pixelX,
+                        pixelY: enemy.pixelY,
+                        targetX: enemy.targetX,
+                        targetY: enemy.targetY,
+                        health: enemy.health,
+                        maxHealth: enemy.maxHealth,
+                        name: enemy.name,
+                        level: enemy.level,
+                        action: "attack",
+                        direction: enemy.direction
+                    }, wss);
                 }
             }
         }
@@ -395,14 +412,31 @@ export function startGame(wss, TILE_SIZE, VISIBLE_TILES_X, VISIBLE_TILES_Y, PASS
 
                 if (targetDistance !== undefined && targetDistance > STOP_DISTANCE) {
                     // Move toward player only if not already close enough
-                    if (targetX > enemy.mapX && targetY > enemy.mapY) { enemy.movingDownRight = true; }
-                    else if (targetX < enemy.mapX && targetY < enemy.mapY) { enemy.movingUpLeft = true; }
-                    else if (targetX > enemy.mapX && targetY < enemy.mapY) { enemy.movingUpRight = true; }
-                    else if (targetX < enemy.mapX && targetY > enemy.mapY) { enemy.movingDownLeft = true; }
-                    else if (targetX === enemy.mapX && targetY > enemy.mapY) { enemy.movingDown = true; }
-                    else if (targetX === enemy.mapX && targetY < enemy.mapY) { enemy.movingUp = true; }
-                    else if (targetY === enemy.mapY && targetX > enemy.mapX) { enemy.movingRight = true; }
-                    else if (targetY === enemy.mapY && targetX < enemy.mapX) { enemy.movingLeft = true; }
+                    if (targetX > enemy.mapX && targetY > enemy.mapY) { 
+                        enemy.movingDownRight = true; 
+                        enemy.direction = "down-right";
+                    } else if (targetX < enemy.mapX && targetY < enemy.mapY) { 
+                        enemy.movingUpLeft = true; 
+                        enemy.direction = "up-left";
+                    } else if (targetX > enemy.mapX && targetY < enemy.mapY) { 
+                        enemy.movingUpRight = true; 
+                        enemy.direction = "up-right";
+                    } else if (targetX < enemy.mapX && targetY > enemy.mapY) { 
+                        enemy.movingDownLeft = true;
+                        enemy.direction = "down-left"; 
+                    } else if (targetX === enemy.mapX && targetY > enemy.mapY) { 
+                        enemy.movingDown = true; 
+                        enemy.direction = "down";
+                    } else if (targetX === enemy.mapX && targetY < enemy.mapY) { 
+                        enemy.movingUp = true; 
+                        enemy.direction = "up";
+                    } else if (targetY === enemy.mapY && targetX > enemy.mapX) { 
+                        enemy.movingRight = true; 
+                        enemy.direction = "right";
+                    } else if (targetY === enemy.mapY && targetX < enemy.mapX) { 
+                        enemy.movingLeft = true;
+                        enemy.direction = "left";
+                    }
                 }
             } else {
                 // Wander randomly if no players nearby
@@ -447,6 +481,8 @@ export function startGame(wss, TILE_SIZE, VISIBLE_TILES_X, VISIBLE_TILES_Y, PASS
                 else if (randomDir === "up-left") { enemy.movingUpLeft = true; }
                 else if (randomDir === "down-right") { enemy.movingDownRight = true; }
                 else if (randomDir === "down-left") { enemy.movingDownLeft = true; }
+
+                enemy.direction = randomDir
                 // "none" means do nothing
             }
 
@@ -569,7 +605,9 @@ export function startGame(wss, TILE_SIZE, VISIBLE_TILES_X, VISIBLE_TILES_Y, PASS
                         health: enemy.health,
                         maxHealth: enemy.maxHealth,
                         name: enemy.name,
-                        level: enemy.level
+                        level: enemy.level,
+                        direction: enemy.direction,
+                        action: "walk"
                     }, wss);
                 }
             }
@@ -594,7 +632,14 @@ export function startGame(wss, TILE_SIZE, VISIBLE_TILES_X, VISIBLE_TILES_Y, PASS
                 }
 
                 // Update inventory in memory
-                player.inventory[drop.name].itemAmount++;
+                if (!player.inventory[drop.name]) {
+                    player.inventory[drop.name] = {
+                        itemName: drop.name,
+                        itemAmount : 1
+                    };
+                } else {
+                    player.inventory[drop.name].itemAmount++;
+                }
                 
                 // Mark this item as needing database updat
                 

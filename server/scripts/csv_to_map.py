@@ -8,6 +8,8 @@ def format_csv_lines(input_file, output_file):
             formatted_line = f'[{line}],\n'
             outfile.write(formatted_line)
 
-input_file = 'newmap.csv'
-output_file = 'map.csv'
+input_file = 'map.csv'
+output_file = 'newmap.csv'
 format_csv_lines(input_file, output_file)
+
+#0 - grass, 1 - sand, 2 - snow, 3 - water

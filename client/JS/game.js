@@ -2,8 +2,8 @@ import { loadImages, sprites } from "./images.js";
 import { drawMap, drawPlayer, drawEnemy, drawDrop, drawObject, drawInventory, isNearby } from "./functions.js"
 
 export function startGame({ userId, token }) {
-	const socket = new WebSocket("wss://ws.zombieisland.online/"); //Remotee server
-	//const socket = new WebSocket("ws://localhost:8080"); //Local server
+	//const socket = new WebSocket("wss://ws.zombieisland.online/"); //Remotee server
+	const socket = new WebSocket("ws://localhost:8080"); //Local server
 
 	socket.onopen = () => {
 		console.log("Connected to server");
@@ -35,7 +35,6 @@ export function startGame({ userId, token }) {
 	const scaleY = canvas.height / rect.height;
 
 	canvas.addEventListener('contextmenu', (e) => {
-		e.preventDefault();
 
 		mouseRightX = (e.clientX - rect.left) * scaleX;
 		mouseRightY = (e.clientY - rect.top) * scaleY;
@@ -142,6 +141,8 @@ export function startGame({ userId, token }) {
 					if (undefined != msg.maxHealth) enemy.maxHealth = msg.maxHealth;
 					if (undefined != msg.name) enemy.name = msg.name;
 					if (undefined != msg.level) enemy.level = msg.level;
+					if (undefined != msg.direction) enemy.direction = msg.direction;
+					if (undefined != msg.action) enemy.action = msg.action;
 					enemy.frameIndex = enemy.frameIndex ?? 0;
 					enemy.frameTimer = enemy.frameTimer ?? 0;
 					enemies[msg.id] = enemy;
@@ -159,6 +160,8 @@ export function startGame({ userId, token }) {
 					if (undefined != msg.maxHealth) enemy.maxHealth = msg.maxHealth;
 					if (undefined != msg.name) enemy.name = msg.name;
 					if (undefined != msg.level) enemy.level = msg.level;
+					if (undefined != msg.direction) enemy.direction = msg.direction;
+					if (undefined != msg.action) enemy.action = msg.action;
 					enemy.frameIndex = enemy.frameIndex ?? 0;
 					enemy.frameTimer = enemy.frameTimer ?? 0;
 				}
@@ -358,9 +361,21 @@ export function startGame({ userId, token }) {
 			enemy.frameTimer += deltaTime * 1000; // Convert to ms
 			const frameDelay = 100; // ms between frames
 
+			let sprite;
+			let name = enemies[id].name;
+			let action = enemies[id].action;
+			if (Math.floor(enemies[id].health > 0)) {
+				sprite = sprites[`${name}-${action}`]
+			} else {
+				sprite = sprites[`${name}-death`]
+			}
+
+			const frameAmount = sprite[2]
+
 			if (enemy.frameTimer >= frameDelay) {
 				enemy.frameTimer = 0;
-				enemy.frameIndex = (enemy.frameIndex + 1) % 8; // 8 frames in top row
+				enemy.frameIndex = (enemy.frameIndex + 1) % frameAmount; // 10 frames in top row
+				console.log(enemy.frameIndex)
 			}
 		}
 
@@ -379,15 +394,12 @@ export function startGame({ userId, token }) {
 		for (const id in enemies) { //Draw enemies
 			let sprite;
 			let name = enemies[id].name;
+			let action = enemies[id].action;
 
-			if ("Green Slime" === name) {
-				sprite = sprites[0];
-			} else if ("Toxic Slime" === name) {
-				sprite = sprites[1];
-			} else if ("Magma Slime" === name) {
-				sprite = sprites[2];
+			if (Math.floor(enemies[id].health > 0)) {
+				sprite = sprites[`${name}-${action}`]
 			} else {
-				continue;
+				sprite = sprites[`${name}-death`]
 			}
 
 			drawEnemy(enemies[id], currentPlayer, sprite);

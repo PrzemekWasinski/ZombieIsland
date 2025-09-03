@@ -14,9 +14,11 @@ const healthBarFg = { x: 7, y: 66, width: 0, height: 8 }; //Health bar fg
 
 export function drawMap(currentPlayer) { //Draw game map
     if (!currentPlayer.map) {
+        console.log("@")
         return;
     }
 
+    console.log("@!")
     const map = currentPlayer.map;
     const pixelX = currentPlayer.pixelX;
     const pixelY = currentPlayer.pixelY;
@@ -92,21 +94,54 @@ export function drawPlayer(player, isCurrentPlayer, currentPlayer) { //Draw play
 export function drawEnemy(enemy, currentPlayer, sprite) {
     const relativeX = enemy.pixelX - currentPlayer.pixelX;
     const relativeY = enemy.pixelY - currentPlayer.pixelY;
-    const screenX = Math.round(halfCanvasWidth - halfTileSize + relativeX);
-    const screenY = Math.round(halfCanvasHeight - halfTileSize + relativeY);
+    let screenX = Math.round(halfCanvasWidth - halfTileSize + relativeX);
+    let screenY = Math.round(halfCanvasHeight - halfTileSize + relativeY);
 
-    // Draw the sprite (replace green box); 
-    const frameWidth = 64;
-    const frameHeight = 64;
+    const spritePath = sprite[0];
+    const spriteSize = sprite[1];
+    
+    const frameWidth = spriteSize;
+    const frameHeight = spriteSize;
+    let sourceX = enemy.frameIndex * frameWidth;
+    let sourceY;
+    
+    if (enemy.direction == "down" || enemy.direction == "down-left" || enemy.direction == "down-right") {
+        sourceY = 0
+    } else if (enemy.direction == "up" || enemy.direction == "up-left" || enemy.direction == "up-right") {
+        sourceY = 1
+    } else if (enemy.direction == "left") {
+        sourceY = 2
+    } else if (enemy.direction == "right") {
+        sourceY = 3
+    }
+    sourceY *= frameHeight;
 
-    const sourceX = enemy.frameIndex * frameWidth;
-    const sourceY = 0; // top row only for now
 
-    ctx.drawImage(
-        sprite,
-        sourceX, sourceY, frameWidth, frameHeight,
-        screenX, screenY, frameWidth, frameHeight
-    );
+    // Check if image is loaded
+    if (!spritePath.complete || spritePath.naturalHeight === 0) {
+        console.warn('Image not ready, skipping draw');
+        return;
+    }
+
+    // Try drawing with error handling
+    try {
+        if (spriteSize == 128) {
+            ctx.drawImage(
+                spritePath,
+                sourceX, sourceY, frameWidth, frameHeight,
+                screenX - 32, screenY - 32, frameWidth, frameHeight
+            );
+        } else {
+            ctx.drawImage(
+                spritePath,
+                sourceX, sourceY, frameWidth, frameHeight,
+                screenX, screenY, frameWidth, frameHeight
+            );
+        }
+        
+    } catch (error) {
+        console.error('DrawImage failed:', error);
+    }
 
     // Health bar
     const multiplier = healthBarBg.width / enemy.maxHealth;
@@ -193,19 +228,22 @@ export function drawInventory(inventory) {
     let i = 0;
 
     for (const item in inventory) {
-        if (7 == i) {
-            y += 128;
-        }
         const currentItem = inventory[item]
-        ctx.fillStyle = "blue"
-        ctx.fillRect(x, y, 64, 64)
+        if (currentItem.itemAmount > 0) {
+            if (7 == i) { //Make new row
+                y += 128;
+            }
+            
+            ctx.fillStyle = "blue"
+            ctx.fillRect(x, y, 64, 64)
 
-        ctx.fillStyle = "white"
-        ctx.fillText(`${currentItem.itemName}: ${currentItem.itemAmount}`, x + 32, y + 84);
-        currentItem.xPosition = x;
-        currentItem.yPosition = y;
-        ctx.strokeRect(currentItem.xPosition, currentItem.yPosition, 64, 64);
-        x += 128
-        i++;
+            ctx.fillStyle = "white"
+            ctx.fillText(`${currentItem.itemName}: ${currentItem.itemAmount}`, x + 32, y + 84);
+            currentItem.xPosition = x;
+            currentItem.yPosition = y;
+            ctx.strokeRect(currentItem.xPosition, currentItem.yPosition, 64, 64);
+            x += 128
+            i++;
+        }
     }
 }

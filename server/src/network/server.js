@@ -156,7 +156,9 @@ export async function startWebSocket(config, url, apiKey) {
 								health: enemy.health,
 								maxHealth: enemy.maxHealth,
 								name: enemy.name,
-								level: enemy.level
+								level: enemy.level,
+								direction: enemy.direction,
+								action: "hurt"
 							}, wss);
 
 							break; //Allows the user to only attack 1 enemy at a time
@@ -264,16 +266,15 @@ export async function startWebSocket(config, url, apiKey) {
 							const itemName = player.inventory[data.item].itemName;
 
 							try {
-								const success = await deleteItem(itemName, player.dbID, supabase);
-								if (success) {
-									player.inventory[data.item].itemAmount -= 1;
-								} else {
+								const success = await deleteItem(itemName, player.dbID, supabase, player, data.item);
+								if (!success) {
 									console.log("Failed to delete item in DB");
 								}
 							} catch (err) {
 								console.error("Failed to delete item:", err);
 							}
 						}
+						break;
 					}
 				}
 
