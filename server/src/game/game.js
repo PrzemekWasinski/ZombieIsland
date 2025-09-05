@@ -377,114 +377,72 @@ export function startGame(wss, TILE_SIZE, VISIBLE_TILES_X, VISIBLE_TILES_Y, PASS
                 }
             }
 
+            if (!nearPLayer) {
+                continue;
+            }
+
             const STOP_DISTANCE = 1;
 
-            if (nearPLayer) {
-                const spawn = ENEMY_SPAWNS[enemy.location];
-                const topLeft = spawn.topLeft;
-                const bottomRight = spawn.bottomRight;
 
-                const canMoveUp = enemy.mapY - 1 >= topLeft[1];
-                const canMoveDown = enemy.mapY + 1 <= bottomRight[1];
-                const canMoveLeft = enemy.mapX - 1 >= topLeft[0];
-                const canMoveRight = enemy.mapX + 1 <= bottomRight[0];
+            const spawn = ENEMY_SPAWNS[enemy.location];
+            const topLeft = spawn.topLeft;
+            const bottomRight = spawn.bottomRight;
 
-                const directions = [];
+            const canMoveUp = enemy.mapY - 1 >= topLeft[1];
+            const canMoveDown = enemy.mapY + 1 <= bottomRight[1];
+            const canMoveLeft = enemy.mapX - 1 >= topLeft[0];
+            const canMoveRight = enemy.mapX + 1 <= bottomRight[0];
 
-                if (canMoveUp) { directions.push("up"); }
-                if (canMoveDown) { directions.push("down"); }
-                if (canMoveLeft) { directions.push("left"); }
-                if (canMoveRight) { directions.push("right"); }
-                if (canMoveUp && canMoveRight) { directions.push("up-right"); }
-                if (canMoveUp && canMoveLeft) { directions.push("up-left"); }
-                if (canMoveDown && canMoveRight) { directions.push("down-right"); }
-                if (canMoveDown && canMoveLeft) { directions.push("down-left"); }
+            const directions = [];
 
-                // Clear previous movement
-                enemy.movingUp = false;
-                enemy.movingDown = false;
-                enemy.movingLeft = false;
-                enemy.movingRight = false;
-                enemy.movingUpRight = false;
-                enemy.movingUpLeft = false;
-                enemy.movingDownRight = false;
-                enemy.movingDownLeft = false;
+            if (canMoveUp) { directions.push("up"); }
+            if (canMoveDown) { directions.push("down"); }
+            if (canMoveLeft) { directions.push("left"); }
+            if (canMoveRight) { directions.push("right"); }
+            if (canMoveUp && canMoveRight) { directions.push("up-right"); }
+            if (canMoveUp && canMoveLeft) { directions.push("up-left"); }
+            if (canMoveDown && canMoveRight) { directions.push("down-right"); }
+            if (canMoveDown && canMoveLeft) { directions.push("down-left"); }
 
-                if (targetDistance !== undefined && targetDistance > STOP_DISTANCE) {
-                    // Move toward player only if not already close enough
-                    if (targetX > enemy.mapX && targetY > enemy.mapY) { 
-                        enemy.movingDownRight = true; 
-                        enemy.direction = "down-right";
-                    } else if (targetX < enemy.mapX && targetY < enemy.mapY) { 
-                        enemy.movingUpLeft = true; 
-                        enemy.direction = "up-left";
-                    } else if (targetX > enemy.mapX && targetY < enemy.mapY) { 
-                        enemy.movingUpRight = true; 
-                        enemy.direction = "up-right";
-                    } else if (targetX < enemy.mapX && targetY > enemy.mapY) { 
-                        enemy.movingDownLeft = true;
-                        enemy.direction = "down-left"; 
-                    } else if (targetX === enemy.mapX && targetY > enemy.mapY) { 
-                        enemy.movingDown = true; 
-                        enemy.direction = "down";
-                    } else if (targetX === enemy.mapX && targetY < enemy.mapY) { 
-                        enemy.movingUp = true; 
-                        enemy.direction = "up";
-                    } else if (targetY === enemy.mapY && targetX > enemy.mapX) { 
-                        enemy.movingRight = true; 
-                        enemy.direction = "right";
-                    } else if (targetY === enemy.mapY && targetX < enemy.mapX) { 
-                        enemy.movingLeft = true;
-                        enemy.direction = "left";
-                    }
+            // Clear previous movement
+            enemy.movingUp = false;
+            enemy.movingDown = false;
+            enemy.movingLeft = false;
+            enemy.movingRight = false;
+            enemy.movingUpRight = false;
+            enemy.movingUpLeft = false;
+            enemy.movingDownRight = false;
+            enemy.movingDownLeft = false;
+
+            if (targetDistance !== undefined && targetDistance > STOP_DISTANCE) {
+                // Move toward player only if not already close enough
+                if (targetX > enemy.mapX && targetY > enemy.mapY) { 
+                    enemy.movingDownRight = true; 
+                    enemy.direction = "down-right";
+                } else if (targetX < enemy.mapX && targetY < enemy.mapY) { 
+                    enemy.movingUpLeft = true; 
+                    enemy.direction = "up-left";
+                } else if (targetX > enemy.mapX && targetY < enemy.mapY) { 
+                    enemy.movingUpRight = true; 
+                    enemy.direction = "up-right";
+                } else if (targetX < enemy.mapX && targetY > enemy.mapY) { 
+                    enemy.movingDownLeft = true;
+                    enemy.direction = "down-left"; 
+                } else if (targetX === enemy.mapX && targetY > enemy.mapY) { 
+                    enemy.movingDown = true; 
+                    enemy.direction = "down";
+                } else if (targetX === enemy.mapX && targetY < enemy.mapY) { 
+                    enemy.movingUp = true; 
+                    enemy.direction = "up";
+                } else if (targetY === enemy.mapY && targetX > enemy.mapX) { 
+                    enemy.movingRight = true; 
+                    enemy.direction = "right";
+                } else if (targetY === enemy.mapY && targetX < enemy.mapX) { 
+                    enemy.movingLeft = true;
+                    enemy.direction = "left";
                 }
-            } else {
-                // Wander randomly if no players nearby
-                const spawn = ENEMY_SPAWNS[enemy.location];
-                const topLeft = spawn.topLeft;
-                const bottomRight = spawn.bottomRight;
-
-                const canMoveUp = enemy.mapY - 1 >= topLeft[1];
-                const canMoveDown = enemy.mapY + 1 <= bottomRight[1];
-                const canMoveLeft = enemy.mapX - 1 >= topLeft[0];
-                const canMoveRight = enemy.mapX + 1 <= bottomRight[0];
-
-                const directions = [];
-
-                if (canMoveUp) { directions.push("up"); }
-                if (canMoveDown) { directions.push("down"); }
-                if (canMoveLeft) { directions.push("left"); }
-                if (canMoveRight) { directions.push("right"); }
-                if (canMoveUp && canMoveRight) { directions.push("up-right"); }
-                if (canMoveUp && canMoveLeft) { directions.push("up-left"); }
-                if (canMoveDown && canMoveRight) { directions.push("down-right"); }
-                if (canMoveDown && canMoveLeft) { directions.push("down-left"); }
-
-                directions.push("none"); // Allow idle behavior sometimes
-
-                const randomDir = directions[Math.floor(Math.random() * directions.length)];
-
-                enemy.movingUp = false;
-                enemy.movingDown = false;
-                enemy.movingLeft = false;
-                enemy.movingRight = false;
-                enemy.movingUpRight = false;
-                enemy.movingUpLeft = false;
-                enemy.movingDownRight = false;
-                enemy.movingDownLeft = false;
-
-                if (randomDir === "up") { enemy.movingUp = true; }
-                else if (randomDir === "down") { enemy.movingDown = true; }
-                else if (randomDir === "left") { enemy.movingLeft = true; }
-                else if (randomDir === "right") { enemy.movingRight = true; }
-                else if (randomDir === "up-right") { enemy.movingUpRight = true; }
-                else if (randomDir === "up-left") { enemy.movingUpLeft = true; }
-                else if (randomDir === "down-right") { enemy.movingDownRight = true; }
-                else if (randomDir === "down-left") { enemy.movingDownLeft = true; }
-
-                enemy.direction = randomDir
-                // "none" means do nothing
             }
+            
 
             let velocityX = 0;
             let velocityY = 0;
@@ -570,9 +528,6 @@ export function startGame(wss, TILE_SIZE, VISIBLE_TILES_X, VISIBLE_TILES_Y, PASS
                     enemy.movingDownLeft = false;
                 }
             }
-            const spawn = ENEMY_SPAWNS[enemy.location];
-            const topLeft = spawn.topLeft;
-            const bottomRight = spawn.bottomRight;
 
             const minX = topLeft[0] * TILE_SIZE;
             const maxX = (bottomRight[0] + 1) * TILE_SIZE - 1;

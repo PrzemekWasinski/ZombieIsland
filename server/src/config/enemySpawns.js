@@ -2,7 +2,7 @@
 
 export const enemySpawns = {
     WOOD_ENTITY: {
-        enemyAmount: 40,
+        enemyAmount: 10,
         topLeft: [170, 650],
         bottomRight: [600, 800],
 
@@ -26,7 +26,7 @@ export const enemySpawns = {
     },
 
     LEAF_ENTITY: {
-        enemyAmount: 30,
+        enemyAmount: 10,
         topLeft: [100, 370],
         bottomRight: [300, 650],
 
@@ -54,7 +54,7 @@ export const enemySpawns = {
     },
 
     FOREST_ENTITY: {
-        enemyAmount: 20,
+        enemyAmount: 10,
         topLeft: [100, 370],
         bottomRight: [300, 530],
 
@@ -86,7 +86,7 @@ export const enemySpawns = {
     },
 
     SAND_GOLEM: {
-        enemyAmount: 40,
+        enemyAmount: 10,
         topLeft: [200, 770],
         bottomRight: [630, 870],
 
@@ -114,7 +114,7 @@ export const enemySpawns = {
     },
 
     SNOW_GOLEM: {
-        enemyAmount: 60,
+        enemyAmount: 10,
         topLeft: [340, 70],
         bottomRight: [930, 310],
 
@@ -166,7 +166,7 @@ export const enemySpawns = {
     },
 
     SHROOM_SPIDER: {
-        enemyAmount: 60,
+        enemyAmount: 20,
         topLeft: [190, 670],
         bottomRight: [600, 790],
 
@@ -186,7 +186,7 @@ export const enemySpawns = {
     },
 
     RED_SHROOM_SPIDER: {
-        enemyAmount: 60,
+        enemyAmount: 15,
         topLeft: [190, 670],
         bottomRight: [600, 790],
 
@@ -205,7 +205,7 @@ export const enemySpawns = {
         }
     },
     NIGHT_SHROOM_SPIDER: {
-        enemyAmount: 30,
+        enemyAmount: 10,
         topLeft: [100, 370],
         bottomRight: [300, 660],
 
@@ -225,7 +225,7 @@ export const enemySpawns = {
     },
 
     ORC: {
-        enemyAmount: 30,
+        enemyAmount: 10,
         topLeft: [160, 640],
         bottomRight: [300, 700],
 
@@ -249,7 +249,7 @@ export const enemySpawns = {
     },
 
     GINGER_ORC: {
-        enemyAmount: 20,
+        enemyAmount: 10,
         topLeft: [450, 670],
         bottomRight: [560, 780],
 
@@ -273,7 +273,7 @@ export const enemySpawns = {
     },
 
     SKELETON: {
-        enemyAmount: 30,
+        enemyAmount: 10,
         topLeft: [1140, 660],
         bottomRight: [1230, 750],
 
@@ -293,7 +293,7 @@ export const enemySpawns = {
     },
 
     GOLDEN_SKELETON: {
-        enemyAmount: 50,
+        enemyAmount: 10,
         topLeft: [610, 770],
         bottomRight: [1300, 900],
 
@@ -316,8 +316,8 @@ export const enemySpawns = {
         }
     },
 
-    BLUE_SLIME: {
-        enemyAmount: 50,
+    BLUE_SLIM1: {
+        enemyAmount: 20,
         topLeft: [170, 630],
         bottomRight: [600, 800],
 
@@ -336,7 +336,7 @@ export const enemySpawns = {
         }
     },
     BLUE_SLIME_2: {
-        enemyAmount: 50,
+        enemyAmount: 20,
         topLeft: [1110, 460],
         bottomRight: [1330, 750],
 
@@ -355,7 +355,7 @@ export const enemySpawns = {
         }
     },
     ICE_SLIME: {
-        enemyAmount: 50,
+        enemyAmount: 20,
         topLeft: [130, 40],
         bottomRight: [1300, 480],
 
@@ -375,7 +375,7 @@ export const enemySpawns = {
     },
 
     ELECTRIC_SLIME: {
-        enemyAmount: 70,
+        enemyAmount: 20,
         topLeft: [200, 770],
         bottomRight: [1300, 900],
 
@@ -394,7 +394,7 @@ export const enemySpawns = {
         }
     },
     ZOMBIE: {
-        enemyAmount: 30,
+        enemyAmount: 20,
         topLeft: [170, 650],
         bottomRight: [600, 770],
 
@@ -417,7 +417,7 @@ export const enemySpawns = {
         }
     },
     TOXIC_ZOMBIE: {
-        enemyAmount: 30,
+        enemyAmount: 10,
         topLeft: [1130, 470],
         bottomRight: [1300, 750],
 
@@ -444,7 +444,7 @@ export const enemySpawns = {
         }
     },
     ARMOURED_ZOMBIE: {
-        enemyAmount: 20,
+        enemyAmount: 5,
         topLeft: [100, 70],
         bottomRight: [1300, 450],
 

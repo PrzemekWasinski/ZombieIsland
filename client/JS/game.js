@@ -1,4 +1,4 @@
-import { loadImages, sprites } from "./images.js";
+import { loadImages, sprites, playerImages } from "./images.js";
 import { drawMap, drawPlayer, drawEnemy, drawDrop, drawObject, drawInventory, isNearby } from "./functions.js"
 
 export function startGame({ userId, token }) {
@@ -108,6 +108,10 @@ export function startGame({ userId, token }) {
 				if (undefined != player.level) player.level = msg.level;
 				if (undefined != player.gold) player.gold = msg.gold;
 				if (undefined != player.messages) player.messages = msg.messages;
+				player.frameIndex = player.frameIndex ?? 0;
+				player.frameTimer = player.frameTimer ?? 0;
+				player.action = "idle";
+				player.direction = "down";
 			}
 
 			if (msg.id === playerId && msg.map) {
@@ -124,6 +128,10 @@ export function startGame({ userId, token }) {
 				if (undefined != player.map) player.map = msg.map;
 				if (undefined != player.messages) player.messages = msg.messages;
 				inventory = msg.inventory;
+				player.frameIndex = player.frameIndex ?? 0;
+				player.frameTimer = player.frameTimer ?? 0;
+				player.action = "idle";
+				player.direction = "down";
 			}
 
 		} else if ("enemy" === msg.type) { //enemy update
@@ -219,19 +227,19 @@ export function startGame({ userId, token }) {
 
 	const keysHeld = {};
 	const controls = { //Keybindings
-		"w": "up",
-		"W": "up",
-		"a": "left",
-		"A": "left",
-		"s": "down",
-		"S": "down",
-		"d": "right",
-		"D": "right",
-		" ": "attack",
-		"e": "interact",
-		"E": "interact",
-		"i": "inventory",
-		"I": "inventory"
+		"w": "up", 
+		"W": "up", 
+		"a": "left", 
+		"A": "left", 
+		"s": "down", 
+		"S": "down", 
+		"d": "right", 
+		"D": "right", 
+		" ": "attack", 
+		"e": "interact", 
+		"E": "interact", 
+		"i": "inventory", 
+		"I": "inventory", 
 	};
 
 	let isTyping = false;
@@ -375,7 +383,6 @@ export function startGame({ userId, token }) {
 			if (enemy.frameTimer >= frameDelay) {
 				enemy.frameTimer = 0;
 				enemy.frameIndex = (enemy.frameIndex + 1) % frameAmount; // 10 frames in top row
-				console.log(enemy.frameIndex)
 			}
 		}
 
@@ -383,7 +390,17 @@ export function startGame({ userId, token }) {
 
 		for (const id in players) { //Draw other players
 			if (id !== playerId) {
-				drawPlayer(players[id], false, currentPlayer);
+				const player = players[id]
+				const sprite = playerImages[player.action]
+				const frameAmount = sprite[1]
+				player.frameTimer += deltaTime * 1000; // Convert to ms
+				const frameDelay = 100; // ms between frames
+
+				if (player.frameTimer >= frameDelay) {
+					player.frameTimer = 0;
+					player.frameIndex = (player.frameIndex + 1) % frameAmount; // 10 frames in top row
+				}
+				drawPlayer(player, false, currentPlayer, sprite);
 			}
 		}
 
@@ -416,23 +433,25 @@ export function startGame({ userId, token }) {
 
 				if (dx < TILE_SIZE - 0.5 && dy < TILE_SIZE - 0.5) { //If drop was picked up
 					delete drops[id]
-					if (inInventory) { //Provide realtime updates if player picks up an item and is viewing inv
-						socket.send(JSON.stringify({
-							type: "keydown",
-							dir: "inventory",
-							pressed: true,
-							playerID: userId,
-						}));
-					}
 				}
 			}
 		}
 
-		if (players[playerId]) { //Draw you (on top)
-			drawPlayer(currentPlayer, true, currentPlayer);
+		if (players[playerId]) { //Draw player on top
+			const player = players[playerId]
+			const sprite = playerImages[player.action]
+			const frameAmount = sprite[1]
+			player.frameTimer += deltaTime * 1000; // Convert to ms
+			const frameDelay = 100; // ms between frames
+
+			if (player.frameTimer >= frameDelay) {
+				player.frameTimer = 0;
+				player.frameIndex = (player.frameIndex + 1) % frameAmount; // 10 frames in top row
+			}
+			drawPlayer(currentPlayer, true, currentPlayer, sprite);
 		}
 
-		if (inInventory) {
+		if (inInventory) {//Draw inventory on top of player
 			drawInventory(inventory)
 		}
 

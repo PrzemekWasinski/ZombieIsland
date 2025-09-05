@@ -101,7 +101,53 @@ export const sprites = {
 	"Armoured Zombie-death": ["../assets/enemies/zombie/zombie3/death.png", 64, 9],
 	"Armoured Zombie-hurt": ["../assets/enemies/zombie/zombie3/hurt.png", 64, 4],
 	"Armoured Zombie-walk": ["../assets/enemies/zombie/zombie3/walk.png", 64, 6],
+};
+
+export const objectImages = {
+	"Blue Berry Bush": "../assets/objects/bushes/blue_berry_bush.png",
+	"Red Berry Bush": "../assets/objects/bushes/red_berry_bush.png",
+	"Yellow Berry Bush": "../assets/objects/bushes/yellow_berry_bush.png",
+	"Cactus": "../assets/objects/bushes/cactus.png",
+	"Fruit Cactus": "../assets/objects/bushes/fruit_cactus.png",
+	"Snow Bush": "../assets/objects/bushes/snow_bush.png",
+
+	"Vine Mushroom": "../assets/objects/mushroom/vine_mushroom.png",
+	"White Mushroom": "../assets/objects/mushroom/white_mushroom.png",
+	"Red Mushroom": "../assets/objects/mushroom/red_mushroom.png",
+	"Ice Mushroom": "../assets/objects/mushroom/ice_mushroom.png",
+
+	"Ice Flower": "../assets/objects/plants/ice_flower.png",
+
+	"Ice Spike": "../assets/objects/rocks/ice_spike.png",
+	"White Rock": "../assets/objects/rocks/white_rock.png",
+	"Light Stone": "../assets/objects/rocks/light_stone.png",
+	"Brown Rock": "../assets/objects/rocks/brown_rock.png",
+	"Grey Rock": "../assets/objects/rocks/grey_rock.png",
+
+	"Desert Spikes": "../assets/objects/sand/desert_spikes.png",
+	"Desert Rock": "../assets/objects/sand/desert_rock.png",
+	"Sand Deposit": "../assets/objects/sand/sand_deposit.png",
+
+	"Snowman": "../assets/objects/snowmen/snowman.png",
+
+	"Curved Tree": "../assets/objects/trees/curved_tree.png",
+	"Fruit Tree": "../assets/objects/trees/fruit_tree.png",
+	"Oak Tree": "../assets/objects/trees/oak_tree.png",
+	"Ice Tree": "../assets/objects/trees/ice_tree.png",
+	"Christmas Tree": "../assets/objects/trees/christmas_tree.png",
+	"Snowy Tree": "../assets/objects/trees/snowy_tree.png",
+	"Palm Tree": "../assets/objects/trees/palm_tree.png",
+	"Green Palm Tree": "../assets/objects/trees/green_palm_tree.png"
 }
+
+export const playerImages = {
+	"attack": ["../assets/player_sprite/lv1/attack.png", 8],
+	"death": ["../assets/player_sprite/lv1/death.png", 7],
+	"hurt": ["../assets/player_sprite/lv1/hurt.png", 5],
+	"idle": ["../assets/player_sprite/lv1/idle.png", 12],
+	"walk_attack": ["../assets/player_sprite/lv1/walk_attack.png", 6],
+	"walk": ["../assets/player_sprite/lv1/walk.png", 6]
+};
 
 export const tileImages = {};
 
@@ -134,5 +180,25 @@ export function loadImages(callback) {
 		spriteImg.onerror = () => console.error(`Failed to load image: ${sprites[sprite][0]}`);
 
 		sprites[sprite][0] = spriteImg;
+	}
+
+	for (let key in objectImages) {
+		const objectImg = new Image();
+		objectImg.src = objectImages[key];
+
+		objectImg.onload = checkDone;
+		objectImg.onerror = () => console.error(`Failed to load image: ${objectImages[key]}`);
+
+		objectImages[key] = objectImg;
+	}
+
+	for (let key in playerImages) {
+		const playerImg = new Image();
+		playerImg.src = playerImages[key][0];
+
+		playerImg.onload = checkDone;
+		playerImg.onerror = () => console.error(`Failed to load image: ${playerImages[key][0]}`);
+
+		playerImages[key][0] = playerImg;
 	}
 }

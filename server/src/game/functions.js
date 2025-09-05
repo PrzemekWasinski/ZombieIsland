@@ -123,8 +123,6 @@ export async function deleteItem(dropName, playerID, supabase, player, item) {
   }
 }
 
-
-
 export async function updateStats(key, newValue, supabase) {
 	const { data, error } = await supabase
 		.from("Statistics")
