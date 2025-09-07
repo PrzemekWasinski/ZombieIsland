@@ -156,7 +156,14 @@ export function startGame(wss, TILE_SIZE, VISIBLE_TILES_X, VISIBLE_TILES_Y, PASS
                 } else {
                     const nextTile = MAP[checkY][checkX];
                     const isWater = nextTile === 31;
-                    const isPassable = PASSABLE_TILES.includes(nextTile);
+                    let isPassable = PASSABLE_TILES.includes(nextTile);
+
+                    for (const id in objects) {
+                        const object = objects[id];
+                        if (object.mapX === checkX && object.mapY === checkY) {
+                            isPassable = false;
+                        }
+                    }
 
                     // Movement rules based on boat state
                     if (player.inBoat) {
@@ -184,7 +191,14 @@ export function startGame(wss, TILE_SIZE, VISIBLE_TILES_X, VISIBLE_TILES_Y, PASS
                 } else {
                     const nextTile = MAP[checkY][checkX];
                     const isWater = nextTile === 31;
-                    const isPassable = PASSABLE_TILES.includes(nextTile);
+                    let isPassable = PASSABLE_TILES.includes(nextTile);
+
+                    for (const id in objects) {
+                        const object = objects[id];
+                        if (object.mapX === checkX && object.mapY === checkY) {
+                            isPassable = false;
+                        }
+                    }
 
                     // Movement rules based on boat state
                     if (player.inBoat) {
@@ -213,7 +227,14 @@ export function startGame(wss, TILE_SIZE, VISIBLE_TILES_X, VISIBLE_TILES_Y, PASS
                 } else {
                     const nextTile = MAP[checkY][checkX];
                     const isWater = nextTile === 31;
-                    const isPassable = PASSABLE_TILES.includes(nextTile);
+                    let isPassable = PASSABLE_TILES.includes(nextTile);
+
+                    for (const id in objects) {
+                        const object = objects[id];
+                        if (object.mapX === checkX && object.mapY === checkY) {
+                            isPassable = false;
+                        }
+                    }
 
                     // Movement rules based on boat state
                     if (player.inBoat) {

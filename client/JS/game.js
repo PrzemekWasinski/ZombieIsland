@@ -110,8 +110,10 @@ export function startGame({ userId, token }) {
 				if (undefined != player.messages) player.messages = msg.messages;
 				player.frameIndex = player.frameIndex ?? 0;
 				player.frameTimer = player.frameTimer ?? 0;
-				player.action = "idle";
-				player.direction = "down";
+				if (!player.action && !player.direction) {
+					player.action = "idle";
+					player.direction = "down";
+				}
 			}
 
 			if (msg.id === playerId && msg.map) {
@@ -130,8 +132,10 @@ export function startGame({ userId, token }) {
 				inventory = msg.inventory;
 				player.frameIndex = player.frameIndex ?? 0;
 				player.frameTimer = player.frameTimer ?? 0;
-				player.action = "idle";
-				player.direction = "down";
+				if (!player.action && !player.direction) {
+					player.action = "idle";
+					player.direction = "down";
+				}
 			}
 
 		} else if ("enemy" === msg.type) { //enemy update
@@ -227,19 +231,19 @@ export function startGame({ userId, token }) {
 
 	const keysHeld = {};
 	const controls = { //Keybindings
-		"w": "up", 
-		"W": "up", 
-		"a": "left", 
-		"A": "left", 
-		"s": "down", 
-		"S": "down", 
-		"d": "right", 
-		"D": "right", 
-		" ": "attack", 
-		"e": "interact", 
-		"E": "interact", 
-		"i": "inventory", 
-		"I": "inventory", 
+		"w": {"key": "up", "direction": "up", "action": "walk"}, 
+		"W": {"key": "up", "direction": "up", "action": "walk"}, 
+		"a": {"key": "left", "direction": "left", "action": "walk"}, 
+		"A": {"key": "left", "direction": "left", "action": "walk"}, 
+		"s": {"key": "down", "direction": "down", "action": "walk"}, 
+		"S": {"key": "down", "direction": "down", "action": "walk"}, 
+		"d": {"key": "right", "direction": "right", "action": "walk"}, 
+		"D": {"key": "right", "direction": "right", "action": "walk"}, 
+		" ": {"key": "attack", "direction": "current", "action": "attack"}, 
+		"e": {"key": "interact", "direction": "current", "action": "idle"}, 
+		"E": {"key": "interact", "direction": "current", "action": "idle"}, 
+		"i": {"key": "inventory", "direction": "current", "action": "idle"}, 
+		"I": {"key": "inventory", "direction": "current", "action": "idle"}, 
 	};
 
 	let isTyping = false;
@@ -275,37 +279,66 @@ export function startGame({ userId, token }) {
 		}
 	});
 
-	window.addEventListener("keydown", (event) => { //Key pressed
-		const key = controls[event.key];
-		if (key && !keysHeld[key] && !isTyping) {
-			keysHeld[key] = true;
-			socket.send(JSON.stringify({
-				type: "keydown",
-				dir: key,
-				pressed: true,
-				playerID: userId,
-			}));
-		}
-	});
+	window.addEventListener("keydown", (event) => {
+    const control = controls[event.key];
+    if (!control || isTyping) return; // skip if typing or unbound key
 
-	window.addEventListener("keyup", (event) => { //Key released
-		const key = controls[event.key];
-		if (key && !isTyping && !(inInventory && "inventory" === key)) {
-			keysHeld[key] = false;
-			socket.send(JSON.stringify({
-				type: "keydown",
-				dir: key,
-				pressed: false,
-				playerID: userId,
-			}));
-		}
-	});
+    const key = control.key;
+    players[playerId].action = control.action;
+
+    // Update direction if not "current"
+    if (control.direction !== "current") {
+        players[playerId].direction = control.direction;
+    }
+
+    // Mark key as pressed
+    if (key && !keysHeld[key]) {
+        keysHeld[key] = true;
+        socket.send(JSON.stringify({
+            type: "keydown",
+            dir: key,
+            pressed: true,
+            playerID: userId,
+        }));
+    }
+});
+
+	window.addEventListener("keyup", (event) => {
+    const control = controls[event.key];
+    if (!control || isTyping) return;
+
+    const key = control.key;
+    if (key) {
+        keysHeld[key] = false;
+
+        socket.send(JSON.stringify({
+            type: "keydown",
+            dir: key,
+            pressed: false,
+            playerID: userId,
+        }));
+
+        // Only go idle if no movement keys are still pressed
+        if (!keysHeld.up && !keysHeld.down && !keysHeld.left && !keysHeld.right) {
+            players[playerId].action = "idle";
+        } else {
+            // If some movement keys are still held, update direction to the most recent
+            if (keysHeld.up) players[playerId].direction = "up";
+            else if (keysHeld.down) players[playerId].direction = "down";
+            else if (keysHeld.left) players[playerId].direction = "left";
+            else if (keysHeld.right) players[playerId].direction = "right";
+
+            players[playerId].action = "walk";
+        }
+    }
+});
 
 	function tileTransition(start, end, time) { //Smooth movement
 		return start + (end - start) * time;
 	}
 
 	function draw(currentTime) { //Main game loop
+
 		for (const enemyID in enemies) {
 			const enemy = enemies[enemyID];
 
@@ -389,17 +422,31 @@ export function startGame({ userId, token }) {
 		drawMap(currentPlayer); //Draw surrounding areas
 
 		for (const id in players) { //Draw other players
+			console.log(players[id].action)
 			if (id !== playerId) {
-				const player = players[id]
-				const sprite = playerImages[player.action]
-				const frameAmount = sprite[1]
-				player.frameTimer += deltaTime * 1000; // Convert to ms
-				const frameDelay = 100; // ms between frames
+				const player = players[id];
+				const sprite = playerImages[player.action];
+				let frameAmount = sprite[1];
 
-				if (player.frameTimer >= frameDelay) {
-					player.frameTimer = 0;
-					player.frameIndex = (player.frameIndex + 1) % frameAmount; // 10 frames in top row
+				// idle = no animation, just frame 0
+				if (player.action === "idle") {
+					player.frameIndex = 0;
+					if (player.direction === "up") {
+						frameAmount = 4; // still matters if you want idle-up to exist
+					}
+				} else {
+					// animated actions
+					player.frameTimer += deltaTime * 1000;
+					let loopTime = 1200; // 1.2s full cycle
+					const frameDelay = loopTime / frameAmount;
+
+					if (player.frameTimer >= frameDelay) {
+						player.frameTimer = 0;
+						player.frameIndex = (player.frameIndex + 1) % frameAmount;
+					}
 				}
+
+				// draw
 				drawPlayer(player, false, currentPlayer, sprite);
 			}
 		}

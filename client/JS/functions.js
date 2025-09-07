@@ -68,11 +68,11 @@ export function drawPlayer(player, isCurrentPlayer, currentPlayer, sprite) { //D
     
     if (player.direction == "down" || player.direction == "down-left" || player.direction == "down-right") {
         sourceY = 0
-    } else if (player.direction == "up" || player.direction == "up-left" || player.direction == "up-right") {
-        sourceY = 1
     } else if (player.direction == "left") {
-        sourceY = 2
+        sourceY = 1
     } else if (player.direction == "right") {
+        sourceY = 2
+    } else if (player.direction == "up" || player.direction == "up-left" || player.direction == "up-right") {
         sourceY = 3
     }
     sourceY *= frameHeight;
@@ -132,8 +132,6 @@ export function drawPlayer(player, isCurrentPlayer, currentPlayer, sprite) { //D
         screenY - 10
     );
 
-    
-
     tempRect.x = screenX + healthBarBg.x;
     tempRect.y = screenY + healthBarBg.y;
     ctx.fillStyle = "rgb(0, 0, 0)";
@@ -149,11 +147,6 @@ export function drawPlayer(player, isCurrentPlayer, currentPlayer, sprite) { //D
             healthBarFg.height
         );
     }
-
-    ctx.fillStyle = "rgb(255, 255, 255)" //Write player name and level
-    ctx.font = "18px Arial";
-    ctx.textAlign = "center"
-    ctx.fillText(`${player.username} lv.${player.level}`, screenX + 32, screenY - 10)
     
     let space = 0
     for (let i = 0; i < player.messages.length; i++) {
@@ -257,7 +250,7 @@ export function drawObject(object, currentPlayer) {
         return;
     }
     const img = objectImages[object.name]
-    ctx.drawImage(img, screenX - (tileSize), screenY, tileSize, tileSize)
+    ctx.drawImage(img, screenX, screenY, tileSize, tileSize)
 }
 
 export function drawDrop(drop, currentPlayer) { //Draw drop
