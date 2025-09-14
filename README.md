@@ -1,24 +1,39 @@
 # Zombie Island
+Zombie Island is a work in progress Online Web Game. The game features a massive shared online world where players can interact, explore, fight enemies and collect items together, to upgrade their gear, complete missions and trade with other players.
 
-This is a work in progress project which started from my university project Zombie Island, currently I'm making the game online with more features, enemies, a storyline, trading with others, building and more.
-The game is currently playable at https://zombieisland.online but its not yet complete and might be broken if I'm currently working on it.
+# Game Screenshot
+<img width="1918" height="947" alt="dd" src="https://github.com/user-attachments/assets/7a562d48-8a69-47a8-bbb7-22b2ef0f9cd6" />
 
-# Current features
+# Inventory Screenshot: 
+<img width="1918" height="946" alt="inv" src="https://github.com/user-attachments/assets/71c83b63-b199-4040-8b7c-f946c54947bf" />
+
+
+# Current features:
 - Player sign up & register
-- Saving progress automatically
+- Saving progress
 - Multiplayer!
 - Basic combat with enemies
-- Basic enemy moving and attcking logic
+- Basic enemy moving and attacking logic
 - Enemy item drops
-- Boats
+- Boats (No animations for boats yet)
 - Randomly generated objects
 - Destroying objects
 - Object drops
 - Player chat
 - Inventory management
 
-# Upcoming features
+# Upcoming:
+- Better assets and HUD
+- Trading
 - Fishing
-- Shops
-- Player upgardes
+- Selling / Buying items
+- Crafting
+- Potions & other power ups
+
+# Tech Stack
+    Frontend: HTML, CSS & JavaScript
+    Backend: Node.js
+    Connection: Websocket
+    Database: SupaBase (PostgreSQL)
+
 

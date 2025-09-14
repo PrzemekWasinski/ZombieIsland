@@ -8,10 +8,6 @@ const halfCanvasWidth = canvas.width / 2; //Half canvas width
 const halfCanvasHeight = canvas.height / 2; //Half canvas height
 const halfTileSize = tileSize / 2; //Half tile size
 
-const tempRect = { x: 0, y: 0, width: tileSize, height: tileSize }; //Reusable rect
-const healthBarBg = { x: 6, y: 65, width: 50, height: 10 }; //Health bar bg
-const healthBarFg = { x: 7, y: 66, width: 0, height: 8 }; //Health bar fg
-
 export function drawMap(currentPlayer) { //Draw game map
     if (!currentPlayer.map) {
         return;
@@ -50,7 +46,6 @@ export function drawPlayer(player, isCurrentPlayer, currentPlayer, sprite) { //D
         const relativeY = player.pixelY - currentPlayer.pixelY;
         screenX = Math.round(halfCanvasWidth - halfTileSize + relativeX);
         screenY = Math.round(halfCanvasHeight - halfTileSize + relativeY);
-
         if ( //Skip if off-screen
             screenX < -tileSize || screenX > canvas.width ||
             screenY < -tileSize || screenY > canvas.height
@@ -58,14 +53,13 @@ export function drawPlayer(player, isCurrentPlayer, currentPlayer, sprite) { //D
             return;
         }
     }
-
     const spriteSize = 64;
-    
+   
     const frameWidth = spriteSize;
     const frameHeight = spriteSize;
     let sourceX = player.frameIndex * frameWidth;
     let sourceY;
-    
+   
     if (player.direction == "down" || player.direction == "down-left" || player.direction == "down-right") {
         sourceY = 0
     } else if (player.direction == "left") {
@@ -76,15 +70,12 @@ export function drawPlayer(player, isCurrentPlayer, currentPlayer, sprite) { //D
         sourceY = 3
     }
     sourceY *= frameHeight;
-
-
-    // Check if image is loaded
+    //Check if image is loaded
     if (!spritePath.complete || spritePath.naturalHeight === 0) {
         console.warn('Image not ready, skipping draw');
         return;
     }
 
-    // Try drawing with error handling
     try {
         if (spriteSize == 128) {
             ctx.drawImage(
@@ -99,28 +90,9 @@ export function drawPlayer(player, isCurrentPlayer, currentPlayer, sprite) { //D
                 screenX, screenY, frameWidth, frameHeight
             );
         }
-        
+       
     } catch (error) {
         console.error('DrawImage failed:', error);
-    }
-
-    // Health bar
-    const multiplier = healthBarBg.width / player.maxHealth;
-
-    tempRect.x = screenX + healthBarBg.x;
-    tempRect.y = screenY + healthBarBg.y;
-    ctx.fillStyle = "rgb(0, 0, 0)";
-    ctx.fillRect(tempRect.x, tempRect.y, healthBarBg.width, healthBarBg.height);
-
-    if (player.health > 0) {
-        healthBarFg.width = Math.round((player.health * multiplier) - 2);
-        ctx.fillStyle = "rgb(255, 0, 0)";
-        ctx.fillRect(
-            screenX + healthBarFg.x,
-            screenY + healthBarFg.y,
-            healthBarFg.width,
-            healthBarFg.height
-        );
     }
 
     ctx.fillStyle = "rgb(255, 255, 255)";
@@ -132,22 +104,26 @@ export function drawPlayer(player, isCurrentPlayer, currentPlayer, sprite) { //D
         screenY - 10
     );
 
-    tempRect.x = screenX + healthBarBg.x;
-    tempRect.y = screenY + healthBarBg.y;
-    ctx.fillStyle = "rgb(0, 0, 0)";
-    ctx.fillRect(tempRect.x, tempRect.y, healthBarBg.width, healthBarBg.height);
+    const multiplier = tileSize / 100;
 
     if (player.health > 0) { //Fill in health bar with player health
-        healthBarFg.width = Math.round(player.health / 2) - 2;
+        ctx.fillStyle = "rgb(0, 0, 0)";
+        ctx.fillRect(
+            screenX,
+            screenY + tileSize,
+            100 * multiplier,
+            10
+        );
+
         ctx.fillStyle = "rgb(255, 0, 0)";
         ctx.fillRect(
-            screenX + healthBarFg.x,
-            screenY + healthBarFg.y,
-            healthBarFg.width,
-            healthBarFg.height
+            screenX,
+            screenY + tileSize,
+            player.health * multiplier,
+            10
         );
     }
-    
+   
     let space = 0
     for (let i = 0; i < player.messages.length; i++) {
         ctx.fillText(player.messages[i].text, screenX + 32, (screenY - 25) - space)
@@ -181,13 +157,12 @@ export function drawEnemy(enemy, currentPlayer, sprite) {
     sourceY *= frameHeight;
 
 
-    // Check if image is loaded
+    //Check if image is loaded
     if (!spritePath.complete || spritePath.naturalHeight === 0) {
         console.warn('Image not ready, skipping draw');
         return;
     }
 
-    // Try drawing with error handling
     try {
         if (spriteSize == 128) {
             ctx.drawImage(
@@ -208,21 +183,23 @@ export function drawEnemy(enemy, currentPlayer, sprite) {
     }
 
     // Health bar
-    const multiplier = healthBarBg.width / enemy.maxHealth;
-
-    tempRect.x = screenX + healthBarBg.x;
-    tempRect.y = screenY + healthBarBg.y;
-    ctx.fillStyle = "rgb(0, 0, 0)";
-    ctx.fillRect(tempRect.x, tempRect.y, healthBarBg.width, healthBarBg.height);
+    const multiplier = tileSize / enemy.maxHealth;
 
     if (enemy.health > 0) {
-        healthBarFg.width = Math.round((enemy.health * multiplier) - 2);
+        ctx.fillStyle = "rgb(0, 0, 0)";
+        ctx.fillRect(
+            screenX,
+            screenY + tileSize,
+            enemy.maxHealth,
+            10
+        );
+
         ctx.fillStyle = "rgb(255, 0, 0)";
         ctx.fillRect(
-            screenX + healthBarFg.x,
-            screenY + healthBarFg.y,
-            healthBarFg.width,
-            healthBarFg.height
+            screenX,
+            screenY + tileSize,
+            enemy.health * multiplier,
+            10
         );
     }
 
@@ -243,7 +220,7 @@ export function drawObject(object, currentPlayer) {
     screenX = Math.round(halfCanvasWidth - halfTileSize + relativeX);
     screenY = Math.round(halfCanvasHeight - halfTileSize + relativeY);
 
-    if ( //Skip if off-screen
+    if ( //Skip if off screen
         screenX < -tileSize || screenX > canvas.width ||
         screenY < -tileSize || screenY > canvas.height
     ) {
@@ -294,4 +271,11 @@ export function drawInventory(inventory) {
             i++;
         }
     }
+}
+
+export function ensurePlayerDefaults(player) {
+    if (!player.action) player.action = "idle";
+    if (!player.direction) player.direction = "down";
+    if (!player.frameIndex) player.frameIndex = 0;
+    if (!player.frameTimer) player.frameTimer = 0;
 }

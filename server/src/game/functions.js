@@ -1,9 +1,25 @@
 import { getNextDropID, getNextEnemyID } from "./state.js";
 
-export function broadcast(data, wss) { //Send data to all clients
+export function broadcast(data, wss, exclude) { //Send data to all clients
 	const msg = JSON.stringify(data);
 	for (const client of wss.clients) {
-		client.send(msg);
+		if (client !== exclude && client.readyState === 1 /* WebSocket.OPEN */) {
+			client.send(msg);
+		}
+	}
+}
+
+export function broadcastToNearby(entity, data, wss, players, exclude) {
+	const msg = JSON.stringify(data);
+	const entityPos = [entity.mapX, entity.mapY];
+
+	for (const client of wss.clients) {
+		if (client === exclude || client.readyState !== 1 /* WebSocket.OPEN */) continue;
+
+		const player = players[client.playerId];
+		if (player && isNearby(entityPos, [player.mapX, player.mapY])) {
+			client.send(msg);
+		}
 	}
 }
 
@@ -128,7 +144,7 @@ export async function updateStats(key, newValue, supabase) {
 		.from("Statistics")
 		.update({ value: newValue })
 		.eq("key", key)
-		.select(); // Optional: get updated row back
+		.select(); 
 
 	if (error) {
 		console.log(`Failed to update metric '${key}':`, error.message);

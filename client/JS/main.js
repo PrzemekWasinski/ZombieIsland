@@ -10,7 +10,7 @@ const loginScreen = document.getElementById('login-screen');
 const registerScreen = document.getElementById('register-screen');
 const gameScreen = document.getElementById('game-screen');
 
-// Navigation
+//Navigation
 document.getElementById('go-register').onclick = (e) => {
   e.preventDefault();
   loginScreen.style.display = 'none';
@@ -23,13 +23,13 @@ document.getElementById('go-login').onclick = (e) => {
   loginScreen.style.display = 'block';
 };
 
-// Register
+//Register
 document.getElementById('register-button').onclick = async () => {
   const username = document.getElementById("register-username").value.trim();
   const email = document.getElementById('register-email').value.trim();
   const password = document.getElementById('register-password').value;
 
-  //Step 1: Check if username already exists
+  //Check if username already exists
   const { data: existingUser, error: fetchError } = await supabase
     .from("Characters")
     .select("username")
@@ -45,7 +45,7 @@ document.getElementById('register-button').onclick = async () => {
     return alert("Username already exists. Choose a different one.");
   }
 
-  //Step 2: Proceed to register new user
+  //Proceed to register new user
   const { data, error } = await supabase.auth.signUp({ email, password });
   if (error) {
     console.error("Signup error:", error.message);
@@ -61,8 +61,8 @@ document.getElementById('register-button').onclick = async () => {
       level: 1,
       gold: 0,
       health: 100,
-      mapX: 355,
-      mapY: 491,
+      mapX: 393,
+      mapY: 724,
       inBoat: false
     });
 
@@ -78,7 +78,7 @@ document.getElementById('register-button').onclick = async () => {
 };
 
 
-// Login
+//Login
 document.getElementById('login-button').onclick = async () => {
   const email = document.getElementById('login-email').value;
   const password = document.getElementById('login-password').value;
@@ -89,10 +89,10 @@ document.getElementById('login-button').onclick = async () => {
   const token = data.session.access_token;
   const userId = data.user.id;
 
-  // Switch to game
+  //Switch to game
   loginScreen.style.display = 'none';
   gameScreen.style.display = 'block';
 
-  // Start game and pass user ID + token
+  //Start game and pass user ID + token
   startGame({ userId, token });
 };

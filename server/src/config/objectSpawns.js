@@ -1,7 +1,7 @@
 export const objectSpawns = {
     //GRASSLAND BUSHES
     BLUE_BERRY_BUSH1: {
-        objectAmount: 10,
+        objectAmount: 5,
         topLeft: [100, 370],
         bottomRight: [600, 750],
 
@@ -18,7 +18,7 @@ export const objectSpawns = {
     },
 
     BLUE_BERRY_BUSH2: {
-        objectAmount: 10,
+        objectAmount: 5,
         topLeft: [1110, 460],
         bottomRight: [1330, 740],
 
@@ -35,7 +35,7 @@ export const objectSpawns = {
     },
 
     RED_BERRY_BUSH1: {
-        objectAmount: 10,
+        objectAmount: 5,
         topLeft: [100, 370],
         bottomRight: [600, 750],
 
@@ -52,7 +52,7 @@ export const objectSpawns = {
     },
 
     RED_BERRY_BUSH2: {
-        objectAmount: 10,
+        objectAmount: 5,
         topLeft: [1110, 460],
         bottomRight: [1330, 740],
 
@@ -69,7 +69,7 @@ export const objectSpawns = {
     },
 
     YELLOW_BERRY_BUSH1: {
-        objectAmount: 10,
+        objectAmount: 5,
         topLeft: [100, 370],
         bottomRight: [600, 750],
 
@@ -86,7 +86,7 @@ export const objectSpawns = {
     },
 
     YELLOW_BERRY_BUSH2: {
-        objectAmount: 10,
+        objectAmount: 5,
         topLeft: [1110, 460],
         bottomRight: [1330, 740],
 
@@ -104,7 +104,7 @@ export const objectSpawns = {
 
     //CACTI
     CACTUS: {
-        objectAmount: 30,
+        objectAmount: 10,
         topLeft: [200, 760],
         bottomRight: [1340, 900],
 
@@ -121,7 +121,7 @@ export const objectSpawns = {
     },
 
     FRUIT_CACTUS: {
-        objectAmount: 30,
+        objectAmount: 10,
         topLeft: [200, 760],
         bottomRight: [1340, 900],
 
@@ -143,7 +143,7 @@ export const objectSpawns = {
 
     //SNOW BUSHES
     SNOW_BUSH: {
-        objectAmount: 30,
+        objectAmount: 10,
         topLeft: [100, 70],
         bottomRight: [1230, 350],
 
@@ -162,7 +162,7 @@ export const objectSpawns = {
 
     //MUSHROOMS 
     VINE_MUSHROOM1: {
-        objectAmount: 10,
+        objectAmount: 5,
         topLeft: [100, 370],
         bottomRight: [600, 750],
 
@@ -179,7 +179,7 @@ export const objectSpawns = {
     },
 
     VINE_MUSHROOM2: {
-        objectAmount: 10,
+        objectAmount: 5,
         topLeft: [1110, 460],
         bottomRight: [1330, 740],
 
@@ -196,7 +196,7 @@ export const objectSpawns = {
     },
 
     WHITE_MUSHROOM1: {
-        objectAmount: 10,
+        objectAmount: 5,
         topLeft: [100, 370],
         bottomRight: [600, 750],
 
@@ -213,7 +213,7 @@ export const objectSpawns = {
     },
 
     WHITE_MUSHROOM2: {
-        objectAmount: 10,
+        objectAmount: 5,
         topLeft: [1110, 460],
         bottomRight: [1330, 740],
 
@@ -230,7 +230,7 @@ export const objectSpawns = {
     },
 
     RED_MUSHROOM: {
-        objectAmount: 30,
+        objectAmount: 10,
         topLeft: [100, 70],
         bottomRight: [1230, 350],
 
@@ -248,7 +248,7 @@ export const objectSpawns = {
     },
 
     ICE_MUSHROOM: {
-        objectAmount: 30,
+        objectAmount: 10,
         topLeft: [100, 70],
         bottomRight: [1230, 350],
 
@@ -267,7 +267,7 @@ export const objectSpawns = {
 
     //FLOWERS
     ICE_FLOWER: {
-        objectAmount: 10,
+        objectAmount: 5,
         topLeft: [100, 70],
         bottomRight: [1230, 350],
 
@@ -286,7 +286,7 @@ export const objectSpawns = {
 
     //ROCKS
     ICE_SPIKE: {
-        objectAmount: 10,
+        objectAmount: 5,
         topLeft: [100, 70],
         bottomRight: [1230, 350],
 
@@ -304,7 +304,7 @@ export const objectSpawns = {
     },
 
     WHITE_ROCK: {
-        objectAmount: 10,
+        objectAmount: 5,
         topLeft: [100, 70],
         bottomRight: [1230, 350],
 
@@ -322,7 +322,7 @@ export const objectSpawns = {
     },
 
     LIGHT_STONE1: {
-        objectAmount: 10,
+        objectAmount: 5,
         topLeft: [100, 370],
         bottomRight: [600, 750],
 
@@ -339,7 +339,7 @@ export const objectSpawns = {
     },
 
     LIGHT_STONE2: {
-        objectAmount: 10,
+        objectAmount: 5,
         topLeft: [1110, 460],
         bottomRight: [1330, 740],
 
@@ -356,7 +356,7 @@ export const objectSpawns = {
     },
 
     BROWN_ROCK1: {
-        objectAmount: 10,
+        objectAmount: 5,
         topLeft: [100, 370],
         bottomRight: [600, 750],
 
@@ -373,7 +373,7 @@ export const objectSpawns = {
     },
 
     BROWN_ROCK2: {
-        objectAmount: 10,
+        objectAmount: 5,
         topLeft: [1110, 460],
         bottomRight: [1330, 740],
 
@@ -390,7 +390,7 @@ export const objectSpawns = {
     },
 
     GREY_ROCK1: {
-        objectAmount: 10,
+        objectAmount: 5,
         topLeft: [100, 370],
         bottomRight: [600, 750],
 
@@ -407,7 +407,7 @@ export const objectSpawns = {
     },
 
     GREY_ROCK2: {
-        objectAmount: 10,
+        objectAmount: 5,
         topLeft: [1110, 460],
         bottomRight: [1330, 740],
 
@@ -424,7 +424,7 @@ export const objectSpawns = {
     },
 
     DESERT_SPIKES: {
-        objectAmount: 10,
+        objectAmount: 5,
         topLeft: [200, 760],
         bottomRight: [1340, 900],
 
@@ -441,7 +441,7 @@ export const objectSpawns = {
     },
 
     DESERT_ROCK: {
-        objectAmount: 10,
+        objectAmount: 5,
         topLeft: [200, 760],
         bottomRight: [1340, 900],
 
@@ -458,7 +458,7 @@ export const objectSpawns = {
     },
 
     SAND_DEPOSIT: {
-        objectAmount: 10,
+        objectAmount: 5,
         topLeft: [200, 760],
         bottomRight: [1340, 900],
 
@@ -499,7 +499,7 @@ export const objectSpawns = {
 
     //TREES
     CURVED_TREE1: {
-        objectAmount: 10,
+        objectAmount: 5,
         topLeft: [100, 370],
         bottomRight: [600, 750],
 
@@ -516,7 +516,7 @@ export const objectSpawns = {
     },
 
     CURVED_TREE2: {
-        objectAmount: 10,
+        objectAmount: 5,
         topLeft: [1110, 460],
         bottomRight: [1330, 740],
 
@@ -533,7 +533,7 @@ export const objectSpawns = {
     },
 
     FRUIT_TREE1: {
-        objectAmount: 10,
+        objectAmount: 5,
         topLeft: [100, 370],
         bottomRight: [600, 750],
 
@@ -550,7 +550,7 @@ export const objectSpawns = {
     },
 
     FRUIT_TREE2: {
-        objectAmount: 10,
+        objectAmount: 5,
         topLeft: [1110, 460],
         bottomRight: [1330, 740],
 
@@ -571,7 +571,7 @@ export const objectSpawns = {
     },
 
     OAK_TREE1: {
-        objectAmount: 10,
+        objectAmount: 5,
         topLeft: [100, 370],
         bottomRight: [600, 750],
 
@@ -588,7 +588,7 @@ export const objectSpawns = {
     },
 
     OAK_TREE2: {
-        objectAmount: 10,
+        objectAmount: 5,
         topLeft: [1110, 460],
         bottomRight: [1330, 740],
 
@@ -663,7 +663,7 @@ export const objectSpawns = {
     },
 
     GREEN_PALM: {
-        objectAmount: 30,
+        objectAmount: 10,
         topLeft: [200, 760],
         bottomRight: [1340, 900],
 
@@ -680,7 +680,7 @@ export const objectSpawns = {
     },
 
     PALM: {
-        objectAmount: 30,
+        objectAmount: 10,
         topLeft: [200, 760],
         bottomRight: [1340, 900],
 
@@ -695,13 +695,5 @@ export const objectSpawns = {
             ]
         }
     },
-
-    
-
-
-
-
-
-
     
 }

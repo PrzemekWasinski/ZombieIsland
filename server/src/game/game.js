@@ -1,5 +1,5 @@
 import { players, enemies, enemyNextID, drops, getNextDropID, getNextEnemyID, objects, getNextObjectID } from "./state.js";
-import { broadcast, spawnEnemy, getMap, isNearby, spawnDrop, updateStats, saveProgress, saveItem, spawnObject } from "./functions.js";
+import { broadcast, spawnEnemy, getMap, isNearby, spawnDrop, updateStats, saveProgress, saveItem, spawnObject, broadcastToNearby } from "./functions.js";
 
 export function startGame(wss, TILE_SIZE, VISIBLE_TILES_X, VISIBLE_TILES_Y, PASSABLE_TILES, PLAYER_SPAWN, ENEMY_SPAWNS, OBJECT_SPAWNS, MAP, supabase) {
     let locationData = {};
@@ -13,8 +13,17 @@ export function startGame(wss, TILE_SIZE, VISIBLE_TILES_X, VISIBLE_TILES_Y, PASS
         objectData[key] = 0;
     }
 
+    let newDrops = new Set();
+    let newObjects = new Set();
+    let updatedEnemies = new Set();
+
     setInterval(() => {
-        // 1. Handle dead enemies
+        //Clear tracking sets at start of each tick
+        newDrops.clear();
+        newObjects.clear();
+        updatedEnemies.clear();
+
+        //Handle dead enemies
         const deadEnemies = Object.keys(enemies).filter(id => enemies[id].health <= 0);
         const deadObjects = Object.keys(objects).filter(id => objects[id].health <= 0);
 
@@ -23,7 +32,7 @@ export function startGame(wss, TILE_SIZE, VISIBLE_TILES_X, VISIBLE_TILES_Y, PASS
             const loc = enemy.location;
             locationData[loc]--;
 
-            const rand = Math.floor(Math.random() * 100) + 1; //1–100
+            const rand = Math.floor(Math.random() * 100) + 1; 
 
             for (let i = 0; i < ENEMY_SPAWNS[loc].enemyStats.possibleDrops.length; i++) {
                 let possibleDrop = ENEMY_SPAWNS[loc].enemyStats.possibleDrops[i]
@@ -31,6 +40,7 @@ export function startGame(wss, TILE_SIZE, VISIBLE_TILES_X, VISIBLE_TILES_Y, PASS
                 if (rand < possibleDrop.chance) {
                     const dropID = getNextDropID();
                     spawnDrop(possibleDrop, enemy.pixelX, enemy.pixelY, dropID, drops, TILE_SIZE);
+                    newDrops.add(dropID); //Track new drop
                 }
             }
 
@@ -42,34 +52,37 @@ export function startGame(wss, TILE_SIZE, VISIBLE_TILES_X, VISIBLE_TILES_Y, PASS
             const loc = object.location;
             objectData[loc]--;
 
-            const rand = Math.floor(Math.random() * 100) + 1; // 1–100 inclusive
+            const rand = Math.floor(Math.random() * 100) + 1; 
             for (let i = 0; i < OBJECT_SPAWNS[loc].objectStats.possibleDrops.length; i++) {
                 let possibleDrop = OBJECT_SPAWNS[loc].objectStats.possibleDrops[i]
                 
                 if (rand < possibleDrop.chance) {
                     const dropID = getNextDropID();
                     spawnDrop(possibleDrop, object.pixelX, object.pixelY, dropID, drops, TILE_SIZE);
+                    newDrops.add(dropID); // Track new drop
                 }
             }
 
             delete objects[id];
         }
 
-        // 2. Broadcast drops
-        for (const id in drops) {
-            const drop = drops[id];
-            broadcast({
-                type: "drop",
-                id: drop.id,
-                name: drop.name,
-                mapX: drop.mapX,
-                mapY: drop.mapY,
-                pixelX: drop.pixelX,
-                pixelY: drop.pixelY,
-            }, wss);
+        //Broadcast only NEW drops 
+        for (const dropID of newDrops) {
+    		const drop = drops[dropID];
+    		if (drop) {
+    			broadcastToNearby(drop, {
+    				type: "drop",
+    				id: drop.id,
+    				name: drop.name,
+    				mapX: drop.mapX,
+    				mapY: drop.mapY,
+    				pixelX: drop.pixelX,
+    				pixelY: drop.pixelY,
+    			}, wss, players);
+    		}
         }
 
-        // 3. Spawn enemies if needed
+        //Spawn enemies if needed
         const spawnKeys = Object.keys(ENEMY_SPAWNS);
         const objectKeys = Object.keys(OBJECT_SPAWNS);
 
@@ -93,30 +106,34 @@ export function startGame(wss, TILE_SIZE, VISIBLE_TILES_X, VISIBLE_TILES_Y, PASS
             while (objectData[key] < spawnData.objectAmount && tries < 10) {
                 const newID = spawnObject(objects, PASSABLE_TILES, MAP, getNextObjectID(), TILE_SIZE, spawnData.topLeft, spawnData.bottomRight, key, spawnData.objectStats);
                 if (newID !== null) {
+                    newObjects.add(newID);
                     objectData[key]++;
                 }
                 tries++;
             }
         }
 
-        for (const id in objects) {
-            const object = objects[id];
-            broadcast({
-                type: "object",
-                id: object.id,
-                mapX: object.mapX,
-                mapY: object.mapY,
-                pixelX: object.pixelX,
-                pixelY: object.pixelY,
-                health: object.health[0],
-                maxHealth: object.health[1],
-                location: object.location,
-                name: object.name
-            }, wss);
+        //Broadcast only new objects
+        for (const objectID of newObjects) {
+            const object = objects[objectID];
+            if (object) {
+                broadcastToNearby(object, {
+                    type: "object",
+                    id: object.id,
+                    mapX: object.mapX,
+                    mapY: object.mapY,
+                    pixelX: object.pixelX,
+                    pixelY: object.pixelY,
+                    health: object.health,
+                    maxHealth: object.maxHealth,
+                    name: object.name,
+                }, wss, players);
+            }
         }
 
         for (const id in players) { //Update all players
             const player = players[id];
+            let playerMoved = false; //Track if player  moved
 
             for (let i = player.messages.length - 1; i >= 0; i--) {
                 if (player.messages[i] && Date.now() - player.messages[i].timestamp > 3000) {
@@ -145,12 +162,12 @@ export function startGame(wss, TILE_SIZE, VISIBLE_TILES_X, VISIBLE_TILES_Y, PASS
             const newTileX = Math.floor(newPixelX / TILE_SIZE);
             const newTileY = Math.floor(newPixelY / TILE_SIZE);
 
-            // Check horizontal movement
+            //Check horizontal movement
             if (newTileX !== currentTileX) {
                 const checkX = newTileX;
                 const checkY = currentTileY;
 
-                // Check bounds
+                //Check bounds
                 if (checkY < 0 || checkY >= MAP.length || checkX < 0 || checkX >= MAP[0].length) {
                     newPixelX = velocityX > 0 ? currentTileX * TILE_SIZE + TILE_SIZE - 1 : currentTileX * TILE_SIZE;
                 } else {
@@ -165,14 +182,14 @@ export function startGame(wss, TILE_SIZE, VISIBLE_TILES_X, VISIBLE_TILES_Y, PASS
                         }
                     }
 
-                    // Movement rules based on boat state
+                    //Movement rules based on boat state
                     if (player.inBoat) {
-                        // In boat: can only move on water (tile 31)
+                        // In boatcan only move on water 
                         if (!isWater) {
                             newPixelX = velocityX > 0 ? currentTileX * TILE_SIZE + TILE_SIZE - 1 : currentTileX * TILE_SIZE;
                         }
                     } else {
-                        // On land: can only move on passable tiles (not water)
+                        // On land can only move on passable tiles 
                         if (!isPassable || isWater) {
                             newPixelX = velocityX > 0 ? currentTileX * TILE_SIZE + TILE_SIZE - 1 : currentTileX * TILE_SIZE;
                         }
@@ -180,12 +197,12 @@ export function startGame(wss, TILE_SIZE, VISIBLE_TILES_X, VISIBLE_TILES_Y, PASS
                 }
             }
 
-            // Check vertical movement
+            //Check vertical movement
             if (newTileY !== currentTileY) {
                 const checkX = currentTileX;
                 const checkY = newTileY;
 
-                // Check bounds
+                //Check bounds
                 if (checkY < 0 || checkY >= MAP.length || checkX < 0 || checkX >= MAP[0].length) {
                     newPixelY = velocityY > 0 ? currentTileY * TILE_SIZE + TILE_SIZE - 1 : currentTileY * TILE_SIZE;
                 } else {
@@ -200,14 +217,12 @@ export function startGame(wss, TILE_SIZE, VISIBLE_TILES_X, VISIBLE_TILES_Y, PASS
                         }
                     }
 
-                    // Movement rules based on boat state
+                    //Movement rules based on boat state
                     if (player.inBoat) {
-                        // In boat: can only move on water (tile 31)
                         if (!isWater) {
                             newPixelY = velocityY > 0 ? currentTileY * TILE_SIZE + TILE_SIZE - 1 : currentTileY * TILE_SIZE;
                         }
                     } else {
-                        // On land: can only move on passable tiles (not water)
                         if (!isPassable || isWater) {
                             newPixelY = velocityY > 0 ? currentTileY * TILE_SIZE + TILE_SIZE - 1 : currentTileY * TILE_SIZE;
                         }
@@ -215,12 +230,12 @@ export function startGame(wss, TILE_SIZE, VISIBLE_TILES_X, VISIBLE_TILES_Y, PASS
                 }
             }
 
-            // Check diagonal movement
+            //Check diagonal movement
             if (newTileX !== currentTileX && newTileY !== currentTileY) {
                 const checkX = newTileX;
                 const checkY = newTileY;
 
-                // Check bounds
+                //Check bounds
                 if (checkY < 0 || checkY >= MAP.length || checkX < 0 || checkX >= MAP[0].length) {
                     newPixelX = player.pixelX;
                     newPixelY = player.pixelY;
@@ -236,15 +251,13 @@ export function startGame(wss, TILE_SIZE, VISIBLE_TILES_X, VISIBLE_TILES_Y, PASS
                         }
                     }
 
-                    // Movement rules based on boat state
+                    //Movement rules based on boat state
                     if (player.inBoat) {
-                        // In boat: can only move on water (tile 31)
                         if (!isWater) {
                             newPixelX = player.pixelX;
                             newPixelY = player.pixelY;
                         }
                     } else {
-                        // On land: can only move on passable tiles (not water)
                         if (!isPassable || isWater) {
                             newPixelX = player.pixelX;
                             newPixelY = player.pixelY;
@@ -260,9 +273,9 @@ export function startGame(wss, TILE_SIZE, VISIBLE_TILES_X, VISIBLE_TILES_Y, PASS
                 player.mapY = Math.floor(player.pixelY / TILE_SIZE);
                 player.targetX = player.pixelX;
                 player.targetY = player.pixelY;
+                playerMoved = true;
             }
 
-            // Rest of your player update code (health check, map updates, etc.)
             if (Math.floor(player.health) < 1) {
                 player.mapX = PLAYER_SPAWN[0]
                 player.mapY = PLAYER_SPAWN[1]
@@ -271,7 +284,8 @@ export function startGame(wss, TILE_SIZE, VISIBLE_TILES_X, VISIBLE_TILES_Y, PASS
                 player.targetX = (PLAYER_SPAWN[0] * TILE_SIZE) + (Math.floor(TILE_SIZE / 2))
                 player.targetY = (PLAYER_SPAWN[1] * TILE_SIZE) + (Math.floor(TILE_SIZE / 2))
                 player.health = 100
-                player.inBoat = false; // Reset boat state when respawning
+                player.inBoat = false; 
+                playerMoved = true; 
             }
 
             let sendMap = false;
@@ -280,9 +294,9 @@ export function startGame(wss, TILE_SIZE, VISIBLE_TILES_X, VISIBLE_TILES_Y, PASS
             player.lastMapY = player.mapY;
             sendMap = true;
 
-            const ws_client = Array.from(wss.clients).find(client => client.playerId === player.id);
-            if (ws_client) {
-                ws_client.send(JSON.stringify({
+            const ws_client = player.ws;
+            if (ws_client && ws_client.readyState === 1) {
+                const selfUpdatePayload = {
                     type: "update",
                     id: player.id,
                     mapX: player.mapX,
@@ -296,71 +310,51 @@ export function startGame(wss, TILE_SIZE, VISIBLE_TILES_X, VISIBLE_TILES_Y, PASS
                     username: player.username,
                     level: player.level,
                     gold: player.gold,
-                    name: player.name,
-                    inBoat: player.inBoat, // Include boat state in updates
+                    inBoat: player.inBoat, 
                     messages: player.messages,
                     inventory: player.inventory
-                }));
+                };
+                ws_client.send(JSON.stringify(selfUpdatePayload));
             }
 
-            broadcast({
-                type: "update",
-                id: player.id,
-                mapX: player.mapX,
-                mapY: player.mapY,
-                pixelX: player.pixelX,
-                pixelY: player.pixelY,
-                targetX: player.targetX,
-                targetY: player.targetY,
-                health: player.health,
-                username: player.username,
-                level: player.level,
-                gold: player.gold,
-                inBoat: player.inBoat, // Include boat state in broadcasts
-                messages: player.messages,
-                inventory: player.inventory
-            }, wss, ws_client);
+            //Only broadcast to other players if this player moved or health changed
+            if (playerMoved || player.healthChanged) {
+                const othersUpdatePayload = {
+                    type: "update",
+                    id: player.id,
+                    mapX: player.mapX,
+                    mapY: player.mapY,
+                    pixelX: player.pixelX,
+                    pixelY: player.pixelY,
+                    targetX: player.targetX,
+                    targetY: player.targetY,
+                    health: player.health,
+                    username: player.username,
+                    level: player.level,
+                    gold: player.gold,
+                    inBoat: player.inBoat, 
+                    messages: player.messages,
+                    //No inventory for others
+                };
+                broadcast(othersUpdatePayload, wss, ws_client);
 
+                player.healthChanged = false;
+            }
 
-            for (const enemyID in enemies) { //Check enemy collisions
+            // Handle enemy collisions
+            for (const enemyID in enemies) {
                 const enemy = enemies[enemyID];
                 const dx = Math.abs(player.pixelX - enemy.pixelX);
                 const dy = Math.abs(player.pixelY - enemy.pixelY);
                 if (dx < TILE_SIZE * 0.8 && dy < TILE_SIZE * 0.8) { //If too close to enemy
+                    const oldHealth = player.health;
                     player.health = Math.max(0, player.health - enemy.damage); //Take damage
-                    broadcast({
-                        type: "update",
-                        id: player.id,
-                        mapX: player.mapX,
-                        mapY: player.mapY,
-                        pixelX: player.pixelX,
-                        pixelY: player.pixelY,
-                        targetX: player.targetX,
-                        targetY: player.targetY,
-                        health: player.health,
-                        username: player.username,
-                        level: player.level,
-                        gold: player.gold,
-                        name: player.name,
-                        inventory: player.inventory
-                    }, wss);
-
-                    broadcast({
-                        type: "enemy",
-                        id: enemy.id,
-                        mapX: enemy.mapX,
-                        mapY: enemy.mapY,
-                        pixelX: enemy.pixelX,
-                        pixelY: enemy.pixelY,
-                        targetX: enemy.targetX,
-                        targetY: enemy.targetY,
-                        health: enemy.health,
-                        maxHealth: enemy.maxHealth,
-                        name: enemy.name,
-                        level: enemy.level,
-                        action: "attack",
-                        direction: enemy.direction
-                    }, wss);
+                    
+                    //Only broadcast if health actually changed
+                    if (player.health !== oldHealth) {
+                        player.healthChanged = true;
+                        updatedEnemies.add(enemyID); //Mark enemy for broadcast
+                    }
                 }
             }
         }
@@ -404,7 +398,6 @@ export function startGame(wss, TILE_SIZE, VISIBLE_TILES_X, VISIBLE_TILES_Y, PASS
 
             const STOP_DISTANCE = 1;
 
-
             const spawn = ENEMY_SPAWNS[enemy.location];
             const topLeft = spawn.topLeft;
             const bottomRight = spawn.bottomRight;
@@ -424,6 +417,10 @@ export function startGame(wss, TILE_SIZE, VISIBLE_TILES_X, VISIBLE_TILES_Y, PASS
             if (canMoveUp && canMoveLeft) { directions.push("up-left"); }
             if (canMoveDown && canMoveRight) { directions.push("down-right"); }
             if (canMoveDown && canMoveLeft) { directions.push("down-left"); }
+
+            // Store old position
+            const oldPixelX = enemy.pixelX;
+            const oldPixelY = enemy.pixelY;
 
             // Clear previous movement
             enemy.movingUp = false;
@@ -464,7 +461,6 @@ export function startGame(wss, TILE_SIZE, VISIBLE_TILES_X, VISIBLE_TILES_Y, PASS
                 }
             }
             
-
             let velocityX = 0;
             let velocityY = 0;
 
@@ -479,7 +475,6 @@ export function startGame(wss, TILE_SIZE, VISIBLE_TILES_X, VISIBLE_TILES_Y, PASS
             } else if (enemy.movingDown || enemy.movingDownLeft || enemy.movingDownRight) {
                 velocityY = enemy.speed;
             }
-
 
             if (velocityX !== 0 && velocityY !== 0) { //Normalize diagonal speed
                 const normalizer = 1 / Math.sqrt(2);
@@ -561,7 +556,8 @@ export function startGame(wss, TILE_SIZE, VISIBLE_TILES_X, VISIBLE_TILES_Y, PASS
             if (newPixelY > maxY) { newPixelY = maxY; }
 
             if (nearPLayer) {
-                if (newPixelX !== enemy.pixelX || newPixelY !== enemy.pixelY) { //Update enemy position
+                //Only broadcast if enemy actually moved or was marked for update
+                if ((newPixelX !== oldPixelX || newPixelY !== oldPixelY) || updatedEnemies.has(enemyID)) {
                     enemy.pixelX = newPixelX;
                     enemy.pixelY = newPixelY;
                     enemy.mapX = Math.floor(enemy.pixelX / TILE_SIZE);
@@ -569,7 +565,9 @@ export function startGame(wss, TILE_SIZE, VISIBLE_TILES_X, VISIBLE_TILES_Y, PASS
                     enemy.targetX = enemy.pixelX;
                     enemy.targetY = enemy.pixelY;
 
-                    broadcast({
+                    const action = updatedEnemies.has(enemyID) ? "attack" : "walk";
+
+                    broadcastToNearby(enemy, {
                         type: "enemy",
                         id: enemy.id,
                         mapX: enemy.mapX,
@@ -583,66 +581,59 @@ export function startGame(wss, TILE_SIZE, VISIBLE_TILES_X, VISIBLE_TILES_Y, PASS
                         name: enemy.name,
                         level: enemy.level,
                         direction: enemy.direction,
-                        action: "walk"
-                    }, wss);
+                        action: action
+                    }, wss, players);
                 }
             }
         }
-
-        
 
         let deadDrops = []
 
-    for (const dropID in drops) {
-        const drop = drops[dropID]
+        for (const dropID in drops) {
+            const drop = drops[dropID]
+            let pickedUp = false;
 
-        for (const playerID in players) {
-            const player = players[playerID]
-            const dx = Math.abs(player.pixelX - drop.pixelX);
-            const dy = Math.abs(player.pixelY - drop.pixelY);
-            if (dx < TILE_SIZE - 0.5 && dy < TILE_SIZE - 0.5) { //If picked up a drop
-                if (player.health > 90) {
-                    player.health = 100
-                } else {
-                    player.health += 10
+            for (const playerID in players) {
+                const player = players[playerID]
+                const dx = Math.abs(player.pixelX - drop.pixelX);
+                const dy = Math.abs(player.pixelY - drop.pixelY);
+                if (dx < TILE_SIZE - 0.5 && dy < TILE_SIZE - 0.5) {
+                    if (player.health > 90) {
+                        player.health = 100
+                    } else {
+                        player.health += 10
+                    }
+
+                    //Update inventory in memory
+                    player.healthChanged = true;
+
+                    if (!player.inventory[drop.name]) {
+                        player.inventory[drop.name] = {
+                            itemName: drop.name,
+                            itemAmount : 1
+                        };
+                    } else {
+                        player.inventory[drop.name].itemAmount++;
+                    }
+                    
+                    //Save immediately to database
+                    saveItem(drop.name, player.dbID, supabase);
+                    deadDrops.push(dropID);
+
+                    // Send inventory update only to this player
+                    if (player.ws && player.ws.readyState === 1) {
+                        player.ws.send(JSON.stringify({
+                            type: "update",
+                            id: player.id,
+                            inventory: player.inventory
+                        }));
+                    }
+
+                    pickedUp = true;
+                    break; //One player picks it up
                 }
-
-                // Update inventory in memory
-                if (!player.inventory[drop.name]) {
-                    player.inventory[drop.name] = {
-                        itemName: drop.name,
-                        itemAmount : 1
-                    };
-                } else {
-                    player.inventory[drop.name].itemAmount++;
-                }
-                
-                // Mark this item as needing database updat
-                
-                // Save immediately to database
-                saveItem(drop.name, player.dbID, supabase);
-                
-                deadDrops.push(dropID)
-
-                broadcast({
-                    type: "update",
-                    id: player.id,
-                    mapX: player.mapX,
-                    mapY: player.mapY,
-                    pixelX: player.pixelX,
-                    pixelY: player.pixelY,
-                    targetX: player.targetX,
-                    targetY: player.targetY,
-                    health: player.health,
-                    username: player.username,
-                    level: player.level,
-                    gold: player.gold,
-                    name: player.name,
-                    inventory: player.inventory
-                }, wss);
             }
         }
-    }
 
         for (let i = 0; i < deadDrops.length; i++) {
             delete drops[deadDrops[i]]

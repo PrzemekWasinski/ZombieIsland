@@ -2,7 +2,7 @@ import { loadImages, sprites, playerImages } from "./images.js";
 import { drawMap, drawPlayer, drawEnemy, drawDrop, drawObject, drawInventory, isNearby } from "./functions.js"
 
 export function startGame({ userId, token }) {
-	//const socket = new WebSocket("wss://ws.zombieisland.online/"); //Remotee server
+	//const socket = new WebSocket("wss://ws.zombieisland.online/"); //Remote server
 	const socket = new WebSocket("ws://localhost:8080"); //Local server
 
 	socket.onopen = () => {
@@ -26,7 +26,7 @@ export function startGame({ userId, token }) {
 	let mouseLeftY = 0;
 	let mouseLeftClicked = false;
 
-	let selectedItem = null;   // <- Track the item for the popup
+	let selectedItem = null;   
 	let itemMenuOpen = false;
 
 	const rect = canvas.getBoundingClientRect();
@@ -35,17 +35,15 @@ export function startGame({ userId, token }) {
 	const scaleY = canvas.height / rect.height;
 
 	canvas.addEventListener('contextmenu', (e) => {
-
+		//e.preventDefault();
 		mouseRightX = (e.clientX - rect.left) * scaleX;
 		mouseRightY = (e.clientY - rect.top) * scaleY;
-
 		mouseRightClicked = true;
 	});
 
 	canvas.addEventListener('mousedown', (e) => {
 		mouseLeftX = (e.clientX - rect.left) * scaleX;
 		mouseLeftY = (e.clientY - rect.top) * scaleY;
-
 		mouseLeftClicked = true;
 	});
 
@@ -68,18 +66,69 @@ export function startGame({ userId, token }) {
 	const FRAME_TIME = 1000 / TARGET_FPS; //Time per frame
 	const INTERPOLATION_SPEED = 10.5; //Movement speed
 
+	//Cache for nearby entities to reduce repeated calculations
+	let nearbyCache = {
+		enemies: new Set(),
+		objects: new Set(),
+		players: new Set(),
+		lastUpdate: 0
+	};
+
+	//Cache enemy sprite keys
+	const enemySpriteCache = new Map();
+	let cleanupCounter = 0;
+	const CLEANUP_FREQUENCY = 60; //Clean up dead entities every 60 frames
+
+	function ensurePlayerDefaults(player) {
+		if (!player.action) player.action = "idle";
+		if (!player.direction) player.direction = "down";
+		if (!player.frameIndex) player.frameIndex = 0;
+		if (!player.frameTimer) player.frameTimer = 0;
+	}
+
+	function getEnemySprite(enemy) {
+		const isAlive = Math.floor(enemy.health) > 0;
+		const spriteKey = `${enemy.name}-${isAlive ? enemy.action : 'death'}`;
+		
+		if (!enemySpriteCache.has(spriteKey)) {
+			enemySpriteCache.set(spriteKey, sprites[spriteKey]);
+		}
+		
+		return enemySpriteCache.get(spriteKey);
+	}
+
+	function cleanupDeadEntities() {
+		if (++cleanupCounter < CLEANUP_FREQUENCY) return;
+		cleanupCounter = 0;
+		
+		for (const enemyID in enemies) {
+			if (Math.floor(enemies[enemyID].health) < 1) {
+				delete enemies[enemyID];
+				nearbyCache.enemies.delete(enemyID);
+			}
+		}
+		
+		for (const objectID in objects) {
+			if (Math.floor(objects[objectID].health) < 1) {
+				delete objects[objectID];
+				nearbyCache.objects.delete(objectID);
+			}
+		}
+	}
+
 	socket.onmessage = (event) => {
 		const msg = JSON.parse(event.data);
 
 		if ("init" === msg.type) { //Initial game setup
 			playerId = msg.id;
-			players = msg.players;
-			for (const id in players) {
-				const player = players[id];
+			if (msg.player) {
+				players[msg.id] = msg.player;
+				const player = players[msg.id];
 				player.pixelX = Number(player.pixelX) || Number(player.mapX || 42) * TILE_SIZE;
 				player.pixelY = Number(player.pixelY) || Number(player.mapY || 46) * TILE_SIZE;
 				player.targetX = Number(player.targetX) || player.pixelX;
 				player.targetY = Number(player.targetY) || player.pixelY;
+				ensurePlayerDefaults(player); // Ensure player has valid defaults
 			}
 
 		} else if ("join" === msg.type) { //New player joined
@@ -89,143 +138,114 @@ export function startGame({ userId, token }) {
 			if (!player.pixelY) player.pixelY = player.mapY * TILE_SIZE;
 			if (!player.targetX) player.targetX = player.pixelX;
 			if (!player.targetY) player.targetY = player.pixelY;
-
+			ensurePlayerDefaults(player); //Ensure new player has valid defaults
 
 		} else if ("update" === msg.type) { //Player update
 			if (!players[msg.id]) {
 				return;
 			} //Skip if invalid player
 			const player = players[msg.id];
-			if (msg.id !== playerId && isNearby([players[playerId].mapX, players[playerId].mapY], [msg.mapX, msg.mapY])) {
-				if (undefined != player.health) player.health = Number(msg.health);
-				if (undefined != player.mapX) player.mapX = Number(msg.mapX);
-				if (undefined != player.mapY) player.mapY = Number(msg.mapY);
-				if (undefined != player.pixelX) player.pixelX = Number(msg.pixelX) || (player.mapX * TILE_SIZE) + (Math.floor(TILE_SIZE / 2));
-				if (undefined != player.pixelY) player.pixelY = Number(msg.pixelY) || (player.mapY * TILE_SIZE) + (Math.floor(TILE_SIZE / 2));
-				if (undefined != player.targetX) player.targetX = Number(msg.targetX);
-				if (undefined != player.targetY) player.targetY = Number(msg.targetY);
-				if (undefined != player.username) player.username = msg.username;
-				if (undefined != player.level) player.level = msg.level;
-				if (undefined != player.gold) player.gold = msg.gold;
-				if (undefined != player.messages) player.messages = msg.messages;
-				player.frameIndex = player.frameIndex ?? 0;
-				player.frameTimer = player.frameTimer ?? 0;
-				if (!player.action && !player.direction) {
-					player.action = "idle";
-					player.direction = "down";
-				}
-			}
+			
+			//Only update if player is nearby OR it's the current player
+			if (msg.id === playerId || isNearby([players[playerId].mapX, players[playerId].mapY], [msg.mapX, msg.mapY])) {
+				if (msg.health !== undefined) player.health = Number(msg.health);
+				if (msg.mapX !== undefined) player.mapX = Number(msg.mapX);
+				if (msg.mapY !== undefined) player.mapY = Number(msg.mapY);
+				if (msg.pixelX !== undefined) player.pixelX = Number(msg.pixelX);
+				if (msg.pixelY !== undefined) player.pixelY = Number(msg.pixelY);
+				if (msg.targetX !== undefined) player.targetX = Number(msg.targetX);
+				if (msg.targetY !== undefined) player.targetY = Number(msg.targetY);
+				if (msg.username !== undefined) player.username = msg.username;
+				if (msg.level !== undefined) player.level = msg.level;
+				if (msg.gold !== undefined) player.gold = msg.gold;
+				if (msg.messages !== undefined) player.messages = msg.messages;
 
-			if (msg.id === playerId && msg.map) {
-				if (undefined != player.health) player.health = Number(msg.health);
-				if (undefined != player.mapX) player.mapX = Number(msg.mapX);
-				if (undefined != player.mapY) player.mapY = Number(msg.mapY);
-				if (undefined != player.pixelX) player.pixelX = Number(msg.pixelX) || (player.mapX * TILE_SIZE) + (Math.floor(TILE_SIZE / 2));
-				if (undefined != player.pixelY) player.pixelY = Number(msg.pixelY) || (player.mapY * TILE_SIZE) + (Math.floor(TILE_SIZE / 2));
-				if (undefined != player.targetX) player.targetX = Number(msg.targetX);
-				if (undefined != player.targetY) player.targetY = Number(msg.targetY);
-				if (undefined != player.username) player.username = msg.username;
-				if (undefined != player.level) player.level = msg.level;
-				if (undefined != player.gold) player.gold = msg.gold;
-				if (undefined != player.map) player.map = msg.map;
-				if (undefined != player.messages) player.messages = msg.messages;
-				inventory = msg.inventory;
-				player.frameIndex = player.frameIndex ?? 0;
-				player.frameTimer = player.frameTimer ?? 0;
-				if (!player.action && !player.direction) {
-					player.action = "idle";
-					player.direction = "down";
+				if (msg.id === playerId) {
+					if (msg.map) player.map = msg.map;
+					if (msg.inventory) inventory = msg.inventory;
 				}
+
+				ensurePlayerDefaults(player);
 			}
 
 		} else if ("enemy" === msg.type) { //enemy update
-			if (isNearby([players[playerId].mapX, players[playerId].mapY], [msg.mapX, msg.mapY])) {
-				if (!enemies[msg.id]) { //New 
-					let enemy = {};
-
-					if (undefined != msg.mapX) enemy.mapX = msg.mapX;
-					if (undefined != msg.mapY) enemy.mapY = msg.mapY;
-					if (undefined != msg.pixelX) enemy.pixelX = msg.pixelX;
-					if (undefined != msg.pixelY) enemy.pixelY = msg.pixelY;
-					if (undefined != msg.targetX) enemy.targetX = msg.targetX;
-					if (undefined != msg.targetY) enemy.targetY = msg.targetY;
-					if (undefined != msg.health) enemy.health = msg.health;
-					if (undefined != msg.maxHealth) enemy.maxHealth = msg.maxHealth;
-					if (undefined != msg.name) enemy.name = msg.name;
-					if (undefined != msg.level) enemy.level = msg.level;
-					if (undefined != msg.direction) enemy.direction = msg.direction;
-					if (undefined != msg.action) enemy.action = msg.action;
-					enemy.frameIndex = enemy.frameIndex ?? 0;
-					enemy.frameTimer = enemy.frameTimer ?? 0;
-					enemies[msg.id] = enemy;
-
-				} else { //Existing enemy
-					const enemy = enemies[msg.id];
-
-					if (undefined != msg.mapX) enemy.mapX = msg.mapX;
-					if (undefined != msg.mapY) enemy.mapY = msg.mapY;
-					if (undefined != msg.pixelX) enemy.pixelX = msg.pixelX;
-					if (undefined != msg.pixelY) enemy.pixelY = msg.pixelY;
-					if (undefined != msg.targetX) enemy.targetX = msg.targetX;
-					if (undefined != msg.targetY) enemy.targetY = msg.targetY;
-					if (undefined != msg.health) enemy.health = msg.health;
-					if (undefined != msg.maxHealth) enemy.maxHealth = msg.maxHealth;
-					if (undefined != msg.name) enemy.name = msg.name;
-					if (undefined != msg.level) enemy.level = msg.level;
-					if (undefined != msg.direction) enemy.direction = msg.direction;
-					if (undefined != msg.action) enemy.action = msg.action;
-					enemy.frameIndex = enemy.frameIndex ?? 0;
-					enemy.frameTimer = enemy.frameTimer ?? 0;
+			// Only process if nearby
+			if (playerId && players[playerId] && isNearby([players[playerId].mapX, players[playerId].mapY], [msg.mapX, msg.mapY])) {
+				let enemy = enemies[msg.id];
+				
+				if (!enemy) { //New enemy
+					enemies[msg.id] = {
+						mapX: msg.mapX,
+						mapY: msg.mapY,
+						pixelX: msg.pixelX,
+						pixelY: msg.pixelY,
+						targetX: msg.targetX,
+						targetY: msg.targetY,
+						health: msg.health,
+						maxHealth: msg.maxHealth,
+						name: msg.name,
+						level: msg.level,
+						direction: msg.direction || "down",
+						action: msg.action || "idle",
+						frameIndex: 0,
+						frameTimer: 0
+					};
+				} else { //Existing enemy - direct property assignment
+					if (msg.mapX !== undefined) enemy.mapX = msg.mapX;
+					if (msg.mapY !== undefined) enemy.mapY = msg.mapY;
+					if (msg.pixelX !== undefined) enemy.pixelX = msg.pixelX;
+					if (msg.pixelY !== undefined) enemy.pixelY = msg.pixelY;
+					if (msg.targetX !== undefined) enemy.targetX = msg.targetX;
+					if (msg.targetY !== undefined) enemy.targetY = msg.targetY;
+					if (msg.health !== undefined) enemy.health = msg.health;
+					if (msg.maxHealth !== undefined) enemy.maxHealth = msg.maxHealth;
+					if (msg.name !== undefined) enemy.name = msg.name;
+					if (msg.level !== undefined) enemy.level = msg.level;
+					if (msg.direction !== undefined) enemy.direction = msg.direction;
+					if (msg.action !== undefined) enemy.action = msg.action;
 				}
+				nearbyCache.enemies.add(msg.id);
 			}
 
 		} else if ("drop" === msg.type) {
-			if (isNearby([msg.mapX, msg.mapY], [players[playerId].mapX, players[playerId].mapY])) {
-				if (!drops[msg.id]) { //New drop
-					let drop = {}
-
-					if (undefined != msg.mapX) { drop.mapX = msg.mapX };
-					if (undefined != msg.mapY) { drop.mapY = msg.mapY };
-					if (undefined != msg.pixelX) { drop.pixelX = msg.pixelX };
-					if (undefined != msg.pixelY) { drop.pixelY = msg.pixelY };
-
-					drops[msg.id] = drop;
-				} else { //Existing drop
-					const drop = drops[msg.id];
-					if (undefined != msg.mapX) { drop.mapX = msg.mapX };
-					if (undefined != msg.mapY) { drop.mapY = msg.mapY };
-					if (undefined != msg.pixelX) { drop.pixelX = msg.pixelX };
-					if (undefined != msg.pixelY) { drop.pixelY = msg.pixelY };
-				}
+			if (playerId && players[playerId] && isNearby([msg.mapX, msg.mapY], [players[playerId].mapX, players[playerId].mapY])) {
+				drops[msg.id] = {
+					mapX: msg.mapX,
+					mapY: msg.mapY,
+					pixelX: msg.pixelX,
+					pixelY: msg.pixelY
+				};
 			}
+
 		} else if ("object" === msg.type) {
-			if (isNearby([players[playerId].mapX, players[playerId].mapY], [msg.mapX, msg.mapY])) {
-				if (!objects[msg.id]) { //New 
-					let object = {};
-
-					if (undefined != msg.mapX) object.mapX = msg.mapX;
-					if (undefined != msg.mapY) object.mapY = msg.mapY;
-					if (undefined != msg.pixelX) object.pixelX = msg.pixelX;
-					if (undefined != msg.pixelY) object.pixelY = msg.pixelY;
-					if (undefined != msg.health) object.health = msg.health;
-					if (undefined != msg.maxHealth) object.maxHealth = msg.maxHealth;
-					if (undefined != msg.name) object.name = msg.name;
-					objects[msg.id] = object;
-
-				} else { //Existing object
-					const object = objects[msg.id];
-
-					if (undefined != msg.mapX) object.mapX = msg.mapX;
-					if (undefined != msg.mapY) object.mapY = msg.mapY;
-					if (undefined != msg.pixelX) object.pixelX = msg.pixelX;
-					if (undefined != msg.pixelY) object.pixelY = msg.pixelY;
-					if (undefined != msg.health) object.health = msg.health;
-					if (undefined != msg.maxHealth) object.maxHealth = msg.maxHealth;
-					if (undefined != msg.name) object.name = msg.name;
+			if (playerId && players[playerId] && isNearby([players[playerId].mapX, players[playerId].mapY], [msg.mapX, msg.mapY])) {
+				let object = objects[msg.id];
+				
+				if (!object) { //New object
+					objects[msg.id] = {
+						mapX: msg.mapX,
+						mapY: msg.mapY,
+						pixelX: msg.pixelX,
+						pixelY: msg.pixelY,
+						health: msg.health,
+						maxHealth: msg.maxHealth,
+						name: msg.name
+					};
+				} else { //Existing object - direct property assignment
+					if (msg.mapX !== undefined) object.mapX = msg.mapX;
+					if (msg.mapY !== undefined) object.mapY = msg.mapY;
+					if (msg.pixelX !== undefined) object.pixelX = msg.pixelX;
+					if (msg.pixelY !== undefined) object.pixelY = msg.pixelY;
+					if (msg.health !== undefined) object.health = msg.health;
+					if (msg.maxHealth !== undefined) object.maxHealth = msg.maxHealth;
+					if (msg.name !== undefined) object.name = msg.name;
 				}
+				nearbyCache.objects.add(msg.id);
 			}
+
 		} else if ("leave" === msg.type) { //Player left
 			delete players[msg.id];
+			nearbyCache.players.delete(msg.id);
 		}
 	};
 
@@ -280,83 +300,75 @@ export function startGame({ userId, token }) {
 	});
 
 	window.addEventListener("keydown", (event) => {
-    const control = controls[event.key];
-    if (!control || isTyping) return; // skip if typing or unbound key
+		const control = controls[event.key];
+		if (!control || isTyping || !playerId || !players[playerId]) return;
 
-    const key = control.key;
-    players[playerId].action = control.action;
+		const key = control.key;
+		const player = players[playerId];
+		player.action = control.action;
 
-    // Update direction if not "current"
-    if (control.direction !== "current") {
-        players[playerId].direction = control.direction;
-    }
+		if (control.direction !== "current") {
+			player.direction = control.direction;
+		}
 
-    // Mark key as pressed
-    if (key && !keysHeld[key]) {
-        keysHeld[key] = true;
-        socket.send(JSON.stringify({
-            type: "keydown",
-            dir: key,
-            pressed: true,
-            playerID: userId,
-        }));
-    }
-});
+		if (key && !keysHeld[key]) {
+			keysHeld[key] = true;
+			socket.send(JSON.stringify({
+				type: "keydown",
+				dir: key,
+				pressed: true,
+				playerID: userId,
+			}));
+		}
+	});
 
 	window.addEventListener("keyup", (event) => {
-    const control = controls[event.key];
-    if (!control || isTyping) return;
+		const control = controls[event.key];
+		if (!control || isTyping || !playerId || !players[playerId]) return;
 
-    const key = control.key;
-    if (key) {
-        keysHeld[key] = false;
+		const key = control.key;
+		if (key) {
+			keysHeld[key] = false;
 
-        socket.send(JSON.stringify({
-            type: "keydown",
-            dir: key,
-            pressed: false,
-            playerID: userId,
-        }));
+			socket.send(JSON.stringify({
+				type: "keydown",
+				dir: key,
+				pressed: false,
+				playerID: userId,
+			}));
 
-        // Only go idle if no movement keys are still pressed
-        if (!keysHeld.up && !keysHeld.down && !keysHeld.left && !keysHeld.right) {
-            players[playerId].action = "idle";
-        } else {
-            // If some movement keys are still held, update direction to the most recent
-            if (keysHeld.up) players[playerId].direction = "up";
-            else if (keysHeld.down) players[playerId].direction = "down";
-            else if (keysHeld.left) players[playerId].direction = "left";
-            else if (keysHeld.right) players[playerId].direction = "right";
+			const player = players[playerId];
+			if (!keysHeld.up && !keysHeld.down && !keysHeld.left && !keysHeld.right) {
+				player.action = "idle";
+			} else {
+				if (keysHeld.up) player.direction = "up";
+				else if (keysHeld.down) player.direction = "down";
+				else if (keysHeld.left) player.direction = "left";
+				else if (keysHeld.right) player.direction = "right";
+				player.action = "walk";
+			}
+		}
+	});
 
-            players[playerId].action = "walk";
-        }
-    }
-});
-
-	function tileTransition(start, end, time) { //Smooth movement
+	function tileTransition(start, end, time) {
 		return start + (end - start) * time;
 	}
 
-	function draw(currentTime) { //Main game loop
-
-		for (const enemyID in enemies) {
-			const enemy = enemies[enemyID];
-
-			if (Math.floor(enemy.health) < 1) {
-				delete enemies[enemyID]
-			}
+	function draw(currentTime) {
+		// Early exit if not ready
+		if (!playerId || !players[playerId]) {
+			requestAnimationFrame(draw);
+			return;
 		}
 
-		for (const objectID in objects) {
-			const object = objects[objectID];
+		const currentPlayer = players[playerId];
+		
+		// Use optimized cleanup
+		cleanupDeadEntities();
 
-			if (Math.floor(object.health) < 1) {
-				delete objects[objectID]
-			}
-		}
-
+		// FPS calculation
 		frameCount++;
-		if (currentTime - lastFpsUpdate >= 1000) { //Update FPS counter
+		if (currentTime - lastFpsUpdate >= 1000) {
 			currentFps = frameCount;
 			frameCount = 0;
 			lastFpsUpdate = currentTime;
@@ -364,168 +376,199 @@ export function startGame({ userId, token }) {
 
 		const deltaTime = Math.min(0.1, (currentTime - lastFrameTime) / 1000);
 		lastFrameTime = currentTime;
+		const time = Math.min(1, deltaTime * INTERPOLATION_SPEED);
 
-		ctx.clearRect(0, 0, canvas.width, canvas.height); //Clear screen
+		ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-		if (!playerId || !players[playerId]) { //Skip if not initialized
-			requestAnimationFrame(draw);
-			return;
+		// Update nearby cache less frequently (every 200ms for better performance)
+		if (currentTime - nearbyCache.lastUpdate > 200) {
+			nearbyCache.enemies.clear();
+			nearbyCache.objects.clear();
+			nearbyCache.players.clear();
+			
+			for (const id in enemies) {
+				if (isNearby([currentPlayer.mapX, currentPlayer.mapY], [enemies[id].mapX, enemies[id].mapY])) {
+					nearbyCache.enemies.add(id);
+				}
+			}
+			
+			for (const id in objects) {
+				if (isNearby([currentPlayer.mapX, currentPlayer.mapY], [objects[id].mapX, objects[id].mapY])) {
+					nearbyCache.objects.add(id);
+				}
+			}
+			
+			for (const id in players) {
+				if (id !== playerId && isNearby([currentPlayer.mapX, currentPlayer.mapY], [players[id].mapX, players[id].mapY])) {
+					nearbyCache.players.add(id);
+				}
+			}
+			
+			nearbyCache.lastUpdate = currentTime;
 		}
 
-		const currentPlayer = players[playerId];
-		const time = Math.min(1, deltaTime * INTERPOLATION_SPEED); //Movement smoothing
-
-		for (const id in enemies) { //Delete far away enemies and objects
-			const enemy = enemies[id]
-			if (!isNearby([currentPlayer.mapX, currentPlayer.mapY], [enemy.mapX, enemy.mapY])) {
-				delete enemies[id]
+		// Delete far away entities using cached nearby data
+		for (const id in enemies) {
+			if (!nearbyCache.enemies.has(id)) {
+				delete enemies[id];
 			}
 		}
-
+		
 		for (const id in objects) {
-			const object = objects[id]
-			if (!isNearby([currentPlayer.mapX, currentPlayer.mapY], [object.mapX, object.mapY])) {
-				delete objects[id]
+			if (!nearbyCache.objects.has(id)) {
+				delete objects[id];
 			}
 		}
 
-		for (const id in players) { //Update player positions
+		// Update positions for all players
+		for (const id in players) {
 			const player = players[id];
 			player.pixelX = tileTransition(player.pixelX, player.targetX, time);
 			player.pixelY = tileTransition(player.pixelY, player.targetY, time);
 		}
 
-		for (const id in enemies) { //Update enemy positions
+		// Update enemy positions and animations
+		for (const id of nearbyCache.enemies) {
 			const enemy = enemies[id];
+			if (!enemy) continue;
+			
 			enemy.pixelX = tileTransition(enemy.pixelX, enemy.targetX, time);
 			enemy.pixelY = tileTransition(enemy.pixelY, enemy.targetY, time);
-			enemy.frameTimer += deltaTime * 1000; // Convert to ms
-			const frameDelay = 100; // ms between frames
-
-			let sprite;
-			let name = enemies[id].name;
-			let action = enemies[id].action;
-			if (Math.floor(enemies[id].health > 0)) {
-				sprite = sprites[`${name}-${action}`]
-			} else {
-				sprite = sprites[`${name}-death`]
-			}
-
-			const frameAmount = sprite[2]
-
-			if (enemy.frameTimer >= frameDelay) {
-				enemy.frameTimer = 0;
-				enemy.frameIndex = (enemy.frameIndex + 1) % frameAmount; // 10 frames in top row
-			}
-		}
-
-		drawMap(currentPlayer); //Draw surrounding areas
-
-		for (const id in players) { //Draw other players
-			console.log(players[id].action)
-			if (id !== playerId) {
-				const player = players[id];
-				const sprite = playerImages[player.action];
-				let frameAmount = sprite[1];
-
-				// idle = no animation, just frame 0
-				if (player.action === "idle") {
-					player.frameIndex = 0;
-					if (player.direction === "up") {
-						frameAmount = 4; // still matters if you want idle-up to exist
-					}
-				} else {
-					// animated actions
-					player.frameTimer += deltaTime * 1000;
-					let loopTime = 1200; // 1.2s full cycle
-					const frameDelay = loopTime / frameAmount;
-
-					if (player.frameTimer >= frameDelay) {
-						player.frameTimer = 0;
-						player.frameIndex = (player.frameIndex + 1) % frameAmount;
-					}
+			enemy.frameTimer += deltaTime * 1000;
+			
+			const frameDelay = 100;
+			const sprite = getEnemySprite(enemy);
+			
+			if (sprite) {
+				const frameAmount = sprite[2];
+				if (enemy.frameTimer >= frameDelay) {
+					enemy.frameTimer = 0;
+					enemy.frameIndex = (enemy.frameIndex + 1) % frameAmount;
 				}
-
-				// draw
-				drawPlayer(player, false, currentPlayer, sprite);
 			}
 		}
 
-		for (const id in objects) { //Draw objects
-			drawObject(objects[id], currentPlayer);
-		}
+		// Drawing phase
+		drawMap(currentPlayer);
 
-		for (const id in enemies) { //Draw enemies
-			let sprite;
-			let name = enemies[id].name;
-			let action = enemies[id].action;
+		// Draw other players (only nearby ones)
+		for (const id of nearbyCache.players) {
+			const player = players[id];
+			if (!player) continue;
+			
+			// Ensure player has valid defaults before drawing
+			ensurePlayerDefaults(player);
+			
+			const sprite = playerImages[player.action];
+			if (!sprite) continue;
+			
+			let frameAmount = sprite[1];
 
-			if (Math.floor(enemies[id].health > 0)) {
-				sprite = sprites[`${name}-${action}`]
+			if (player.action === "idle") {
+				player.frameIndex = 0;
+				if (player.direction === "up") {
+					frameAmount = 4;
+				}
 			} else {
-				sprite = sprites[`${name}-death`]
+				player.frameTimer += deltaTime * 1000;
+				let loopTime = 1200;
+				const frameDelay = loopTime / frameAmount;
+
+				if (player.frameTimer >= frameDelay) {
+					player.frameTimer = 0;
+					player.frameIndex = (player.frameIndex + 1) % frameAmount;
+				}
 			}
 
-			drawEnemy(enemies[id], currentPlayer, sprite);
+			drawPlayer(player, false, currentPlayer, sprite);
 		}
 
-		for (const id in drops) { //Draw drops
-			const drop = drops[id]
-			drawDrop(drop, currentPlayer); //Remove picked up drops
+		// Draw objects (only nearby ones)
+		for (const id of nearbyCache.objects) {
+			const object = objects[id];
+			if (object) {
+				drawObject(object, currentPlayer);
+			}
+		}
 
+		// Draw enemies (only nearby ones)
+		for (const id of nearbyCache.enemies) {
+			const enemy = enemies[id];
+			if (!enemy) continue;
+			
+			const sprite = getEnemySprite(enemy);
+			
+			if (sprite) {
+				drawEnemy(enemy, currentPlayer, sprite);
+			}
+		}
+
+		// Draw drops and check for pickup
+		const dropsToDelete = [];
+		for (const id in drops) {
+			const drop = drops[id];
+			drawDrop(drop, currentPlayer);
+
+			// Check if any player picked up the drop
 			for (const playerID in players) {
 				const player = players[playerID];
 				const dx = Math.abs(player.pixelX - drop.pixelX);
 				const dy = Math.abs(player.pixelY - drop.pixelY);
 
-				if (dx < TILE_SIZE - 0.5 && dy < TILE_SIZE - 0.5) { //If drop was picked up
-					delete drops[id]
+				if (dx < TILE_SIZE - 0.5 && dy < TILE_SIZE - 0.5) {
+					dropsToDelete.push(id);
+					break;
 				}
 			}
 		}
+		
+		// Batch delete picked up drops
+		dropsToDelete.forEach(id => delete drops[id]);
 
-		if (players[playerId]) { //Draw player on top
-			const player = players[playerId]
-			const sprite = playerImages[player.action]
-			const frameAmount = sprite[1]
-			player.frameTimer += deltaTime * 1000; // Convert to ms
-			const frameDelay = 100; // ms between frames
+		// Draw current player
+		if (players[playerId]) {
+			const player = players[playerId];
+			ensurePlayerDefaults(player); // Ensure current player has valid defaults
+			
+			const sprite = playerImages[player.action];
+			if (sprite) {
+				const frameAmount = sprite[1];
+				player.frameTimer += deltaTime * 1000;
+				const frameDelay = 100;
 
-			if (player.frameTimer >= frameDelay) {
-				player.frameTimer = 0;
-				player.frameIndex = (player.frameIndex + 1) % frameAmount; // 10 frames in top row
+				if (player.frameTimer >= frameDelay) {
+					player.frameTimer = 0;
+					player.frameIndex = (player.frameIndex + 1) % frameAmount;
+				}
+				drawPlayer(currentPlayer, true, currentPlayer, sprite);
 			}
-			drawPlayer(currentPlayer, true, currentPlayer, sprite);
 		}
 
-		if (inInventory) {//Draw inventory on top of player
-			drawInventory(inventory)
+		// Draw UI elements
+		if (inInventory) {
+			drawInventory(inventory);
 		}
 
+		// Handle right click for item selection
 		if (mouseRightClicked) {
 			selectedItem = null;
 			for (const item in inventory) {
-				const currentItem = inventory[item]
-				if ( //Check if the current item is the one that has been clicked on
-					mouseRightX >= currentItem.xPosition && mouseRightX <= currentItem.xPosition + 50 &&
-					mouseRightY >= currentItem.yPosition && mouseRightY <= currentItem.yPosition + 50
-				) {
+				const currentItem = inventory[item];
+				if (mouseRightX >= currentItem.xPosition && mouseRightX <= currentItem.xPosition + 50 &&
+					mouseRightY >= currentItem.yPosition && mouseRightY <= currentItem.yPosition + 50) {
 					selectedItem = currentItem;
 					itemMenuOpen = true;
-					break; // Stop after the first match
+					break;
 				}
 			}
+			mouseRightClicked = false;
 		}
 
-		// Reset right click so it only triggers once per click
-		mouseRightClicked = false;
-
-		if (itemMenuOpen && selectedItem && selectedItem.itemAmount > 0) { //Check if item exists before showing item popup
-			// Draw popup text
+		// Handle item menu
+		if (itemMenuOpen && selectedItem && selectedItem.itemAmount > 0) {
 			ctx.fillStyle = "black";
 
-			// Draw delete button
-			const deleteButtonX = selectedItem.xPosition + 35
+			const deleteButtonX = selectedItem.xPosition + 35;
 			const deleteButtonY = selectedItem.yPosition - 20;
 			const deleteButtonWidth = 40;
 			const deleteButtonHeight = 40;
@@ -533,13 +576,10 @@ export function startGame({ userId, token }) {
 			ctx.fillStyle = "red";
 			ctx.fillRect(deleteButtonX, deleteButtonY, deleteButtonWidth, deleteButtonHeight);
 
-			if (mouseLeftClicked) { //If user clicks delete button
-				if (
-					mouseLeftX > deleteButtonX && mouseLeftX < deleteButtonX + deleteButtonWidth &&
-					mouseLeftY > deleteButtonY && mouseLeftY < deleteButtonY + deleteButtonHeight
-				) {
-					selectedItem.itemAmount -= 1
-					// Send delete request
+			if (mouseLeftClicked) {
+				if (mouseLeftX > deleteButtonX && mouseLeftX < deleteButtonX + deleteButtonWidth &&
+					mouseLeftY > deleteButtonY && mouseLeftY < deleteButtonY + deleteButtonHeight) {
+					selectedItem.itemAmount -= 1;
 					socket.send(JSON.stringify({
 						type: "keydown",
 						dir: "deleteItem",
@@ -548,16 +588,14 @@ export function startGame({ userId, token }) {
 						item: selectedItem.itemName
 					}));
 				}
+				mouseLeftClicked = false;
 			}
 		}
 
-		// Reset left click so it only triggers once per click
-		mouseLeftClicked = false;
-
-		requestAnimationFrame(draw)
+		requestAnimationFrame(draw);
 	}
 
-	loadImages(() => { //Start game when images load
+	loadImages(() => {
 		requestAnimationFrame(draw);
 	});
 }
