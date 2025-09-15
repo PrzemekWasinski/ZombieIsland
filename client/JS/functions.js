@@ -190,7 +190,7 @@ export function drawEnemy(enemy, currentPlayer, sprite) {
         ctx.fillRect(
             screenX,
             screenY + tileSize,
-            enemy.maxHealth,
+            enemy.maxHealth * multiplier,
             10
         );
 

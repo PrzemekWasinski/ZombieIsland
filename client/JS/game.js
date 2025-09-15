@@ -2,8 +2,8 @@ import { loadImages, sprites, playerImages } from "./images.js";
 import { drawMap, drawPlayer, drawEnemy, drawDrop, drawObject, drawInventory, isNearby } from "./functions.js"
 
 export function startGame({ userId, token }) {
-	//const socket = new WebSocket("wss://ws.zombieisland.online/"); //Remote server
-	const socket = new WebSocket("ws://localhost:8080"); //Local server
+	const socket = new WebSocket("wss://ws.zombieisland.online/"); //Remote server
+//	const socket = new WebSocket("ws://localhost:8080"); //Local server
 
 	socket.onopen = () => {
 		console.log("Connected to server");
@@ -35,7 +35,7 @@ export function startGame({ userId, token }) {
 	const scaleY = canvas.height / rect.height;
 
 	canvas.addEventListener('contextmenu', (e) => {
-		//e.preventDefault();
+		e.preventDefault();
 		mouseRightX = (e.clientX - rect.left) * scaleX;
 		mouseRightY = (e.clientY - rect.top) * scaleY;
 		mouseRightClicked = true;
@@ -263,7 +263,7 @@ export function startGame({ userId, token }) {
 		"e": {"key": "interact", "direction": "current", "action": "idle"}, 
 		"E": {"key": "interact", "direction": "current", "action": "idle"}, 
 		"i": {"key": "inventory", "direction": "current", "action": "idle"}, 
-		"I": {"key": "inventory", "direction": "current", "action": "idle"}, 
+		"I": {"key": "inventory", "direction": "current", "action": "idle"},
 	};
 
 	let isTyping = false;
@@ -355,7 +355,7 @@ export function startGame({ userId, token }) {
 	}
 
 	function draw(currentTime) {
-		// Early exit if not ready
+		//Early exit if not ready
 		if (!playerId || !players[playerId]) {
 			requestAnimationFrame(draw);
 			return;
@@ -363,10 +363,9 @@ export function startGame({ userId, token }) {
 
 		const currentPlayer = players[playerId];
 		
-		// Use optimized cleanup
 		cleanupDeadEntities();
 
-		// FPS calculation
+		//FPS calculation
 		frameCount++;
 		if (currentTime - lastFpsUpdate >= 1000) {
 			currentFps = frameCount;
@@ -380,7 +379,7 @@ export function startGame({ userId, token }) {
 
 		ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-		// Update nearby cache less frequently (every 200ms for better performance)
+		//Update nearby cache 
 		if (currentTime - nearbyCache.lastUpdate > 200) {
 			nearbyCache.enemies.clear();
 			nearbyCache.objects.clear();
@@ -407,7 +406,7 @@ export function startGame({ userId, token }) {
 			nearbyCache.lastUpdate = currentTime;
 		}
 
-		// Delete far away entities using cached nearby data
+		//Delete far away entities using cached nearby data
 		for (const id in enemies) {
 			if (!nearbyCache.enemies.has(id)) {
 				delete enemies[id];
@@ -420,14 +419,14 @@ export function startGame({ userId, token }) {
 			}
 		}
 
-		// Update positions for all players
+		//Update positions for all players
 		for (const id in players) {
 			const player = players[id];
 			player.pixelX = tileTransition(player.pixelX, player.targetX, time);
 			player.pixelY = tileTransition(player.pixelY, player.targetY, time);
 		}
 
-		// Update enemy positions and animations
+		//Update enemy positions and animations
 		for (const id of nearbyCache.enemies) {
 			const enemy = enemies[id];
 			if (!enemy) continue;
@@ -448,15 +447,15 @@ export function startGame({ userId, token }) {
 			}
 		}
 
-		// Drawing phase
+		//Drawing phase
 		drawMap(currentPlayer);
 
-		// Draw other players (only nearby ones)
+		//Draw other players 
 		for (const id of nearbyCache.players) {
 			const player = players[id];
 			if (!player) continue;
 			
-			// Ensure player has valid defaults before drawing
+			//Ensure player has valid defaults before drawing
 			ensurePlayerDefaults(player);
 			
 			const sprite = playerImages[player.action];
@@ -483,7 +482,7 @@ export function startGame({ userId, token }) {
 			drawPlayer(player, false, currentPlayer, sprite);
 		}
 
-		// Draw objects (only nearby ones)
+		//Draw objects(only nearby ones)
 		for (const id of nearbyCache.objects) {
 			const object = objects[id];
 			if (object) {
@@ -491,7 +490,7 @@ export function startGame({ userId, token }) {
 			}
 		}
 
-		// Draw enemies (only nearby ones)
+		//Draw enemies
 		for (const id of nearbyCache.enemies) {
 			const enemy = enemies[id];
 			if (!enemy) continue;
@@ -503,13 +502,13 @@ export function startGame({ userId, token }) {
 			}
 		}
 
-		// Draw drops and check for pickup
+		//Draw drops and check for pickup
 		const dropsToDelete = [];
 		for (const id in drops) {
 			const drop = drops[id];
 			drawDrop(drop, currentPlayer);
 
-			// Check if any player picked up the drop
+			//Check if any player picked up the drop
 			for (const playerID in players) {
 				const player = players[playerID];
 				const dx = Math.abs(player.pixelX - drop.pixelX);
@@ -522,13 +521,13 @@ export function startGame({ userId, token }) {
 			}
 		}
 		
-		// Batch delete picked up drops
+		//Batch delete picked up drops
 		dropsToDelete.forEach(id => delete drops[id]);
 
-		// Draw current player
+		//Draw current player
 		if (players[playerId]) {
 			const player = players[playerId];
-			ensurePlayerDefaults(player); // Ensure current player has valid defaults
+			ensurePlayerDefaults(player); //Ensure current player has valid defaults
 			
 			const sprite = playerImages[player.action];
 			if (sprite) {
@@ -544,12 +543,12 @@ export function startGame({ userId, token }) {
 			}
 		}
 
-		// Draw UI elements
+		//Draw UI elements
 		if (inInventory) {
 			drawInventory(inventory);
 		}
 
-		// Handle right click for item selection
+		//Handle right click for item selection
 		if (mouseRightClicked) {
 			selectedItem = null;
 			for (const item in inventory) {
@@ -564,7 +563,7 @@ export function startGame({ userId, token }) {
 			mouseRightClicked = false;
 		}
 
-		// Handle item menu
+		//Handle item menu
 		if (itemMenuOpen && selectedItem && selectedItem.itemAmount > 0) {
 			ctx.fillStyle = "black";
 

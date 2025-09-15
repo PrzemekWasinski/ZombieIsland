@@ -14,13 +14,13 @@ const gameScreen = document.getElementById('game-screen');
 document.getElementById('go-register').onclick = (e) => {
   e.preventDefault();
   loginScreen.style.display = 'none';
-  registerScreen.style.display = 'block';
+  registerScreen.style.display = 'flex';
 };
 
 document.getElementById('go-login').onclick = (e) => {
   e.preventDefault();
   registerScreen.style.display = 'none';
-  loginScreen.style.display = 'block';
+  loginScreen.style.display = 'flex';
 };
 
 //Register
@@ -90,6 +90,7 @@ document.getElementById('login-button').onclick = async () => {
   const userId = data.user.id;
 
   //Switch to game
+  document.body.classList.add('game-active');
   loginScreen.style.display = 'none';
   gameScreen.style.display = 'block';
 

@@ -5,35 +5,40 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Zombie Island</title>
   <link rel="stylesheet" href="./styles.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Bungee&family=Source+Code+Pro:wght@600&display=swap" rel="stylesheet">
 </head>
 <body>
 
   <!--Login Page-->
   <div id="login-screen">
-    <h1>Login</h1>
-    <input type="email" id="login-email" placeholder="Email">
-    <input type="password" id="login-password" placeholder="Password">
-    <button id="login-button">Log In</button>
-    <p>No account? <a href="#" id="go-register">Register</a></p>
-    <h3>Welcome! This is a work in progress game. You're welcome to try it out although it may have problems/bugs at this time. </h3>
-    <p>
-      Zombie Island is an online RPG web game, players can make an account, fight enemies, chat with other players, 
-      <br>
-      explore, collect items by defeating enemies and destroying objects around the map and more coming soon!      
-    </p>
-    <h3>Controls:</h3>
-    <ul>
-      <li>W A S D: Walk</li>
-      <li>Space: Hit enemies/damage objects</li>
-      <li>I: Open/close inventory</li>
-      <li>T: Start typing a message</li>
-      <li>Escape: Exit inventory/Cancel typing a message</li>
-      <li>Enter: Send message</li>
-    </ul>
+    <div class="login-form-container">
+      <h1>Login</h1>
+      <input type="email" id="login-email" placeholder="Email">
+      <input type="password" id="login-password" placeholder="Password">
+      <button id="login-button">Log In</button>
+      <p>No account? <a href="#" id="go-register">Register</a></p>
+    </div>
+    <div class="login-info-container">
+      <h2>Welcome!</h2>
+      <p>This is a work in progress game. You're welcome to try it out, but please be aware of potential bugs. Zombie Island is an online RPG where you can fight enemies, chat with players, explore the world, and collect items.</p>
+      <h2>Controls:</h2>
+      <ul>
+        <li>W A S D: Walk</li>
+        <li>Space: Attack</li>
+        <li>E: interact</li>
+        <li>I: Open/close inventory</li>
+        <li>T: Start typing a message</li>
+        <li>Enter: Send message</li>
+        <li>Escape: Close menu / Cancel typing</li>
+      </ul>
+    </div>
   </div>
 
   <!--Register Page-->
-  <div id="register-screen" style="display:none;">
+<div id="register-screen" style="display:none;">
+  <div class="register-form-container">
     <h1>Register</h1>
     <input type="text" id="register-username" placeholder="Username">
     <input type="email" id="register-email" placeholder="Email">
@@ -41,11 +46,12 @@
     <button id="register-button">Register</button>
     <p>Have an account? <a href="#" id="go-login">Login</a></p>
   </div>
+</div>
+
 
   <!--Game Page-->
   <div id="game-screen" style="display:none;">
     <canvas id="game" width="1891" height="1037"></canvas>
-    <div id="hud">Level: <span id="player-level"></span></div>
   </div>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm"></script>

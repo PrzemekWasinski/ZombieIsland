@@ -5,6 +5,15 @@ import { broadcast, updateStats, getMap, deleteItem, broadcastToNearby } from ".
 import { players, enemies, getNextId, objects } from "../game/state.js";
 import { startGame } from "../game/game.js";
 
+const getSerializablePlayer = (player) => {
+	if (!player) {
+		return null;
+	}
+
+	const { ws, ...serializablePlayer } = player;
+	return serializablePlayer;
+};
+
 export async function startWebSocket(config, url, apiKey) {
 	const { MOVE_SPEED, TILE_SIZE, VISIBLE_TILES_X, VISIBLE_TILES_Y, PASSABLE_TILES, PLAYER_SPAWN, ENEMY_SPAWNS, OBJECT_SPAWNS, MAP } = config;
 
@@ -99,6 +108,8 @@ export async function startWebSocket(config, url, apiKey) {
 						healthChanged: false 
 					};
 
+					const serializableNewPlayer = getSerializablePlayer(players[id]);
+
 					console.log(`Player ${id} connected and authenticated.`);
 					await updateStats("active_players", Object.keys(players).length, supabase);
 
@@ -106,7 +117,7 @@ export async function startWebSocket(config, url, apiKey) {
 					ws.send(JSON.stringify({
 						type: "init",
 						id,
-						player: players[id] //Send only this player's data
+						player: serializableNewPlayer //Send only this player's data
 					}));
 
 					//Send existing players to new player
@@ -114,7 +125,7 @@ export async function startWebSocket(config, url, apiKey) {
 						if (existingId !== id.toString()) {
 							ws.send(JSON.stringify({
 								type: "join",
-								player: players[existingId]
+								player: getSerializablePlayer(players[existingId])
 							}));
 						}
 					}
@@ -122,7 +133,7 @@ export async function startWebSocket(config, url, apiKey) {
 					//Broadcast new player to existing players only
 					broadcast({
 						type: "join",
-						player: players[id]
+						player: serializableNewPlayer
 					}, wss, ws); //Exclude the new player from broadcast
 
 					return;
@@ -231,25 +242,25 @@ export async function startWebSocket(config, url, apiKey) {
 
 						//Get into boat logic
 						if (!player.inBoat) {
-							if (player.mapY > 0 && MAP[player.mapY - 1][player.mapX] === 31) {
+							if (player.mapY > 0 && MAP[player.mapY - 1][player.mapX] === 3) {
 								player.mapY -= 1;
 								player.pixelY -= TILE_SIZE;
 								player.targetY -= TILE_SIZE;
 								player.inBoat = true;
 								boatStateChanged = true;
-							} else if (player.mapY < mapHeight - 1 && MAP[player.mapY + 1][player.mapX] === 31) {
+							} else if (player.mapY < mapHeight - 1 && MAP[player.mapY + 1][player.mapX] === 3) {
 								player.mapY += 1;
 								player.pixelY += TILE_SIZE;
 								player.targetY += TILE_SIZE;
 								player.inBoat = true;
 								boatStateChanged = true;
-							} else if (player.mapX < mapWidth - 1 && MAP[player.mapY][player.mapX + 1] === 31) {
+							} else if (player.mapX < mapWidth - 1 && MAP[player.mapY][player.mapX + 1] === 3) {
 								player.mapX += 1;
 								player.pixelX += TILE_SIZE;
 								player.targetX += TILE_SIZE;
 								player.inBoat = true;
 								boatStateChanged = true;
-							} else if (player.mapX > 0 && MAP[player.mapY][player.mapX - 1] === 31) {
+							} else if (player.mapX > 0 && MAP[player.mapY][player.mapX - 1] === 3) {
 								player.mapX -= 1;
 								player.pixelX -= TILE_SIZE;
 								player.targetX -= TILE_SIZE;
