@@ -19,6 +19,8 @@ export function broadcastToNearby(entity, data, wss, players, exclude) {
 		const player = players[client.playerId];
 		if (player && isNearby(entityPos, [player.mapX, player.mapY])) {
 			client.send(msg);
+		} else {
+			console.log(entity)
 		}
 	}
 }
@@ -181,6 +183,32 @@ export function spawnEnemy(enemies, PASSABLE_TILES, MAP, enemyID, TILE_SIZE, top
 	};
 
 	return enemyID;
+}
+
+// When player connects or changes significant area, send all nearby objects
+export function sendNearbyObjects(player, objects, wss) {
+    for (const objectID in objects) {
+        const object = objects[objectID];
+        
+        if (isNearby([player.mapX, player.mapY], [object.mapX, object.mapY])) {
+            if (player.ws && player.ws.readyState === 1) {
+                player.ws.send(JSON.stringify({
+                    type: "object",
+                    id: object.id,
+                    mapX: object.mapX,
+                    mapY: object.mapY,
+                    pixelX: object.pixelX,
+                    pixelY: object.pixelY,
+                    health: object.health,
+                    maxHealth: object.maxHealth,
+                    name: object.name,
+                }));
+                sentCount++;
+            } else {
+                console.log(`WebSocket not ready for player ${player.id}`);
+            }
+        }
+    }
 }
 
 export function spawnObject(objects, PASSABLE_TILES, MAP, objectID, TILE_SIZE, topLeft, bottomRight, spawnLocation, objectStats) {

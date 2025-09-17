@@ -1,7 +1,7 @@
 import { WebSocketServer } from "ws";
 import http from "http";
 import { createClient } from "@supabase/supabase-js";
-import { broadcast, updateStats, getMap, deleteItem, broadcastToNearby } from "../game/functions.js";
+import { broadcast, updateStats, getMap, deleteItem, broadcastToNearby, sendNearbyObjects } from "../game/functions.js";
 import { players, enemies, getNextId, objects } from "../game/state.js";
 import { startGame } from "../game/game.js";
 
@@ -108,6 +108,8 @@ export async function startWebSocket(config, url, apiKey) {
 						healthChanged: false 
 					};
 
+					
+
 					const serializableNewPlayer = getSerializablePlayer(players[id]);
 
 					console.log(`Player ${id} connected and authenticated.`);
@@ -119,6 +121,8 @@ export async function startWebSocket(config, url, apiKey) {
 						id,
 						player: serializableNewPlayer //Send only this player's data
 					}));
+
+					sendNearbyObjects(players[id], objects, wss)
 
 					//Send existing players to new player
 					for (const existingId in players) {

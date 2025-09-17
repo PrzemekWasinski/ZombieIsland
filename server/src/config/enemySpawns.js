@@ -217,7 +217,7 @@ export const enemySpawns = {
             name: "Night Shroom Spider",
             possibleDrops: [
                 {
-                    name: "Night Mushrrom",
+                    name: "Night Mushroom",
                     chance: 50
                 }
             ]
@@ -239,10 +239,6 @@ export const enemySpawns = {
                 {
                     name: "Bone",
                     chance: 40
-                },
-                {
-                    name: "Orc Flesh",
-                    chance: 30
                 }
             ]
         }
@@ -263,10 +259,6 @@ export const enemySpawns = {
                 {
                     name: "Bone",
                     chance: 60
-                },
-                {
-                    name: "Orc Flesh",
-                    chance: 50
                 }
             ]
         }
@@ -406,10 +398,6 @@ export const enemySpawns = {
             name: "Zombie",
             possibleDrops: [
                 {
-                    name: "Flesh",
-                    chance: 80
-                },
-                {
                     name: "Bone",
                     chance: 30
                 }
@@ -428,10 +416,6 @@ export const enemySpawns = {
             damage: 5,
             name: "Toxic Zombie",
             possibleDrops: [
-                {
-                    name: "Flesh",
-                    chance: 80
-                },
                 {
                     name: "Bone",
                     chance: 30
@@ -455,10 +439,6 @@ export const enemySpawns = {
             damage: 5,
             name: "Armoured Zombie",
             possibleDrops: [
-                {
-                    name: "Flesh",
-                    chance: 80
-                },
                 {
                     name: "Bone",
                     chance: 30

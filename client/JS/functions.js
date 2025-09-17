@@ -1,4 +1,4 @@
-import { tileImages, objectImages, playerImages } from "./images.js";
+import { tileImages, objectImages, playerImages, itemImages } from "./images.js";
 
 const canvas = document.getElementById('game');
 const ctx = canvas.getContext('2d');
@@ -236,8 +236,8 @@ export function drawDrop(drop, currentPlayer) { //Draw drop
     const screenX = Math.round(halfCanvasWidth - halfTileSize + relativeX);
     const screenY = Math.round(halfCanvasHeight - halfTileSize + relativeY);
 
-    ctx.fillStyle = 'blue';
-    ctx.fillRect(screenX, screenY, tileSize, tileSize);
+    const img = itemImages[drop.name]
+    ctx.drawImage(img, screenX, screenY, tileSize, tileSize)
 }
 
 export function isNearby(coord1, coord2) {
@@ -257,16 +257,20 @@ export function drawInventory(inventory) {
             if (7 == i) { //Make new row
                 y += 128;
                 x = 300;
+                i = 0;
             }
-            
-            ctx.fillStyle = "blue"
-            ctx.fillRect(x, y, 64, 64)
+            const img = itemImages[currentItem.itemName]
+            try {
+                ctx.drawImage(img, x, y, tileSize, tileSize)
+            } catch (error) {
+                console.log(item.name, "failed to draw")
+            }
 
             ctx.fillStyle = "white"
             ctx.fillText(`${currentItem.itemName}: ${currentItem.itemAmount}`, x + 32, y + 84);
             currentItem.xPosition = x;
             currentItem.yPosition = y;
-            ctx.strokeRect(currentItem.xPosition, currentItem.yPosition, 64, 64);
+            ctx.strokeRect(currentItem.xPosition, currentItem.yPosition, tileSize, tileSize);
             x += 128
             i++;
         }

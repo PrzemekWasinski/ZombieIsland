@@ -118,11 +118,11 @@ export const objectImages = {
 
 	"Ice Flower": "../assets/objects/plants/ice_flower.png",
 
-	"Ice Spike": "../assets/objects/rocks/ice_spike.png",
-	"White Rock": "../assets/objects/rocks/white_rock.png",
+	"Ice Spike":   "../assets/objects/rocks/ice_spike.png",
+	"White Rock":  "../assets/objects/rocks/white_rock.png",
 	"Light Stone": "../assets/objects/rocks/light_stone.png",
-	"Brown Rock": "../assets/objects/rocks/brown_rock.png",
-	"Grey Rock": "../assets/objects/rocks/grey_rock.png",
+	"Brown Rock":  "../assets/objects/rocks/brown_rock.png",
+	"Grey Rock":   "../assets/objects/rocks/grey_rock.png",
 
 	"Desert Spikes": "../assets/objects/sand/desert_spikes.png",
 	"Desert Rock": "../assets/objects/sand/desert_rock.png",
@@ -148,6 +148,43 @@ export const playerImages = {
 	"walk_attack": ["../assets/player_sprite/lv1/walk_attack.png", 6],
 	"walk": ["../assets/player_sprite/lv1/walk.png", 6]
 };
+
+export const itemImages = {
+	"Apple": "../assets/items/Apple.png",
+	"Blue Berry": "../assets/items/Blue Berry.png",
+	"Blue Slime Ball": "../assets/items/Blue Slime Ball.png",
+	"Bone": "../assets/items/Bone.png",
+	"Brown Rock": "../assets/items/Brown Rock.png",
+	"Cactus": "../assets/items/Cactus.png",
+	"Cactus Fruit": "../assets/items/Cactus Fruit.png",
+	"Brown Mushroom": "../assets/items/Brown Mushroom.png",
+	"Coal": "../assets/items/Coal.png",
+	"Electric Slime Ball": "../assets/items/Electric Slime Ball.png",
+	"Gold": "../assets/items/Gold.png",
+	"Ice Crystal": "../assets/items/Ice Crystal.png",
+	"Ice Slime Ball": "../assets/items/Ice Slime Ball.png",
+	"Ice": "../assets/items/Ice.png",
+	"Iron": "../assets/items/Iron.png",
+	"Leaf": "../assets/items/Leaf.png",
+	"Nature's Apple": "../assets/items/Nature's Apple.png",
+	"Night Mushroom": "../assets/items/Night Mushroom.png",
+	"Night Stone": "../assets/items/Night Stone.png",
+	"Red Mushroom": "../assets/items/Red Mushroom.png",
+	"Rock": "../assets/items/Rock.png",
+	"Sand": "../assets/items/Sand.png",
+	"Toxic Breath": "../assets/items/Toxic Breath.png",
+	"Wood": "../assets/items/Wood.png",
+	"Ice Mushroom": "../assets/items/Ice Mushroom.png",
+	"ice Petal": "../assets/items/ice Petal.png",
+	"Night Stone": "../assets/items/Night Stone.png",
+	"Red Berry": "../assets/items/Red Berry.png",
+	"Snowman's Soul": "../assets/items/Snowman's Soul.png",
+	"Stick": "../assets/items/Stick.png",
+	"Vine Mushroom": "../assets/items/Vine Mushroom.png",
+	"White Mushroom": "../assets/items/White Mushroom.png",
+	"White Rock": "../assets/items/White Rock.png",
+	"Yellow Berry": "../assets/items/Yellow Berry.png",
+}
 
 export const tileImages = {};
 
@@ -200,5 +237,15 @@ export function loadImages(callback) {
 		playerImg.onerror = () => console.error(`Failed to load image: ${playerImages[key][0]}`);
 
 		playerImages[key][0] = playerImg;
+	}
+
+	for (let key in itemImages) {
+		const itemImg = new Image();
+		itemImg.src = itemImages[key];
+
+		itemImg.onload = checkDone;
+		itemImg.onerror = () => console.error(`Failed to load image: ${itemImages[key]}`);
+
+		itemImages[key] = itemImg;
 	}
 }

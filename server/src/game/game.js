@@ -1,5 +1,5 @@
 import { players, enemies, enemyNextID, drops, getNextDropID, getNextEnemyID, objects, getNextObjectID } from "./state.js";
-import { broadcast, spawnEnemy, getMap, isNearby, spawnDrop, updateStats, saveProgress, saveItem, spawnObject, broadcastToNearby } from "./functions.js";
+import { broadcast, spawnEnemy, getMap, isNearby, spawnDrop, updateStats, saveProgress, saveItem, spawnObject, broadcastToNearby, sendNearbyObjects } from "./functions.js";
 
 export function startGame(wss, TILE_SIZE, VISIBLE_TILES_X, VISIBLE_TILES_Y, PASSABLE_TILES, PLAYER_SPAWN, ENEMY_SPAWNS, OBJECT_SPAWNS, MAP, supabase) {
     let locationData = {};
@@ -12,6 +12,7 @@ export function startGame(wss, TILE_SIZE, VISIBLE_TILES_X, VISIBLE_TILES_Y, PASS
     for (const key of Object.keys(OBJECT_SPAWNS)) {
         objectData[key] = 0;
     }
+
 
     let newDrops = new Set();
     let newObjects = new Set();
@@ -131,8 +132,11 @@ export function startGame(wss, TILE_SIZE, VISIBLE_TILES_X, VISIBLE_TILES_Y, PASS
             }
         }
 
+
+
         for (const id in players) { //Update all players
             const player = players[id];
+
             let playerMoved = false; //Track if player  moved
 
             for (let i = player.messages.length - 1; i >= 0; i--) {
@@ -337,6 +341,7 @@ export function startGame(wss, TILE_SIZE, VISIBLE_TILES_X, VISIBLE_TILES_Y, PASS
                     //No inventory for others
                 };
                 broadcast(othersUpdatePayload, wss, ws_client);
+                sendNearbyObjects(players[id], objects, wss)
 
                 player.healthChanged = false;
             }

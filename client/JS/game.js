@@ -2,8 +2,8 @@ import { loadImages, sprites, playerImages } from "./images.js";
 import { drawMap, drawPlayer, drawEnemy, drawDrop, drawObject, drawInventory, isNearby } from "./functions.js"
 
 export function startGame({ userId, token }) {
-	const socket = new WebSocket("wss://ws.zombieisland.online/"); //Remote server
-//	const socket = new WebSocket("ws://localhost:8080"); //Local server
+	const socket = new WebSocket("wss://ws.zombieisland.online/"); //Main server
+	//const socket = new WebSocket("ws://localhost:8080"); //Local server
 
 	socket.onopen = () => {
 		console.log("Connected to server");
@@ -210,6 +210,7 @@ export function startGame({ userId, token }) {
 		} else if ("drop" === msg.type) {
 			if (playerId && players[playerId] && isNearby([msg.mapX, msg.mapY], [players[playerId].mapX, players[playerId].mapY])) {
 				drops[msg.id] = {
+					name: msg.name,
 					mapX: msg.mapX,
 					mapY: msg.mapY,
 					pixelX: msg.pixelX,
@@ -218,6 +219,7 @@ export function startGame({ userId, token }) {
 			}
 
 		} else if ("object" === msg.type) {
+			console.log("obj")
 			if (playerId && players[playerId] && isNearby([players[playerId].mapX, players[playerId].mapY], [msg.mapX, msg.mapY])) {
 				let object = objects[msg.id];
 				
@@ -355,6 +357,7 @@ export function startGame({ userId, token }) {
 	}
 
 	function draw(currentTime) {
+		console.log(objects)
 		//Early exit if not ready
 		if (!playerId || !players[playerId]) {
 			requestAnimationFrame(draw);
@@ -485,7 +488,9 @@ export function startGame({ userId, token }) {
 		//Draw objects(only nearby ones)
 		for (const id of nearbyCache.objects) {
 			const object = objects[id];
+			console.log("soon")
 			if (object) {
+				console.log("draw")
 				drawObject(object, currentPlayer);
 			}
 		}

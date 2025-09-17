@@ -16,7 +16,7 @@ export const objectSpawns = {
             ]
         }
     },
-
+ 
     BLUE_BERRY_BUSH2: {
         objectAmount: 5,
         topLeft: [1110, 460],
@@ -331,7 +331,7 @@ export const objectSpawns = {
             name: "Light Stone",
             possibleDrops: [
                 {
-                    name: "Light Stone",
+                    name: "Rock",
                     chance: 100
                 }
             ]
@@ -348,7 +348,7 @@ export const objectSpawns = {
             name: "Light Stone",
             possibleDrops: [
                 {
-                    name: "Light Stone",
+                    name: "Rock",
                     chance: 100
                 }
             ]
@@ -399,7 +399,7 @@ export const objectSpawns = {
             name: "Grey Rock",
             possibleDrops: [
                 {
-                    name: "Grey Rock",
+                    name: "Rock",
                     chance: 100
                 }
             ]
@@ -416,7 +416,7 @@ export const objectSpawns = {
             name: "Grey Rock",
             possibleDrops: [
                 {
-                    name: "Grey Rock",
+                    name: "Rock",
                     chance: 100
                 }
             ]
@@ -433,7 +433,7 @@ export const objectSpawns = {
             name: "Desert Spikes",
             possibleDrops: [
                 {
-                    name: "Brown Rock",
+                    name: "Rock",
                     chance: 100
                 }
             ]
@@ -450,7 +450,7 @@ export const objectSpawns = {
             name: "Desert Rock",
             possibleDrops: [
                 {
-                    name: "Brown Rock",
+                    name: "Rock",
                     chance: 100
                 }
             ]
@@ -487,11 +487,7 @@ export const objectSpawns = {
                 {
                     name: "Snowman's Soul",
                     chance: 5
-                },
-                {
-                    name: "Snow",
-                    chance: 100
-                },
+                }
 
             ]
         }
