@@ -5,7 +5,7 @@ Zombie Island is a work in progress Online Web Game. The game features a massive
 <img width="1918" height="947" alt="dd" src="https://github.com/user-attachments/assets/7a562d48-8a69-47a8-bbb7-22b2ef0f9cd6" />
 
 # Inventory Screenshot: 
-<img width="1918" height="946" alt="inv" src="https://github.com/user-attachments/assets/71c83b63-b199-4040-8b7c-f946c54947bf" />
+<img width="1918" height="944" alt="Screenshot 2025-09-17 194114" src="https://github.com/user-attachments/assets/5446458f-c115-4d82-8e1d-526e072baad9" />
 
 
 # Current features:
@@ -35,5 +35,6 @@ Zombie Island is a work in progress Online Web Game. The game features a massive
     Backend: Node.js
     Connection: Websocket
     Database: SupaBase (PostgreSQL)
+
 
 
