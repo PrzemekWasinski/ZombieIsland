@@ -19,8 +19,6 @@ export function broadcastToNearby(entity, data, wss, players, exclude) {
 		const player = players[client.playerId];
 		if (player && isNearby(entityPos, [player.mapX, player.mapY])) {
 			client.send(msg);
-		} else {
-			console.log(entity)
 		}
 	}
 }
@@ -203,7 +201,6 @@ export function sendNearbyObjects(player, objects, wss) {
                     maxHealth: object.maxHealth,
                     name: object.name,
                 }));
-                sentCount++;
             } else {
                 console.log(`WebSocket not ready for player ${player.id}`);
             }

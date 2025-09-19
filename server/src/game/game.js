@@ -263,7 +263,7 @@ export function startGame(wss, TILE_SIZE, VISIBLE_TILES_X, VISIBLE_TILES_Y, PASS
                         }
                     } else {
                         if (!isPassable || isWater) {
-                            newPixelX = player.pixelX;
+                            newPixelX = player.pixelXwa;
                             newPixelY = player.pixelY;
                         }
                     }
@@ -346,12 +346,12 @@ export function startGame(wss, TILE_SIZE, VISIBLE_TILES_X, VISIBLE_TILES_Y, PASS
                 player.healthChanged = false;
             }
 
-            // Handle enemy collisions
+            // Handle enemy collisionsaaa
             for (const enemyID in enemies) {
                 const enemy = enemies[enemyID];
                 const dx = Math.abs(player.pixelX - enemy.pixelX);
                 const dy = Math.abs(player.pixelY - enemy.pixelY);
-                if (dx < TILE_SIZE * 0.8 && dy < TILE_SIZE * 0.8) { //If too close to enemy
+                if (dx < TILE_SIZE && dy < TILE_SIZE) { //If too close to enemy
                     const oldHealth = player.health;
                     player.health = Math.max(0, player.health - enemy.damage); //Take damage
                     
@@ -401,7 +401,7 @@ export function startGame(wss, TILE_SIZE, VISIBLE_TILES_X, VISIBLE_TILES_Y, PASS
                 continue;
             }
 
-            const STOP_DISTANCE = 1;
+            const STOP_DISTANCE = 0;
 
             const spawn = ENEMY_SPAWNS[enemy.location];
             const topLeft = spawn.topLeft;

@@ -69,6 +69,11 @@ export function drawPlayer(player, isCurrentPlayer, currentPlayer, sprite) { //D
     } else if (player.direction == "up" || player.direction == "up-left" || player.direction == "up-right") {
         sourceY = 3
     }
+
+    if (player.action === "idle" && player.direction === "up") {
+        sourceX = 1;
+    }
+
     sourceY *= frameHeight;
     //Check if image is loaded
     if (!spritePath.complete || spritePath.naturalHeight === 0) {
