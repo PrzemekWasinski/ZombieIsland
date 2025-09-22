@@ -299,5 +299,10 @@ button:active { transform: translateY(0); filter:brightness(0.98); }
   border-radius:2px;
 }
 
+@media (max-width: 768px) {
+  .login-form-container {
+    display: none;
+  }
+}
 
 /* end of styles.css */

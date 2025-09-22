@@ -2,8 +2,8 @@ import { loadImages, sprites, playerImages } from "./images.js";
 import { drawMap, drawPlayer, drawEnemy, drawDrop, drawObject, drawInventory, isNearby } from "./functions.js"
 
 export function startGame({ userId, token }) {
-	//const socket = new WebSocket("wss://ws.zombieisland.online/"); //Main server
-	const socket = new WebSocket("ws://localhost:8080"); //Local server
+	const socket = new WebSocket("wss://ws.zombieisland.online/"); //Main server
+	//const socket = new WebSocket("ws://localhost:8080"); //Local server
 
 	socket.onopen = () => {
 		console.log("Connected to server");
