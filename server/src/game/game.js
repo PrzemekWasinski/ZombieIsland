@@ -263,7 +263,7 @@ export function startGame(wss, TILE_SIZE, VISIBLE_TILES_X, VISIBLE_TILES_Y, PASS
                         }
                     } else {
                         if (!isPassable || isWater) {
-                            newPixelX = player.pixelXwa;
+                            newPixelX = player.pixelX;
                             newPixelY = player.pixelY;
                         }
                     }
@@ -649,6 +649,6 @@ export function startGame(wss, TILE_SIZE, VISIBLE_TILES_X, VISIBLE_TILES_Y, PASS
         for (const id in players) {
             const player = players[id];
             saveProgress(player, supabase);
-        }
+    }
     }, 5_000);
 }

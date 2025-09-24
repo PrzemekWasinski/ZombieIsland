@@ -105,10 +105,9 @@ export async function startWebSocket(config, url, apiKey) {
 						inBoat: characterData.inBoat,
 						messages: [],
 						inventory: inventory,
-						healthChanged: false 
+						healthChanged: false,
+						ready: true
 					};
-
-					
 
 					const serializableNewPlayer = getSerializablePlayer(players[id]);
 

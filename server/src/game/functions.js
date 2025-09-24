@@ -27,21 +27,20 @@ export async function saveProgress(player, supabase) {
 	const { error } = await supabase
 		.from("Characters")
 		.update({
-			"level": player.level,
-			"gold": player.gold,
-			"health": Math.floor(player.health),
-			"mapX": player.mapX,
-			"mapY": player.mapY,
-			"inBoat": player.inBoat
+			level: player.level,
+			gold: player.gold,
+			health: Math.floor(player.health),
+			mapX: player.mapX,
+			mapY: player.mapY,
+			inBoat: player.inBoat
 		})
 		.eq("id", player.dbID)
 		.select();
 
 	if (error) {
-		console.log(`Failed to update stats for: ${player.username}`)
+		console.log(`Failed to update stats for: ${player.username}: ${error.message}`);
 	}
 }
-
     
 export async function saveItem(dropName, playerID, supabase) {
 	const key = `${playerID}-${dropName}`;
