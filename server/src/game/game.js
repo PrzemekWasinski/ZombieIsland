@@ -287,7 +287,7 @@ export function startGame(wss, TILE_SIZE, VISIBLE_TILES_X, VISIBLE_TILES_Y, PASS
                 player.pixelY = (PLAYER_SPAWN[1] * TILE_SIZE) + (Math.floor(TILE_SIZE / 2))
                 player.targetX = (PLAYER_SPAWN[0] * TILE_SIZE) + (Math.floor(TILE_SIZE / 2))
                 player.targetY = (PLAYER_SPAWN[1] * TILE_SIZE) + (Math.floor(TILE_SIZE / 2))
-                player.health = 100
+                player.health = player.maxHealth;
                 player.inBoat = false; 
                 playerMoved = true; 
             }
@@ -603,8 +603,8 @@ export function startGame(wss, TILE_SIZE, VISIBLE_TILES_X, VISIBLE_TILES_Y, PASS
                 const dx = Math.abs(player.pixelX - drop.pixelX);
                 const dy = Math.abs(player.pixelY - drop.pixelY);
                 if (dx < TILE_SIZE - 0.5 && dy < TILE_SIZE - 0.5) {
-                    if (player.health > 90) {
-                        player.health = 100
+                    if (player.health > player.maxHealth - 10) {
+                        player.health = player.maxHealth
                     } else {
                         player.health += 10
                     }

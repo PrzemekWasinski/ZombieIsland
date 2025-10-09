@@ -1,9 +1,10 @@
 import { WebSocketServer } from "ws";
 import http from "http";
 import { createClient } from "@supabase/supabase-js";
-import { broadcast, updateStats, getMap, deleteItem, broadcastToNearby, sendNearbyObjects } from "../game/functions.js";
+import { broadcast, updateStats, getMap, deleteItem, broadcastToNearby, sendNearbyObjects, saveProgress } from "../game/functions.js";
 import { players, enemies, getNextId, objects } from "../game/state.js";
 import { startGame } from "../game/game.js";
+import { shops } from "../config/shop.js";
 
 const getSerializablePlayer = (player) => {
 	if (!player) {
@@ -91,12 +92,14 @@ export async function startWebSocket(config, url, apiKey) {
 						targetX: (characterData.mapX * TILE_SIZE) + (Math.floor(TILE_SIZE / 2)),
 						targetY: (characterData.mapY * TILE_SIZE) + (Math.floor(TILE_SIZE / 2)),
 						health: characterData.health,
+						maxHealth: characterData.maxHealth,
+						damage: characterData.damage,
 						map: getMap(characterData.mapY, characterData.mapX, MAP, VISIBLE_TILES_X, VISIBLE_TILES_Y),
 						movingUp: false,
 						movingDown: false,
 						movingLeft: false,
 						movingRight: false,
-						speed: MOVE_SPEED,
+						speed: characterData.speed,
 						lastMapX: characterData.mapX,
 						lastMapY: characterData.mapY,
 						username: characterData.username,
@@ -179,7 +182,7 @@ export async function startWebSocket(config, url, apiKey) {
 
 							if (dx < TILE_SIZE * 1.2 && dy < TILE_SIZE * 1.2) {
 								const oldHealth = enemy.health;
-								enemy.health = Math.max(0, enemy.health - 3);
+								enemy.health = Math.max(0, enemy.health - player.damage);
 								
 								//Only broadcast if health actually changed
 								if (enemy.health !== oldHealth) {
@@ -319,8 +322,17 @@ export async function startWebSocket(config, url, apiKey) {
 								inventory: player.inventory
 							}, wss);
 						}
-					} 
-					else if (data.dir === "message" && data.pressed) {
+
+						if (player.mapX === 394 && player.mapY === 728) {
+							ws.send(JSON.stringify({
+								type: "shop",
+								name: shops.SHOP1.name,
+								inventory: shops.SHOP1.inventory
+							}));
+						
+						}
+
+					} else if (data.dir === "message" && data.pressed) {
 						const targetPlayer = players[playerId];
 						if (targetPlayer && targetPlayer.dbID === data.playerID) {
 							targetPlayer.messages.push({ 
@@ -328,8 +340,7 @@ export async function startWebSocket(config, url, apiKey) {
 								timestamp: Date.now() 
 							});
 						}
-					} 
-					else if (data.dir === "deleteItem") {
+					} else if (data.dir === "deleteItem") {
 						const targetPlayer = players[playerId];
 						if (targetPlayer && targetPlayer.dbID === data.playerID && targetPlayer.inventory[data.item]) {
 							const itemName = targetPlayer.inventory[data.item].itemName;
@@ -342,6 +353,42 @@ export async function startWebSocket(config, url, apiKey) {
 							} catch (err) {
 								console.error("Failed to delete item:", err);
 							}
+						}
+					} else if (data.dir === "buyItem") {
+						console.log(data.item)
+						if (player.gold >= shops.SHOP1.inventory[data.item].itemValue) {
+							player.gold -= shops.SHOP1.inventory[data.item].itemValue;
+							if (data.item === "Health Upgrade") {
+								player.maxHealth += 10;
+								player.health = player.maxHealth;
+								console.log("h")
+							} else if (data.item === "Speed Upgrade") {
+								player.speed += 1;
+								console.log("s")
+							} else if (data.item === "Sword Upgrade") {
+								player.damage += 1
+								console.log("d")
+							}
+
+							saveProgress(player, supabase);
+
+							broadcast({
+								type: "update",
+								id: player.id,
+								mapX: player.mapX,
+								mapY: player.mapY,
+								pixelX: player.pixelX,
+								pixelY: player.pixelY,
+								targetX: player.targetX,
+								targetY: player.targetY,
+								health: player.health,
+								username: player.username,
+								level: player.level,
+								gold: player.gold,
+								inBoat: player.inBoat,
+								inventory: player.inventory
+							}, wss);
+						
 						}
 					}
 				}

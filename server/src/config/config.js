@@ -3,7 +3,6 @@ import { enemySpawns } from "./enemySpawns.js"
 import { objectSpawns } from "./objectSpawns.js"
 
 export const config = {
-    MOVE_SPEED: 5,
     TILE_SIZE: 64,
     VISIBLE_TILES_X: 32,
     VISIBLE_TILES_Y: 24,

@@ -32,7 +32,10 @@ export async function saveProgress(player, supabase) {
 			health: Math.floor(player.health),
 			mapX: player.mapX,
 			mapY: player.mapY,
-			inBoat: player.inBoat
+			inBoat: player.inBoat,
+			maxHealth: player.maxHealth,
+			damage: player.damage,
+			speed: player.speed
 		})
 		.eq("id", player.dbID)
 		.select();

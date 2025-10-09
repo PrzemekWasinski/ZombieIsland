@@ -109,14 +109,16 @@ export function drawPlayer(player, isCurrentPlayer, currentPlayer, sprite) { //D
         screenY - 10
     );
 
-    const multiplier = tileSize / 100;
+    const multiplier = tileSize / player.maxHealth;
 
-    if (player.health > 0) { //Fill in health bar with player health
+    console.log(player.health, player.maxHealth)
+
+    if (player.health > 0) {
         ctx.fillStyle = "rgb(0, 0, 0)";
         ctx.fillRect(
             screenX,
             screenY + tileSize,
-            100 * multiplier,
+            player.maxHealth * multiplier,
             10
         );
 
@@ -279,6 +281,36 @@ export function drawInventory(inventory) {
             x += 128
             i++;
         }
+    }
+}
+
+export function drawShopInventory(inventory) {
+    let y = 300
+    let x = 300
+    let i = 0;
+
+    for (const item in inventory) {
+        const currentItem = inventory[item]
+        if (7 == i) { //Make new row
+            y += 128;
+            x = 300;
+            i = 0;
+        }
+        // const img = itemImages[currentItem.itemName]
+        // try {
+        //     ctx.drawImage(img, x, y, tileSize, tileSize)
+        // } catch (error) {
+        //     console.log(item.name, "failed to draw")
+        // }
+
+        ctx.fillStyle = "white"
+        ctx.fillText(`${currentItem.itemName}: ${currentItem.itemValue}`, x + 32, y + 84);
+        currentItem.xPosition = x;
+        currentItem.yPosition = y;
+        ctx.strokeRect(currentItem.xPosition, currentItem.yPosition, tileSize, tileSize);
+        x += 128
+        i++;
+        
     }
 }
 

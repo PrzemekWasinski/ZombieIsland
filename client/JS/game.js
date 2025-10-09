@@ -1,5 +1,5 @@
 import { loadImages, sprites, playerImages } from "./images.js";
-import { drawMap, drawPlayer, drawEnemy, drawDrop, drawObject, drawInventory, isNearby, drawHUD } from "./functions.js"
+import { drawMap, drawPlayer, drawEnemy, drawDrop, drawObject, drawInventory, isNearby, drawHUD, drawShopInventory } from "./functions.js"
 
 export function startGame({ userId, token }) {
 	//const socket = new WebSocket("wss://ws.zombieisland.online/"); //Main server
@@ -55,6 +55,8 @@ export function startGame({ userId, token }) {
 	let objects = {} //All objects
 
 	let inInventory = false;
+	let inShopInventory = false;
+	let shopInventory = {};
 	let inventory = {};
 
 	let lastFrameTime = performance.now(); //Last frame time
@@ -244,6 +246,13 @@ export function startGame({ userId, token }) {
 				nearbyCache.objects.add(msg.id);
 			}
 
+		} else if ("shop" === msg.type) {
+			console.log(msg.name)
+			console.log(msg.inventory)
+
+			inShopInventory = true;
+			shopInventory = msg.inventory;
+
 		} else if ("leave" === msg.type) { //Player left
 			delete players[msg.id];
 			nearbyCache.players.delete(msg.id);
@@ -271,6 +280,11 @@ export function startGame({ userId, token }) {
 	let inputString = "";
 
 	window.addEventListener("keydown", (e) => {
+		if (inShopInventory) {
+				shopInventory = {};
+			}
+
+		inShopInventory = !inShopInventory;
 		if (!isTyping && e.key === "t") {
 			isTyping = true;
 			inputString = "";
@@ -297,7 +311,7 @@ export function startGame({ userId, token }) {
 		} else if ("i" === e.key) {
 			inInventory = !inInventory;
 			itemMenuOpen = false;
-		}
+		} 
 	});
 
 	window.addEventListener("keydown", (event) => {
@@ -549,20 +563,41 @@ export function startGame({ userId, token }) {
 		//Draw UI elements
 		if (inInventory) {
 			drawInventory(inventory);
-		} else {
-			drawHUD(players[playerId])
-		}
+		} else if (inShopInventory) {
+			drawShopInventory(shopInventory);
+		} 
+		drawHUD(players[playerId])
+		
 
 		//Handle right click for item selection
 		if (mouseRightClicked) {
 			selectedItem = null;
-			for (const item in inventory) {
-				const currentItem = inventory[item];
-				if (mouseRightX >= currentItem.xPosition && mouseRightX <= currentItem.xPosition + 50 &&
-					mouseRightY >= currentItem.yPosition && mouseRightY <= currentItem.yPosition + 50) {
-					selectedItem = currentItem;
-					itemMenuOpen = true;
-					break;
+
+			if (inInventory) {
+				for (const item in inventory) {
+					const currentItem = inventory[item];
+					if (mouseRightX >= currentItem.xPosition && mouseRightX <= currentItem.xPosition + 50 &&
+						mouseRightY >= currentItem.yPosition && mouseRightY <= currentItem.yPosition + 50) {
+						selectedItem = currentItem;
+						itemMenuOpen = true;
+						break;
+					}
+				}
+			} else if (inShopInventory) {
+				for (const item in shopInventory) {
+					const currentItem = shopInventory[item];
+					if (mouseRightX >= currentItem.xPosition && mouseRightX <= currentItem.xPosition + 50 &&
+						mouseRightY >= currentItem.yPosition && mouseRightY <= currentItem.yPosition + 50) {
+						selectedItem = currentItem;
+						socket.send(JSON.stringify({
+							type: "keydown",
+							dir: "buyItem",
+							pressed: true,
+							playerID: userId,
+							item: selectedItem.itemName
+						}));
+						break;
+					}
 				}
 			}
 			mouseRightClicked = false;
