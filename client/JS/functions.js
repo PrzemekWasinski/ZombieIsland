@@ -282,6 +282,16 @@ export function drawInventory(inventory) {
     }
 }
 
+export function drawHUD(player) {
+    ctx.fillStyle = "white"
+    ctx.fillText(`X: ${player.mapX}`, 30, 30);
+    ctx.fillText(`Y: ${player.mapY}`, 30, 50);
+
+    ctx.fillText(`Gold: ${player.gold}`, canvas.width - 100, 30);
+
+
+}
+
 export function ensurePlayerDefaults(player) {
     if (!player.action) player.action = "idle";
     if (!player.direction) player.direction = "down";

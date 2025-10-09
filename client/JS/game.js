@@ -1,5 +1,5 @@
 import { loadImages, sprites, playerImages } from "./images.js";
-import { drawMap, drawPlayer, drawEnemy, drawDrop, drawObject, drawInventory, isNearby } from "./functions.js"
+import { drawMap, drawPlayer, drawEnemy, drawDrop, drawObject, drawInventory, isNearby, drawHUD } from "./functions.js"
 
 export function startGame({ userId, token }) {
 	//const socket = new WebSocket("wss://ws.zombieisland.online/"); //Main server
@@ -549,6 +549,8 @@ export function startGame({ userId, token }) {
 		//Draw UI elements
 		if (inInventory) {
 			drawInventory(inventory);
+		} else {
+			drawHUD(players[playerId])
 		}
 
 		//Handle right click for item selection
