@@ -21,12 +21,13 @@ Zombie Island is a work in progress Online Web Game. The game features a massive
 - Object drops
 - Player chat
 - Inventory management
+- Selling items
+- Buying items
 
 # Upcoming:
 - Better assets and HUD
 - Trading
 - Fishing
-- Selling / Buying items
 - Crafting
 - Potions & other power ups
 
@@ -35,6 +36,3 @@ Zombie Island is a work in progress Online Web Game. The game features a massive
     Backend: Node.js
     Connection: Websocket
     Database: SupaBase (PostgreSQL)
-
-
-

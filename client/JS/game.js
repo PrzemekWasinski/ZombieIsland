@@ -56,6 +56,8 @@ export function startGame({ userId, token }) {
 
 	let inInventory = false;
 	let inShopInventory = false;
+	let inSellInventory = false;
+
 	let shopInventory = {};
 	let inventory = {};
 
@@ -151,6 +153,7 @@ export function startGame({ userId, token }) {
 			//Only update if player is nearby OR it's the current player
 			if (msg.id === playerId || isNearby([players[playerId].mapX, players[playerId].mapY], [msg.mapX, msg.mapY])) {
 				if (msg.health !== undefined) player.health = Number(msg.health);
+				if (msg.maxHealth !== undefined) player.maxHealth = msg.maxHealth;
 				if (msg.mapX !== undefined) player.mapX = Number(msg.mapX);
 				if (msg.mapY !== undefined) player.mapY = Number(msg.mapY);
 				if (msg.pixelX !== undefined) player.pixelX = Number(msg.pixelX);
@@ -253,6 +256,9 @@ export function startGame({ userId, token }) {
 			inShopInventory = true;
 			shopInventory = msg.inventory;
 
+		} else if ("sell" === msg.type) {
+			inSellInventory = true;
+
 		} else if ("leave" === msg.type) { //Player left
 			delete players[msg.id];
 			nearbyCache.players.delete(msg.id);
@@ -281,10 +287,12 @@ export function startGame({ userId, token }) {
 
 	window.addEventListener("keydown", (e) => {
 		if (inShopInventory) {
-				shopInventory = {};
-			}
+			shopInventory = {};
+			inShopInventory = false;
+		} else if (inSellInventory) {
+			inSellInventory = false;
+		}
 
-		inShopInventory = !inShopInventory;
 		if (!isTyping && e.key === "t") {
 			isTyping = true;
 			inputString = "";
@@ -429,7 +437,7 @@ export function startGame({ userId, token }) {
 		}
 		
 		for (const id in objects) {
-			if (!nearbyCache.objects.has(id)) {
+			if (!nearbyCache.objects.has(id) || objects[id].health <= 0) {
 				delete objects[id];
 			}
 		}
@@ -561,14 +569,14 @@ export function startGame({ userId, token }) {
 		}
 
 		//Draw UI elements
-		if (inInventory) {
+		if (inInventory || inSellInventory) {
 			drawInventory(inventory);
 		} else if (inShopInventory) {
 			drawShopInventory(shopInventory);
 		} 
+
 		drawHUD(players[playerId])
 		
-
 		//Handle right click for item selection
 		if (mouseRightClicked) {
 			selectedItem = null;
@@ -583,7 +591,11 @@ export function startGame({ userId, token }) {
 						break;
 					}
 				}
-			} else if (inShopInventory) {
+			} 
+			mouseRightClicked = false;
+
+		} else if (mouseLeftClicked) {
+			if (inShopInventory) {
 				for (const item in shopInventory) {
 					const currentItem = shopInventory[item];
 					if (mouseRightX >= currentItem.xPosition && mouseRightX <= currentItem.xPosition + 50 &&
@@ -599,8 +611,24 @@ export function startGame({ userId, token }) {
 						break;
 					}
 				}
+			} else if (inSellInventory) {
+				for (const item in inventory) {
+					const currentItem = inventory[item];
+					if (mouseRightX >= currentItem.xPosition && mouseRightX <= currentItem.xPosition + 50 &&
+						mouseRightY >= currentItem.yPosition && mouseRightY <= currentItem.yPosition + 50) {
+						selectedItem = currentItem;
+						socket.send(JSON.stringify({
+							type: "keydown",
+							dir: "sellItem",
+							pressed: true,
+							playerID: userId,
+							item: selectedItem.itemName
+						}));
+						break;
+					}
+				}
 			}
-			mouseRightClicked = false;
+			mouseLeftClicked = false;
 		}
 
 		//Handle item menu

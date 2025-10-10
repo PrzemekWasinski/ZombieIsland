@@ -323,13 +323,16 @@ export async function startWebSocket(config, url, apiKey) {
 							}, wss);
 						}
 
-						if (player.mapX === 394 && player.mapY === 728) {
+						if (player.mapX === 394 && player.mapY === 728) { //Check if player near shop
 							ws.send(JSON.stringify({
 								type: "shop",
 								name: shops.SHOP1.name,
 								inventory: shops.SHOP1.inventory
 							}));
-						
+						} else if (player.mapX === 388 && player.mapY === 727) {
+							ws.send(JSON.stringify({
+								type: "sell",
+							}));
 						}
 
 					} else if (data.dir === "message" && data.pressed) {
@@ -361,13 +364,12 @@ export async function startWebSocket(config, url, apiKey) {
 							if (data.item === "Health Upgrade") {
 								player.maxHealth += 10;
 								player.health = player.maxHealth;
-								console.log("h")
 							} else if (data.item === "Speed Upgrade") {
-								player.speed += 1;
-								console.log("s")
+								if (player.speed < 9) {
+									player.speed += 1;
+								}
 							} else if (data.item === "Sword Upgrade") {
 								player.damage += 1
-								console.log("d")
 							}
 
 							saveProgress(player, supabase);
@@ -382,6 +384,7 @@ export async function startWebSocket(config, url, apiKey) {
 								targetX: player.targetX,
 								targetY: player.targetY,
 								health: player.health,
+								maxHealth: player.maxHealth,
 								username: player.username,
 								level: player.level,
 								gold: player.gold,
@@ -390,6 +393,31 @@ export async function startWebSocket(config, url, apiKey) {
 							}, wss);
 						
 						}
+					
+					} else if (data.dir === "sellItem") {
+						console.log(data.item, "sold");
+						player.inventory[data.item].itemAmount -= 1;
+						player.gold += 10;
+
+						broadcast({
+							type: "update",
+							id: player.id,
+							mapX: player.mapX,
+							mapY: player.mapY,
+							pixelX: player.pixelX,
+							pixelY: player.pixelY,
+							targetX: player.targetX,
+							targetY: player.targetY,
+							health: player.health,
+							maxHealth: player.maxHealth,
+							username: player.username,
+							level: player.level,
+							gold: player.gold,
+							inBoat: player.inBoat,
+							inventory: player.inventory
+						}, wss);
+
+						saveProgress(player, supabase);
 					}
 				}
 			} catch (error) {

@@ -283,12 +283,7 @@ button:active { transform: translateY(0); filter:brightness(0.98); }
   box-shadow: 0 6px 30px rgba(255,107,107,0.12) !important;
 }
 
-/* subtle floating animation for info card to make UI feel alive */
-@keyframes floaty {
-  0% { transform: translateY(0px); }
-  50% { transform: translateY(-6px); }
-  100% { transform: translateY(0px); }
-}
+
 .login-info-container { animation: floaty 6s ease-in-out infinite; }
 
 /* tiny pixel-like separators */

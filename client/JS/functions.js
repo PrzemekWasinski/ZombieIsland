@@ -316,12 +316,12 @@ export function drawShopInventory(inventory) {
 
 export function drawHUD(player) {
     ctx.fillStyle = "white"
+    ctx.textAlign = "left";
     ctx.fillText(`X: ${player.mapX}`, 30, 30);
-    ctx.fillText(`Y: ${player.mapY}`, 30, 50);
+    ctx.fillText(`Y: ${player.mapY}`, 30, 60);
 
-    ctx.fillText(`Gold: ${player.gold}`, canvas.width - 100, 30);
-
-
+    ctx.fillText(`Gold: ${player.gold}`, canvas.width - 150, 30);
+    ctx.fillText(`HP: ${player.health}/${player.maxHealth}`, canvas.width - 150, 60);
 }
 
 export function ensurePlayerDefaults(player) {
