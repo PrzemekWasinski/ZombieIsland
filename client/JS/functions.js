@@ -23,6 +23,9 @@ export function drawMap(currentPlayer) { //Draw game map
 
     for (let y = 0; y < map.length; y++) {
         for (let x = 0; x < map[y].length; x++) {
+            if (currentPlayer.map[y][x] === 0) {
+                continue; //Dont draw water tiles
+            }
 
             const img = tileImages[map[y][x]];
             if (img && img.complete) {

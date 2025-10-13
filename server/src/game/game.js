@@ -176,7 +176,7 @@ export function startGame(wss, TILE_SIZE, VISIBLE_TILES_X, VISIBLE_TILES_Y, PASS
                     newPixelX = velocityX > 0 ? currentTileX * TILE_SIZE + TILE_SIZE - 1 : currentTileX * TILE_SIZE;
                 } else {
                     const nextTile = MAP[checkY][checkX];
-                    const isWater = nextTile === 3;
+                    const isWater = nextTile === 0;
                     let isPassable = PASSABLE_TILES.includes(nextTile);
 
                     for (const id in objects) {
@@ -211,7 +211,7 @@ export function startGame(wss, TILE_SIZE, VISIBLE_TILES_X, VISIBLE_TILES_Y, PASS
                     newPixelY = velocityY > 0 ? currentTileY * TILE_SIZE + TILE_SIZE - 1 : currentTileY * TILE_SIZE;
                 } else {
                     const nextTile = MAP[checkY][checkX];
-                    const isWater = nextTile === 3;
+                    const isWater = nextTile === 0;
                     let isPassable = PASSABLE_TILES.includes(nextTile);
 
                     for (const id in objects) {
@@ -245,7 +245,7 @@ export function startGame(wss, TILE_SIZE, VISIBLE_TILES_X, VISIBLE_TILES_Y, PASS
                     newPixelY = player.pixelY;
                 } else {
                     const nextTile = MAP[checkY][checkX];
-                    const isWater = nextTile === 3;
+                    const isWater = nextTile === 0;
                     let isPassable = PASSABLE_TILES.includes(nextTile);
 
                     for (const id in objects) {

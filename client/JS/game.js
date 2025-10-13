@@ -470,7 +470,10 @@ export function startGame({ userId, token }) {
 			}
 		}
 
-		//Drawing phase
+		//Fill water
+		ctx.fillStyle = "#4287f5"
+		ctx.fillRect(0, 0, canvas.width, canvas.height);
+
 		drawMap(currentPlayer);
 
 		//Draw other players 

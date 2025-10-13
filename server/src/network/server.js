@@ -248,25 +248,25 @@ export async function startWebSocket(config, url, apiKey) {
 
 						//Get into boat logic
 						if (!player.inBoat) {
-							if (player.mapY > 0 && MAP[player.mapY - 1][player.mapX] === 3) {
+							if (player.mapY > 0 && MAP[player.mapY - 1][player.mapX] === 0) {
 								player.mapY -= 1;
 								player.pixelY -= TILE_SIZE;
 								player.targetY -= TILE_SIZE;
 								player.inBoat = true;
 								boatStateChanged = true;
-							} else if (player.mapY < mapHeight - 1 && MAP[player.mapY + 1][player.mapX] === 3) {
+							} else if (player.mapY < mapHeight - 1 && MAP[player.mapY + 1][player.mapX] === 0) {
 								player.mapY += 1;
 								player.pixelY += TILE_SIZE;
 								player.targetY += TILE_SIZE;
 								player.inBoat = true;
 								boatStateChanged = true;
-							} else if (player.mapX < mapWidth - 1 && MAP[player.mapY][player.mapX + 1] === 3) {
+							} else if (player.mapX < mapWidth - 1 && MAP[player.mapY][player.mapX + 1] === 0) {
 								player.mapX += 1;
 								player.pixelX += TILE_SIZE;
 								player.targetX += TILE_SIZE;
 								player.inBoat = true;
 								boatStateChanged = true;
-							} else if (player.mapX > 0 && MAP[player.mapY][player.mapX - 1] === 3) {
+							} else if (player.mapX > 0 && MAP[player.mapY][player.mapX - 1] === 0) {
 								player.mapX -= 1;
 								player.pixelX -= TILE_SIZE;
 								player.targetX -= TILE_SIZE;
