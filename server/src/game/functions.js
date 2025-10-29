@@ -155,11 +155,11 @@ export async function updateStats(key, newValue, supabase) {
 	}
 }
 
-export function spawnEnemy(enemies, PASSABLE_TILES, MAP, enemyID, TILE_SIZE, topLeft, bottomRight, spawnLocation, enemyStats) {
-	const x = Math.floor(Math.random() * (bottomRight[0] - topLeft[0] + 1)) + topLeft[0];
-	const y = Math.floor(Math.random() * (bottomRight[1] - topLeft[1] + 1)) + topLeft[1];
+export function spawnEnemy(enemies, PASSABLE_TILES, MAP, enemyID, TILE_SIZE, biome, spawnLocation, enemyStats, biomes) {
+	const x = Math.floor(Math.random() * 2500); // 0–2499
+	const y = Math.floor(Math.random() * 1750); // 0–1749
 
-	if (!PASSABLE_TILES.includes(MAP[y][x])) {
+	if (!biomes[biome].includes(MAP[y][x])) {
 		return null; // Invalid tile, cancel spawn
 	}
 
@@ -210,11 +210,11 @@ export function sendNearbyObjects(player, objects, wss) {
     }
 }
 
-export function spawnObject(objects, PASSABLE_TILES, MAP, objectID, TILE_SIZE, topLeft, bottomRight, spawnLocation, objectStats) {
-	const x = Math.floor(Math.random() * (bottomRight[0] - topLeft[0] + 1)) + topLeft[0];
-	const y = Math.floor(Math.random() * (bottomRight[1] - topLeft[1] + 1)) + topLeft[1];
+export function spawnObject(objects, PASSABLE_TILES, MAP, objectID, TILE_SIZE, biome, spawnLocation, objectStats, biomes) {
+	const x = Math.floor(Math.random() * 2500); // 0–2499
+	const y = Math.floor(Math.random() * 1750); // 0–1749
 
-	if (!PASSABLE_TILES.includes(MAP[y][x])) {
+	if (!biomes[biome].includes(MAP[y][x])) {
 		return null; // Invalid tile, cancel spawn
 	}
 

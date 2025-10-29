@@ -1,7 +1,7 @@
 import { players, enemies, enemyNextID, drops, getNextDropID, getNextEnemyID, objects, getNextObjectID } from "./state.js";
 import { broadcast, spawnEnemy, getMap, isNearby, spawnDrop, updateStats, saveProgress, saveItem, spawnObject, broadcastToNearby, sendNearbyObjects } from "./functions.js";
 
-export function startGame(wss, TILE_SIZE, VISIBLE_TILES_X, VISIBLE_TILES_Y, PASSABLE_TILES, PLAYER_SPAWN, ENEMY_SPAWNS, OBJECT_SPAWNS, MAP, supabase) {
+export function startGame(wss, TILE_SIZE, VISIBLE_TILES_X, VISIBLE_TILES_Y, PASSABLE_TILES, PLAYER_SPAWN, ENEMY_SPAWNS, OBJECT_SPAWNS, MAP, supabase, biomes) {
     let locationData = {};
     let objectData = {};
 
@@ -92,7 +92,7 @@ export function startGame(wss, TILE_SIZE, VISIBLE_TILES_X, VISIBLE_TILES_Y, PASS
             let tries = 0;
 
             while (locationData[key] < spawnData.enemyAmount && tries < 10) {
-                const newID = spawnEnemy(enemies, PASSABLE_TILES, MAP, getNextEnemyID(), TILE_SIZE, spawnData.topLeft, spawnData.bottomRight, key, spawnData.enemyStats);
+                const newID = spawnEnemy(enemies, PASSABLE_TILES, MAP, getNextEnemyID(), TILE_SIZE, spawnData.biome, key, spawnData.enemyStats, biomes);
                 if (newID !== null) {
                     locationData[key]++;
                 }
@@ -105,7 +105,7 @@ export function startGame(wss, TILE_SIZE, VISIBLE_TILES_X, VISIBLE_TILES_Y, PASS
             let tries = 0;
 
             while (objectData[key] < spawnData.objectAmount && tries < 10) {
-                const newID = spawnObject(objects, PASSABLE_TILES, MAP, getNextObjectID(), TILE_SIZE, spawnData.topLeft, spawnData.bottomRight, key, spawnData.objectStats);
+                const newID = spawnObject(objects, PASSABLE_TILES, MAP, getNextObjectID(), TILE_SIZE, spawnData.biome, key, spawnData.objectStats, biomes);
                 if (newID !== null) {
                     newObjects.add(newID);
                     objectData[key]++;
@@ -403,26 +403,6 @@ export function startGame(wss, TILE_SIZE, VISIBLE_TILES_X, VISIBLE_TILES_Y, PASS
 
             const STOP_DISTANCE = 0;
 
-            const spawn = ENEMY_SPAWNS[enemy.location];
-            const topLeft = spawn.topLeft;
-            const bottomRight = spawn.bottomRight;
-
-            const canMoveUp = enemy.mapY - 1 >= topLeft[1];
-            const canMoveDown = enemy.mapY + 1 <= bottomRight[1];
-            const canMoveLeft = enemy.mapX - 1 >= topLeft[0];
-            const canMoveRight = enemy.mapX + 1 <= bottomRight[0];
-
-            const directions = [];
-
-            if (canMoveUp) { directions.push("up"); }
-            if (canMoveDown) { directions.push("down"); }
-            if (canMoveLeft) { directions.push("left"); }
-            if (canMoveRight) { directions.push("right"); }
-            if (canMoveUp && canMoveRight) { directions.push("up-right"); }
-            if (canMoveUp && canMoveLeft) { directions.push("up-left"); }
-            if (canMoveDown && canMoveRight) { directions.push("down-right"); }
-            if (canMoveDown && canMoveLeft) { directions.push("down-left"); }
-
             // Store old position
             const oldPixelX = enemy.pixelX;
             const oldPixelY = enemy.pixelY;
@@ -496,8 +476,10 @@ export function startGame(wss, TILE_SIZE, VISIBLE_TILES_X, VISIBLE_TILES_Y, PASS
             const newTileY = Math.floor(newPixelY / TILE_SIZE);
 
             if (newTileX !== currentTileX) { //Check horizontal collision
+
                 const checkX = newTileX;
                 const checkY = currentTileY;
+
                 if (
                     checkY < 0 || checkY >= MAP.length || checkX < 0 || checkX >= MAP[0].length ||
                     !PASSABLE_TILES.includes(MAP[checkY][checkX])
@@ -549,16 +531,6 @@ export function startGame(wss, TILE_SIZE, VISIBLE_TILES_X, VISIBLE_TILES_Y, PASS
                     enemy.movingDownLeft = false;
                 }
             }
-
-            const minX = topLeft[0] * TILE_SIZE;
-            const maxX = (bottomRight[0] + 1) * TILE_SIZE - 1;
-            const minY = topLeft[1] * TILE_SIZE;
-            const maxY = (bottomRight[1] + 1) * TILE_SIZE - 1;
-
-            if (newPixelX < minX) { newPixelX = minX; }
-            if (newPixelX > maxX) { newPixelX = maxX; }
-            if (newPixelY < minY) { newPixelY = minY; }
-            if (newPixelY > maxY) { newPixelY = maxY; }
 
             if (nearPLayer) {
                 //Only broadcast if enemy actually moved or was marked for update
