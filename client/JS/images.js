@@ -1,10 +1,12 @@
 export const tileSources = {
+	//Main tile images
 	0: "../assets/map/water.png",
 	1: "../assets/map/Sand/center.png",
 	2: "../assets/map/Plains/center.png",
 	3: "../assets/map/Forest/center.png",
 	4: "../assets/map/Snow/center.png",
 
+	//Tile edges and corners
 	100: "../assets/map/Sand/t-flat.png",
 	101: "../assets/map/Sand/tr-edge.png",
 	102: "../assets/map/Sand/r-flat.png",
@@ -62,103 +64,147 @@ export const tileSources = {
 
 export const sprites = {
 	//EnemyName-Action: [path, imageSize, frameAmount]
-	"Wooden Entity-attack": ["../assets/enemies/entity/entity1/attack.png", 128, 7],
-	"Wooden Entity-death": ["../assets/enemies/entity/entity1/death.png", 128, 6],
-	"Wooden Entity-hurt": ["../assets/enemies/entity/entity1/hurt.png", 128, 4],
-	"Wooden Entity-walk": ["../assets/enemies/entity/entity1/walk.png", 128, 6],
 
-	"Leaf Entity-attack": ["../assets/enemies/entity/entity2/attack.png", 128, 7],
-	"Leaf Entity-death": ["../assets/enemies/entity/entity2/death.png", 128, 12],
-	"Leaf Entity-hurt": ["../assets/enemies/entity/entity2/hurt.png", 128, 4],
-	"Leaf Entity-walk": ["../assets/enemies/entity/entity2/walk.png", 128, 6],
+	//Ghosts
+	"Ghost-attack": ["../assets/enemies/ghosts/ghost/attack.png", 64, 12],
+	"Ghost-death": ["../assets/enemies/ghosts/ghost/death.png", 64, 9],
+	"Ghost-hurt": ["../assets/enemies/ghosts/ghost/hurt.png", 64, 4],
+	"Ghost-walk": ["../assets/enemies/ghosts/ghost/walk.png", 64, 6],
 
-	"Forest Entity-attack": ["../assets/enemies/entity/entity3/attack.png", 128, 7],
-	"Forest Entity-death": ["../assets/enemies/entity/entity3/death.png", 128, 12],
-	"Forest Entity-hurt": ["../assets/enemies/entity/entity3/hurt.png", 128, 4],
-	"Forest Entity-walk": ["../assets/enemies/entity/entity3/walk.png", 128, 6],
+	"Shadow Ghost-attack": ["../assets/enemies/ghosts/shadow-ghost/attack.png", 64, 12],
+	"Shadow Ghost-death": ["../assets/enemies/ghosts/shadow-ghost/death.png", 64, 9],
+	"Shadow Ghost-hurt": ["../assets/enemies/ghosts/shadow-ghost/hurt.png", 64, 4],
+	"Shadow Ghost-walk": ["../assets/enemies/ghosts/shadow-ghost/walk.png", 64, 6],
 
-	"Sand Golem-attack": ["../assets/enemies/golem/golem1/attack.png", 128, 9],
-	"Sand Golem-death": ["../assets/enemies/golem/golem1/death.png", 128, 8],
-	"Sand Golem-hurt": ["../assets/enemies/golem/golem1/hurt.png", 128, 4],
-	"Sand Golem-walk": ["../assets/enemies/golem/golem1/walk.png", 128, 8],
+	"Night Ghost-attack": ["../assets/enemies/ghosts/night-ghost/attack.png", 64, 12],
+	"Night Ghost-death": ["../assets/enemies/ghosts/night-ghost/death.png", 64, 9],
+	"Night Ghost-hurt": ["../assets/enemies/ghosts/night-ghost/hurt.png", 64, 4],
+	"Night Ghost-walk": ["../assets/enemies/ghosts/night-ghost/walk.png", 64, 6],
 
-	"Snow Golem-attack": ["../assets/enemies/golem/golem2/attack.png", 128, 9],
-	"Snow Golem-death": ["../assets/enemies/golem/golem2/death.png", 128, 8],
-	"Snow Golem-hurt": ["../assets/enemies/golem/golem2/hurt.png", 128, 4],
-	"Snow Golem-walk": ["../assets/enemies/golem/golem2/walk.png", 128, 8],
+	//Goblins
+	"Goblin-attack": ["../assets/enemies/goblins/goblin/attack.png", 64, 5],
+	"Goblin-death": ["../assets/enemies/goblins/goblin/death.png", 64, 6],
+	"Goblin-hurt": ["../assets/enemies/goblins/goblin/hurt.png", 64, 4],
+	"Goblin-walk": ["../assets/enemies/goblins/goblin/walk.png", 64, 6],
 
-	"Night Golem-attack": ["../assets/enemies/golem/golem3/attack.png", 128, 9],
-	"Night Golem-death": ["../assets/enemies/golem/golem3/death.png", 128, 8],
-	"Night Golem-hurt": ["../assets/enemies/golem/golem3/hurt.png", 128, 4],
-	"Night Golem-walk": ["../assets/enemies/golem/golem3/walk.png", 128, 8],
+	"Sand Goblin-attack": ["../assets/enemies/goblins/sand-goblin/attack.png", 64, 5],
+	"Sand Goblin-death": ["../assets/enemies/goblins/sand-goblin/death.png", 64, 6],
+	"Sand Goblin-hurt": ["../assets/enemies/goblins/sand-goblin/hurt.png", 64, 4],
+	"Sand Goblin-walk": ["../assets/enemies/goblins/sand-goblin/walk.png", 64, 6],
 
-	"Shroom Spider-attack": ["../assets/enemies/mushroom/mushroom1/attack.png", 64, 8],
-	"Shroom Spider-death": ["../assets/enemies/mushroom/mushroom1/death.png", 64, 9],
-	"Shroom Spider-hurt": ["../assets/enemies/mushroom/mushroom1/hurt.png", 64, 4],
-	"Shroom Spider-walk": ["../assets/enemies/mushroom/mushroom1/walk.png", 64, 6],
+	"Snow Goblin-attack": ["../assets/enemies/goblins/snow-goblin/attack.png", 64, 5],
+	"Snow Goblin-death": ["../assets/enemies/goblins/snow-goblin/death.png", 64, 6],
+	"Snow Goblin-hurt": ["../assets/enemies/goblins/snow-goblin/hurt.png", 64, 4],
+	"Snow Goblin-walk": ["../assets/enemies/goblins/snow-goblin/walk.png", 64, 6],
 
-	"Red Shroom Spider-attack": ["../assets/enemies/mushroom/mushroom2/attack.png", 64, 8],
-	"Red Shroom Spider-death": ["../assets/enemies/mushroom/mushroom2/death.png", 64, 9],
-	"Red Shroom Spider-hurt": ["../assets/enemies/mushroom/mushroom2/hurt.png", 64, 4],
-	"Red Shroom Spider-walk": ["../assets/enemies/mushroom/mushroom2/walk.png", 64, 6],
+	//Golems
+	"Sand Golem-attack": ["../assets/enemies/golems/sand-golem/attack.png", 128, 9],
+	"Sand Golem-death": ["../assets/enemies/golems/sand-golem/death.png", 128, 8],
+	"Sand Golem-hurt": ["../assets/enemies/golems/sand-golem/hurt.png", 128, 4],
+	"Sand Golem-walk": ["../assets/enemies/golems/sand-golem/walk.png", 128, 8],
 
-	"Night Shroom Spider-attack": ["../assets/enemies/mushroom/mushroom3/attack.png", 64, 8],
-	"Night Shroom Spider-death": ["../assets/enemies/mushroom/mushroom3/death.png", 64, 9],
-	"Night Shroom Spider-hurt": ["../assets/enemies/mushroom/mushroom3/hurt.png", 64, 4],
-	"Night Shroom Spider-walk": ["../assets/enemies/mushroom/mushroom3/walk.png", 64, 6],
+	"Snow Golem-attack": ["../assets/enemies/golems/snow-golem/attack.png", 128, 9],
+	"Snow Golem-death": ["../assets/enemies/golems/snow-golem/death.png", 128, 8],
+	"Snow Golem-hurt": ["../assets/enemies/golems/snow-golem/hurt.png", 128, 4],
+	"Snow Golem-walk": ["../assets/enemies/golems/snow-golem/walk.png", 128, 8],
 
-	"Orc-attack": ["../assets/enemies/orc/orc1/attack.png", 64, 8],
-	"Orc-death": ["../assets/enemies/orc/orc1/death.png", 64, 8],
-	"Orc-hurt": ["../assets/enemies/orc/orc1/hurt.png", 64, 6],
-	"Orc-walk": ["../assets/enemies/orc/orc1/walk.png", 64, 6],
+	"Night Golem-attack": ["../assets/enemies/golems/night-golem/attack.png", 128, 9],
+	"Night Golem-death": ["../assets/enemies/golems/night-golem/death.png", 128, 8],
+	"Night Golem-hurt": ["../assets/enemies/golems/night-golem/hurt.png", 128, 4],
+	"Night Golem-walk": ["../assets/enemies/golems/night-golem/walk.png", 128, 8],
 
-	"Ginger Orc-attack": ["../assets/enemies/orc/orc2/attack.png", 64, 8],
-	"Ginger Orc-death": ["../assets/enemies/orc/orc2/death.png", 64, 8],
-	"Ginger Orc-hurt": ["../assets/enemies/orc/orc2/hurt.png", 64, 6],
-	"Ginger Orc-walk": ["../assets/enemies/orc/orc2/walk.png", 64, 6],
+	//Orcs
+	"Orc-attack": ["../assets/enemies/orcs/orc/attack.png", 64, 8],
+	"Orc-death": ["../assets/enemies/orcs/orc/death.png", 64, 8],
+	"Orc-hurt": ["../assets/enemies/orcs/orc/hurt.png", 64, 6],
+	"Orc-walk": ["../assets/enemies/orcs/orc/walk.png", 64, 6],
 
-	"Skeleton-attack": ["../assets/enemies/skeleton/skeleton1/attack.png", 64, 9],
-	"Skeleton-death": ["../assets/enemies/skeleton/skeleton1/death.png", 64, 6],
-	"Skeleton-hurt": ["../assets/enemies/skeleton/skeleton1/hurt.png", 64, 4],
-	"Skeleton-walk": ["../assets/enemies/skeleton/skeleton1/walk.png", 64, 6],
+	"Blue Orc-attack": ["../assets/enemies/orcs/blue-orc/attack.png", 64, 8],
+	"Blue Orc-death": ["../assets/enemies/orcs/blue-orc/death.png", 64, 8],
+	"Blue Orc-hurt": ["../assets/enemies/orcs/blue-orc/hurt.png", 64, 6],
+	"Blue Orc-walk": ["../assets/enemies/orcs/blue-orc/walk.png", 64, 6],
 
-	"Golden Skeleton-attack": ["../assets/enemies/skeleton/skeleton2/attack.png", 64, 9],
-	"Golden Skeleton-death": ["../assets/enemies/skeleton/skeleton2/death.png", 64, 6],
-	"Golden Skeleton-hurt": ["../assets/enemies/skeleton/skeleton2/hurt.png", 64, 4],
-	"Golden Skeleton-walk": ["../assets/enemies/skeleton/skeleton2/walk.png", 64, 6],
+	"Orc Worrior-attack": ["../assets/enemies/orcs/orc-worrior/attack.png", 64, 8],
+	"Orc Worrior-death": ["../assets/enemies/orcs/orc-worrior/death.png", 64, 8],
+	"Orc Worrior-hurt": ["../assets/enemies/orcs/orc-worrior/hurt.png", 64, 6],
+	"Orc Worrior-walk": ["../assets/enemies/orcs/orc-worrior/walk.png", 64, 6],
 
-	"Blue Slime-attack": ["../assets/enemies/slime/slime1/attack.png", 128, 10],
-	"Blue Slime-death": ["../assets/enemies/slime/slime1/death.png", 128, 10],
-	"Blue Slime-hurt": ["../assets/enemies/slime/slime1/hurt.png", 128, 4],
-	"Blue Slime-walk": ["../assets/enemies/slime/slime1/walk.png", 128, 8],
+	//Skeletons
+	"Skeleton-attack": ["../assets/enemies/skeletons/skeleton/attack.png", 64, 9],
+	"Skeleton-death": ["../assets/enemies/skeletons/skeleton/death.png", 64, 6],
+	"Skeleton-hurt": ["../assets/enemies/skeletons/skeleton/hurt.png", 64, 4],
+	"Skeleton-walk": ["../assets/enemies/skeletons/skeleton/walk.png", 64, 6],
 
-	"Ice Slime-attack": ["../assets/enemies/slime/slime2/attack.png", 64, 10],
-	"Ice Slime-death": ["../assets/enemies/slime/slime2/death.png", 64, 10],
-	"Ice Slime-hurt": ["../assets/enemies/slime/slime2/hurt.png", 64, 5],
-	"Ice Slime-walk": ["../assets/enemies/slime/slime2/walk.png", 64, 8],
+	"Golden Skeleton-attack": ["../assets/enemies/skeletons/golden-skeleton/attack.png", 64, 9],
+	"Golden Skeleton-death": ["../assets/enemies/skeletons/golden-skeleton/death.png", 64, 6],
+	"Golden Skeleton-hurt": ["../assets/enemies/skeletons/golden-skeleton/hurt.png", 64, 4],
+	"Golden Skeleton-walk": ["../assets/enemies/skeletons/golden-skeleton/walk.png", 64, 6],
 
-	"Electric Slime-attack": ["../assets/enemies/slime/slime3/attack.png", 64, 10],
-	"Electric Slime-death": ["../assets/enemies/slime/slime3/death.png", 64, 10],
-	"Electric Slime-hurt": ["../assets/enemies/slime/slime3/hurt.png", 64, 5],
-	"Electric Slime-walk": ["../assets/enemies/slime/slime3/walk.png", 64, 8],
+	"Skeleton Worrior-attack": ["../assets/enemies/skeletons/skeleton-worrior/attack.png", 64, 9],
+	"Skeleton Worrior-death": ["../assets/enemies/skeletons/skeleton-worrior/death.png", 64, 6],
+	"Skeleton Worrior-hurt": ["../assets/enemies/skeletons/skeleton-worrior/hurt.png", 64, 4],
+	"Skeleton Worrior-walk": ["../assets/enemies/skeletons/skeleton-worrior/walk.png", 64, 6],
 
-	"Zombie-attack": ["../assets/enemies/zombie/zombie1/attack.png", 64, 10],
-	"Zombie-death": ["../assets/enemies/zombie/zombie1/death.png", 64, 9],
-	"Zombie-hurt": ["../assets/enemies/zombie/zombie1/hurt.png", 64, 4],
-	"Zombie-walk": ["../assets/enemies/zombie/zombie1/walk.png", 64, 6],
+	//Slimes
+	"Crystal Slime-attack": ["../assets/enemies/slimes/crystal-slime/attack.png", 64, 9],
+	"Crystal Slime-death": ["../assets/enemies/slimes/crystal-slime/death.png", 64, 10],
+	"Crystal Slime-hurt": ["../assets/enemies/slimes/crystal-slime/hurt.png", 64, 5],
+	"Crystal Slime-walk": ["../assets/enemies/slimes/crystal-slime/walk.png", 64, 8],
 
-	"Toxic Zombie-attack": ["../assets/enemies/zombie/zombie2/attack.png", 64, 10],
-	"Toxic Zombie-death": ["../assets/enemies/zombie/zombie2/death.png", 64, 9],
-	"Toxic Zombie-hurt": ["../assets/enemies/zombie/zombie2/hurt.png", 64, 4],
-	"Toxic Zombie-walk": ["../assets/enemies/zombie/zombie2/walk.png", 64, 6],
+	"Electric Slime-attack": ["../assets/enemies/slimes/electric-slime/attack.png", 64, 9],
+	"Electric Slime-death": ["../assets/enemies/slimes/electric-slime/death.png", 64, 10],
+	"Electric Slime-hurt": ["../assets/enemies/slimes/electric-slime/hurt.png", 64, 5],
+	"Electric Slime-walk": ["../assets/enemies/slimes/electric-slime/walk.png", 64, 8],
 
-	"Armoured Zombie-attack": ["../assets/enemies/zombie/zombie3/attack.png", 64, 10],
-	"Armoured Zombie-death": ["../assets/enemies/zombie/zombie3/death.png", 64, 9],
-	"Armoured Zombie-hurt": ["../assets/enemies/zombie/zombie3/hurt.png", 64, 4],
-	"Armoured Zombie-walk": ["../assets/enemies/zombie/zombie3/walk.png", 64, 6],
+	"Fire Slime-attack": ["../assets/enemies/slimes/fire-slime/attack.png", 64, 9],
+	"Fire Slime-death": ["../assets/enemies/slimes/fire-slime/death.png", 64, 10],
+	"Fire Slime-hurt": ["../assets/enemies/slimes/fire-slime/hurt.png", 64, 5],
+	"Fire Slime-walk": ["../assets/enemies/slimes/fire-slime/walk.png", 64, 8],
+
+	"Ghost Slime-attack": ["../assets/enemies/slimes/ghost-slime/attack.png", 64, 9],
+	"Ghost Slime-death": ["../assets/enemies/slimes/ghost-slime/death.png", 64, 10],
+	"Ghost Slime-hurt": ["../assets/enemies/slimes/ghost-slime/hurt.png", 64, 5],
+	"Ghost Slime-walk": ["../assets/enemies/slimes/ghost-slime/walk.png", 64, 8],
+
+	"Green Slime-attack": ["../assets/enemies/slimes/green-slime/attack.png", 64, 9],
+	"Green Slime-death": ["../assets/enemies/slimes/green-slime/death.png", 64, 10],
+	"Green Slime-hurt": ["../assets/enemies/slimes/green-slime/hurt.png", 64, 5],
+	"Green Slime-walk": ["../assets/enemies/slimes/green-slime/walk.png", 64, 8],
+
+	"Hell Slime-attack": ["../assets/enemies/slimes/hell-slime/attack.png", 64, 9],
+	"Hell Slime-death": ["../assets/enemies/slimes/hell-slime/death.png", 64, 10],
+	"Hell Slime-hurt": ["../assets/enemies/slimes/hell-slime/hurt.png", 64, 5],
+	"Hell Slime-walk": ["../assets/enemies/slimes/hell-slime/walk.png", 64, 8],
+
+	"Ice Slime-attack": ["../assets/enemies/slimes/ice-slime/attack.png", 64, 9],
+	"Ice Slime-death": ["../assets/enemies/slimes/ice-slime/death.png", 64, 10],
+	"Ice Slime-hurt": ["../assets/enemies/slimes/ice-slime/hurt.png", 64, 5],
+	"Ice Slime-walk": ["../assets/enemies/slimes/ice-slime/walk.png", 64, 8],
+
+	"Lava Slime-attack": ["../assets/enemies/slimes/lava-slime/attack.png", 64, 9],
+	"Lava Slime-death": ["../assets/enemies/slimes/lava-slime/death.png", 64, 10],
+	"Lava Slime-hurt": ["../assets/enemies/slimes/lava-slime/hurt.png", 64, 5],
+	"Lava Slime-walk": ["../assets/enemies/slimes/lava-slime/walk.png", 64, 8],
+
+	//Zombies
+	"Zombie-attack": ["../assets/enemies/zombies/zombie/attack.png", 64, 10],
+	"Zombie-death": ["../assets/enemies/zombies/zombie/death.png", 64, 9],
+	"Zombie-hurt": ["../assets/enemies/zombies/zombie/hurt.png", 64, 4],
+	"Zombie-walk": ["../assets/enemies/zombies/zombie/walk.png", 64, 6],
+
+	"Night Zombie-attack": ["../assets/enemies/zombies/night-zombie/attack.png", 64, 10],
+	"Night Zombie-death": ["../assets/enemies/zombies/night-zombie/death.png", 64, 9],
+	"Night Zombie-hurt": ["../assets/enemies/zombies/night-zombie/hurt.png", 64, 4],
+	"Night Zombie-walk": ["../assets/enemies/zombies/night-zombie/walk.png", 64, 6],
+
+	"Viking Zombie-attack": ["../assets/enemies/zombies/viking-zombie/attack.png", 64, 10],
+	"Viking Zombie-death": ["../assets/enemies/zombies/viking-zombie/death.png", 64, 9],
+	"Viking Zombie-hurt": ["../assets/enemies/zombies/viking-zombie/hurt.png", 64, 4],
+	"Viking Zombie-walk": ["../assets/enemies/zombies/viking-zombie/walk.png", 64, 6],
 };
 
 export const objectImages = {
+	//Bushes
 	"Blue Berry Bush": "../assets/objects/bushes/blue_berry_bush.png",
 	"Red Berry Bush": "../assets/objects/bushes/red_berry_bush.png",
 	"Yellow Berry Bush": "../assets/objects/bushes/yellow_berry_bush.png",
@@ -166,6 +212,7 @@ export const objectImages = {
 	"Fruit Cactus": "../assets/objects/bushes/fruit_cactus.png",
 	"Snow Bush": "../assets/objects/bushes/snow_bush.png",
 
+	//Mushrooms
 	"Vine Mushroom": "../assets/objects/mushroom/vine_mushroom.png",
 	"White Mushroom": "../assets/objects/mushroom/white_mushroom.png",
 	"Red Mushroom": "../assets/objects/mushroom/red_mushroom.png",
