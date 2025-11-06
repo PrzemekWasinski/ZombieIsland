@@ -230,16 +230,16 @@ export const objectImages = {
 	"Desert Rock": "../assets/objects/sand/desert_rock.png",
 	"Sand Deposit": "../assets/objects/sand/sand_deposit.png",
 
-	"Snowman": "../assets/objects/snowmen/snowman.png",
-
-	"Curved Tree": "../assets/objects/trees/curved_tree.png",
 	"Fruit Tree": "../assets/objects/trees/fruit_tree.png",
 	"Oak Tree": "../assets/objects/trees/oak_tree.png",
 	"Ice Tree": "../assets/objects/trees/ice_tree.png",
 	"Christmas Tree": "../assets/objects/trees/christmas_tree.png",
 	"Snowy Tree": "../assets/objects/trees/snowy_tree.png",
 	"Palm Tree": "../assets/objects/trees/palm_tree.png",
-	"Green Palm Tree": "../assets/objects/trees/green_palm_tree.png"
+	"Green Palm Tree": "../assets/objects/trees/green_palm_tree.png",
+
+	"Wood Chest": "../assets/map/Interactable/wood-chest.png",
+	"Metal Chest": "../assets/map/Interactable/metal-chest.png"
 }
 
 export const playerImages = {
@@ -277,10 +277,9 @@ export const itemImages = {
 	"Toxic Breath": "../assets/items/Toxic Breath.png",
 	"Wood": "../assets/items/Wood.png",
 	"Ice Mushroom": "../assets/items/Ice Mushroom.png",
-	"ice Petal": "../assets/items/ice Petal.png",
+	"Ice Petal": "../assets/items/ice Petal.png",
 	"Night Stone": "../assets/items/Night Stone.png",
 	"Red Berry": "../assets/items/Red Berry.png",
-	"Snowman's Soul": "../assets/items/Snowman's Soul.png",
 	"Stick": "../assets/items/Stick.png",
 	"Vine Mushroom": "../assets/items/Vine Mushroom.png",
 	"White Mushroom": "../assets/items/White Mushroom.png",

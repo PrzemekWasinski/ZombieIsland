@@ -323,13 +323,13 @@ export async function startWebSocket(config, url, apiKey) {
 							}, wss);
 						}
 
-						if (player.mapX === 394 && player.mapY === 728) { //Check if player near shop
+						if (player.mapX === 1022 && player.mapY === 1300) { //Check if player near shop
 							ws.send(JSON.stringify({
 								type: "shop",
 								name: shops.SHOP1.name,
 								inventory: shops.SHOP1.inventory
 							}));
-						} else if (player.mapX === 388 && player.mapY === 727) {
+						} else if (player.mapX === 1018 && player.mapY === 1300) {
 							ws.send(JSON.stringify({
 								type: "sell",
 							}));
@@ -395,29 +395,31 @@ export async function startWebSocket(config, url, apiKey) {
 						}
 					
 					} else if (data.dir === "sellItem") {
-						console.log(data.item, "sold");
-						player.inventory[data.item].itemAmount -= 1;
-						player.gold += 10;
+						if (player.mapX === 1018 && player.mapY === 1300) {
+							console.log(data.item, "sold");
+							player.inventory[data.item].itemAmount -= 1;
+							player.gold += 10;
 
-						broadcast({
-							type: "update",
-							id: player.id,
-							mapX: player.mapX,
-							mapY: player.mapY,
-							pixelX: player.pixelX,
-							pixelY: player.pixelY,
-							targetX: player.targetX,
-							targetY: player.targetY,
-							health: player.health,
-							maxHealth: player.maxHealth,
-							username: player.username,
-							level: player.level,
-							gold: player.gold,
-							inBoat: player.inBoat,
-							inventory: player.inventory
-						}, wss);
+							broadcast({
+								type: "update",
+								id: player.id,
+								mapX: player.mapX,
+								mapY: player.mapY,
+								pixelX: player.pixelX,
+								pixelY: player.pixelY,
+								targetX: player.targetX,
+								targetY: player.targetY,
+								health: player.health,
+								maxHealth: player.maxHealth,
+								username: player.username,
+								level: player.level,
+								gold: player.gold,
+								inBoat: player.inBoat,
+								inventory: player.inventory
+							}, wss);
 
-						saveProgress(player, supabase);
+							saveProgress(player, supabase);
+						}
 					}
 				}
 			} catch (error) {

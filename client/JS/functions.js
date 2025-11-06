@@ -27,12 +27,28 @@ export function drawMap(currentPlayer) { //Draw game map
                 continue; //Dont draw water tiles
             }
 
-            const img = tileImages[map[y][x]];
-            if (img && img.complete) {
-                const screenX = Math.round(halfCanvasWidth + (x - centerTileX) * tileSize - modX);
-                const screenY = Math.round(halfCanvasHeight + (y - centerTileY) * tileSize - modY);
+            let img = tileImages[map[y][x]];
 
-                ctx.drawImage(img, screenX, screenY, tileSize, tileSize);
+            const screenX = Math.round(halfCanvasWidth + (x - centerTileX) * tileSize - modX);
+            const screenY = Math.round(halfCanvasHeight + (y - centerTileY) * tileSize - modY);
+
+            if (map[y][x] != 1000 && map[y][x] != 1001) {
+                if (img && img.complete) {
+                    ctx.drawImage(img, screenX, screenY, tileSize, tileSize);
+                }
+                continue;
+            } else {
+                if (map[y][x] == 1000) {
+                    ctx.drawImage(tileImages[3], screenX, screenY, tileSize, tileSize);
+                    img = objectImages["Wood Chest"]
+                    ctx.drawImage(img, screenX, screenY, tileSize, tileSize);
+                }
+
+                if (map[y][x] == 1001) {
+                    ctx.drawImage(tileImages[3], screenX, screenY, tileSize, tileSize);
+                    img = objectImages["Metal Chest"]
+                    ctx.drawImage(img, screenX, screenY, tileSize, tileSize);
+                }
             }
         }
     }

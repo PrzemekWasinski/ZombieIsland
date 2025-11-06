@@ -598,11 +598,33 @@ export function startGame({ userId, token }) {
 			mouseRightClicked = false;
 
 		} else if (mouseLeftClicked) {
-			if (inShopInventory) {
+			//Handle item menu deletion first (before other click handlers)
+			if (itemMenuOpen && selectedItem && selectedItem.itemAmount > 0) {
+				const deleteButtonX = selectedItem.xPosition + 35;
+				const deleteButtonY = selectedItem.yPosition - 20;
+				const deleteButtonWidth = 40;
+				const deleteButtonHeight = 40;
+
+				if (mouseLeftX > deleteButtonX && mouseLeftX < deleteButtonX + deleteButtonWidth &&
+					mouseLeftY > deleteButtonY && mouseLeftY < deleteButtonY + deleteButtonHeight) {
+					selectedItem.itemAmount -= 1;
+					socket.send(JSON.stringify({
+						type: "keydown",
+						dir: "deleteItem",
+						pressed: true,
+						playerID: userId,
+						item: selectedItem.itemName
+					}));
+					mouseLeftClicked = false;
+				}
+			}
+
+			//Handle shop/sell inventory clicks
+			if (mouseLeftClicked && inShopInventory) {
 				for (const item in shopInventory) {
 					const currentItem = shopInventory[item];
-					if (mouseRightX >= currentItem.xPosition && mouseRightX <= currentItem.xPosition + 50 &&
-						mouseRightY >= currentItem.yPosition && mouseRightY <= currentItem.yPosition + 50) {
+					if (mouseLeftX >= currentItem.xPosition && mouseLeftX <= currentItem.xPosition + 50 &&
+						mouseLeftY >= currentItem.yPosition && mouseLeftY <= currentItem.yPosition + 50) {
 						selectedItem = currentItem;
 						socket.send(JSON.stringify({
 							type: "keydown",
@@ -614,11 +636,12 @@ export function startGame({ userId, token }) {
 						break;
 					}
 				}
-			} else if (inSellInventory) {
+				mouseLeftClicked = false;
+			} else if (mouseLeftClicked && inSellInventory) {
 				for (const item in inventory) {
 					const currentItem = inventory[item];
-					if (mouseRightX >= currentItem.xPosition && mouseRightX <= currentItem.xPosition + 50 &&
-						mouseRightY >= currentItem.yPosition && mouseRightY <= currentItem.yPosition + 50) {
+					if (mouseLeftX >= currentItem.xPosition && mouseLeftX <= currentItem.xPosition + 50 &&
+						mouseLeftY >= currentItem.yPosition && mouseLeftY <= currentItem.yPosition + 50) {
 						selectedItem = currentItem;
 						socket.send(JSON.stringify({
 							type: "keydown",
@@ -630,14 +653,12 @@ export function startGame({ userId, token }) {
 						break;
 					}
 				}
+				mouseLeftClicked = false;
 			}
-			mouseLeftClicked = false;
 		}
 
-		//Handle item menu
+		//Draw item menu 
 		if (itemMenuOpen && selectedItem && selectedItem.itemAmount > 0) {
-			ctx.fillStyle = "black";
-
 			const deleteButtonX = selectedItem.xPosition + 35;
 			const deleteButtonY = selectedItem.yPosition - 20;
 			const deleteButtonWidth = 40;
@@ -645,21 +666,6 @@ export function startGame({ userId, token }) {
 
 			ctx.fillStyle = "red";
 			ctx.fillRect(deleteButtonX, deleteButtonY, deleteButtonWidth, deleteButtonHeight);
-
-			if (mouseLeftClicked) {
-				if (mouseLeftX > deleteButtonX && mouseLeftX < deleteButtonX + deleteButtonWidth &&
-					mouseLeftY > deleteButtonY && mouseLeftY < deleteButtonY + deleteButtonHeight) {
-					selectedItem.itemAmount -= 1;
-					socket.send(JSON.stringify({
-						type: "keydown",
-						dir: "deleteItem",
-						pressed: true,
-						playerID: userId,
-						item: selectedItem.itemName
-					}));
-				}
-				mouseLeftClicked = false;
-			}
 		}
 
 		requestAnimationFrame(draw);
