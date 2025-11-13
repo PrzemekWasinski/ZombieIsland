@@ -253,7 +253,39 @@ export function drawObject(object, currentPlayer) {
         return;
     }
     const img = objectImages[object.name]
-    ctx.drawImage(img, screenX, screenY, tileSize, tileSize)
+
+    // Check if object was recently damaged (flash white)
+    const currentTime = Date.now();
+    const timeSinceHit = object.lastHitTime ? currentTime - object.lastHitTime : Infinity;
+    const flashDuration = 150; // Flash duration in milliseconds
+
+    // Create pulsing effect (normal -> darker -> normal)
+    const time = currentTime / 1000; // Convert to seconds
+    const pulseSpeed = 2.0; // Speed of the pulse
+
+    // Use sine wave: goes from 1 -> 0 -> 1 (normal -> dark -> normal)
+    const brightness = Math.sin(time * pulseSpeed) * 0.5 + 0.5; // Range 0 to 1
+    const minBrightness = 0.4; // How dark it gets (0.4 = 60% darker)
+    const maxBrightness = 1.0; // Normal brightness
+
+    const darkenAmount = minBrightness + (maxBrightness - minBrightness) * brightness;
+
+    ctx.save();
+
+    // Apply white flash effect if recently hit
+    if (timeSinceHit < flashDuration) {
+        const flashIntensity = 1 - (timeSinceHit / flashDuration); // Fade out the flash
+        // Combine brightness filter with white flash
+        const flashBrightness = darkenAmount + (flashIntensity * 2); // Add extra brightness for flash
+        ctx.filter = `brightness(${flashBrightness})`;
+    } else {
+        // Normal pulsing effect
+        ctx.filter = `brightness(${darkenAmount})`;
+    }
+
+    ctx.drawImage(img, screenX, screenY, tileSize, tileSize);
+
+    ctx.restore();
 }
 
 export function drawDrop(drop, currentPlayer) { //Draw drop

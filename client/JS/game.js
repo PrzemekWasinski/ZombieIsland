@@ -226,7 +226,7 @@ export function startGame({ userId, token }) {
 		} else if ("object" === msg.type) {
 			if (playerId && players[playerId] && isNearby([players[playerId].mapX, players[playerId].mapY], [msg.mapX, msg.mapY])) {
 				let object = objects[msg.id];
-				
+
 				if (!object) { //New object
 					objects[msg.id] = {
 						mapX: msg.mapX,
@@ -235,7 +235,8 @@ export function startGame({ userId, token }) {
 						pixelY: msg.pixelY,
 						health: msg.health,
 						maxHealth: msg.maxHealth,
-						name: msg.name
+						name: msg.name,
+						lastHitTime: msg.lastHitTime
 					};
 				} else { //Existing object - direct property assignment
 					if (msg.mapX !== undefined) object.mapX = msg.mapX;
@@ -245,6 +246,7 @@ export function startGame({ userId, token }) {
 					if (msg.health !== undefined) object.health = msg.health;
 					if (msg.maxHealth !== undefined) object.maxHealth = msg.maxHealth;
 					if (msg.name !== undefined) object.name = msg.name;
+					if (msg.lastHitTime !== undefined) object.lastHitTime = msg.lastHitTime;
 				}
 				nearbyCache.objects.add(msg.id);
 			}

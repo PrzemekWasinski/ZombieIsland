@@ -217,9 +217,10 @@ export async function startWebSocket(config, url, apiKey) {
 								if (dx < TILE_SIZE * 1.2 && dy < TILE_SIZE * 1.2) {
 									const oldHealth = object.health;
 									object.health = Math.max(0, object.health - 3);
-									
+
 									//Only broadcast if health actually changed
 									if (object.health !== oldHealth) {
+										object.lastHitTime = Date.now(); // Track when object was hit for flash effect
 										broadcastToNearby(object, {
 											type: "object",
 											id: object.id,
@@ -230,7 +231,8 @@ export async function startWebSocket(config, url, apiKey) {
 											health: object.health,
 											maxHealth: object.maxHealth,
 											name: object.name,
-											level: object.level
+											level: object.level,
+											lastHitTime: object.lastHitTime
 										}, wss, players);
 									}
 									break;
