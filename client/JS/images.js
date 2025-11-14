@@ -6,6 +6,9 @@ export const tileSources = {
 	3: "../assets/map/Forest/center.png",
 	4: "../assets/map/Snow/center.png",
 
+	99: "../assets/map/Forest/center.png",
+	98: "../assets/map/Forest/center.png",
+
 	//Tile edges and corners
 	100: "../assets/map/Sand/t-flat.png",
 	101: "../assets/map/Sand/tr-edge.png",
@@ -285,6 +288,11 @@ export const itemImages = {
 	"White Mushroom": "../assets/items/White Mushroom.png",
 	"White Rock": "../assets/items/White Rock.png",
 	"Yellow Berry": "../assets/items/Yellow Berry.png",
+
+	"Sword Upgrade": "../assets/items/shop/sword-upgrade.png",
+	"Health Upgrade": "../assets/items/shop/health-upgrade.png",
+	"Speed Upgrade": "../assets/items/shop/speed-upgrade.png",
+
 }
 
 export const tileImages = {};

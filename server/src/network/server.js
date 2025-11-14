@@ -242,7 +242,6 @@ export async function startWebSocket(config, url, apiKey) {
 					} 
 					else if (data.dir === "interact" && data.pressed) {
 						let boatStateChanged = false;
-						const oldInBoat = player.inBoat;
 
 						//Check bounds before accessing MAP
 						const mapHeight = MAP.length;
@@ -250,56 +249,56 @@ export async function startWebSocket(config, url, apiKey) {
 
 						//Get into boat logic
 						if (!player.inBoat) {
-							if (player.mapY > 0 && MAP[player.mapY - 1][player.mapX] === 0) {
-								player.mapY -= 1;
-								player.pixelY -= TILE_SIZE;
-								player.targetY -= TILE_SIZE;
+							if (player.mapY > 0 && (MAP[player.mapY - 2][player.mapX] === 9)) {
+								player.mapY -= 2;
+								player.pixelY -= TILE_SIZE * 2;
+								player.targetY -= TILE_SIZE * 2;
 								player.inBoat = true;
 								boatStateChanged = true;
-							} else if (player.mapY < mapHeight - 1 && MAP[player.mapY + 1][player.mapX] === 0) {
-								player.mapY += 1;
-								player.pixelY += TILE_SIZE;
-								player.targetY += TILE_SIZE;
+							} else if (player.mapY < mapHeight - 1 && MAP[player.mapY + 2][player.mapX] === 0) {
+								player.mapY += 2;
+								player.pixelY += TILE_SIZE * 2;
+								player.targetY += TILE_SIZE * 2;
 								player.inBoat = true;
 								boatStateChanged = true;
-							} else if (player.mapX < mapWidth - 1 && MAP[player.mapY][player.mapX + 1] === 0) {
-								player.mapX += 1;
-								player.pixelX += TILE_SIZE;
-								player.targetX += TILE_SIZE;
+							} else if (player.mapX < mapWidth - 1 && MAP[player.mapY][player.mapX + 2] === 0) {
+								player.mapX += 2;
+								player.pixelX += TILE_SIZE * 2;
+								player.targetX += TILE_SIZE * 2;
 								player.inBoat = true;
 								boatStateChanged = true;
-							} else if (player.mapX > 0 && MAP[player.mapY][player.mapX - 1] === 0) {
-								player.mapX -= 1;
-								player.pixelX -= TILE_SIZE;
-								player.targetX -= TILE_SIZE;
+							} else if (player.mapX > 0 && MAP[player.mapY][player.mapX - 2] === 0) {
+								player.mapX -= 2;
+								player.pixelX -= TILE_SIZE * 2;
+								player.targetX -= TILE_SIZE * 2;
 								player.inBoat = true;
 								boatStateChanged = true;
 							}
 						}
 						//Get out of boat logic
 						else {
-							if (player.mapY > 0 && PASSABLE_TILES.includes(MAP[player.mapY - 1][player.mapX])) {
-								player.mapY -= 1;
-								player.pixelY -= TILE_SIZE;
-								player.targetY -= TILE_SIZE;
+							if (player.mapY > 0 && PASSABLE_TILES.includes(MAP[player.mapY - 2][player.mapX])) {
+								player.mapY -= 2;
+								player.pixelY -= TILE_SIZE * 2;
+								player.targetY -= TILE_SIZE * 2;
 								player.inBoat = false;
 								boatStateChanged = true;
-							} else if (player.mapY < mapHeight - 1 && PASSABLE_TILES.includes(MAP[player.mapY + 1][player.mapX])) {
-								player.mapY += 1;
-								player.pixelY += TILE_SIZE;
-								player.targetY += TILE_SIZE;
+							} else if (player.mapY < mapHeight - 1 && PASSABLE_TILES.includes(MAP[player.mapY + 2][player.mapX])) {
+								player.mapY += 2;
+								player.pixelY += TILE_SIZE * 2;
+								player.targetY += TILE_SIZE * 2;
 								player.inBoat = false;
 								boatStateChanged = true;
-							} else if (player.mapX < mapWidth - 1 && PASSABLE_TILES.includes(MAP[player.mapY][player.mapX + 1])) {
-								player.mapX += 1;
-								player.pixelX += TILE_SIZE;
-								player.targetX += TILE_SIZE;
+							} else if (player.mapX < mapWidth - 1 && PASSABLE_TILES.includes(MAP[player.mapY][player.mapX + 2])) {
+								player.mapX += 2;
+								player.pixelX += TILE_SIZE * 2;
+								player.targetX += TILE_SIZE * 2;
 								player.inBoat = false;
 								boatStateChanged = true;
-							} else if (player.mapX > 0 && PASSABLE_TILES.includes(MAP[player.mapY][player.mapX - 1])) {
-								player.mapX -= 1;
-								player.pixelX -= TILE_SIZE;
-								player.targetX -= TILE_SIZE;
+							} else if (player.mapX > 0 && PASSABLE_TILES.includes(MAP[player.mapY][player.mapX - 2])) {
+								player.mapX -= 2;
+								player.pixelX -= TILE_SIZE * 2;
+								player.targetX -= TILE_SIZE * 2;
 								player.inBoat = false;
 								boatStateChanged = true;
 							}

@@ -36,6 +36,14 @@ export function drawMap(currentPlayer) { //Draw game map
                 if (img && img.complete) {
                     ctx.drawImage(img, screenX, screenY, tileSize, tileSize);
                 }
+
+                if (map[y][x] === 98) {
+                    img = objectImages["Oak Tree"]
+                    ctx.drawImage(img, screenX, screenY, tileSize, tileSize);
+                } else if (map[y][x] === 99) {
+                    img = objectImages["Fruit Tree"]
+                    ctx.drawImage(img, screenX, screenY, tileSize, tileSize);
+                }
                 continue;
             } else {
                 if (map[y][x] == 1000) {
@@ -485,11 +493,11 @@ export function drawShopInventory(inventory) {
         try {
             ctx.drawImage(img, x + 8, y + 8, itemSize - 16, itemSize - 16);
         } catch (error) {
-            console.log(currentItem.itemName, "failed to draw");
+            console.log(currentItem.itemName, error);
         }
 
         // Draw price in bottom-right corner with gold background
-        const priceText = `${currentItem.itemValue}g`;
+        const priceText = `${currentItem.itemValue} G`;
         ctx.font = "bold 14px Arial";
         const priceWidth = ctx.measureText(priceText).width + 8;
 
@@ -706,6 +714,165 @@ export function drawChatBox(messages, isTyping, currentMessage) {
     };
 }
 
+export function drawChatToggleButton() {
+    const buttonSize = 50;
+    const buttonX = 20;
+    const buttonY = canvas.height - buttonSize - 20;
+
+    // Draw button background (matching HUD style)
+    ctx.fillStyle = "rgba(0, 0, 0, 0.7)";
+    ctx.fillRect(buttonX, buttonY, buttonSize, buttonSize);
+
+    // Draw button border
+    ctx.strokeStyle = "rgba(255, 255, 255, 0.3)";
+    ctx.lineWidth = 2;
+    ctx.strokeRect(buttonX, buttonY, buttonSize, buttonSize);
+
+    // Draw three dots
+    ctx.fillStyle = "#FFD700"; // Gold color like HUD
+    const dotSize = 5;
+    const dotSpacing = 12;
+    const startX = buttonX + buttonSize / 2;
+    const startY = buttonY + buttonSize / 2;
+
+    // Draw three horizontal dots
+    for (let i = -1; i <= 1; i++) {
+        ctx.beginPath();
+        ctx.arc(startX + (i * dotSpacing), startY, dotSize, 0, Math.PI * 2);
+        ctx.fill();
+    }
+
+    // Return button bounds for click detection
+    return {
+        buttonX,
+        buttonY,
+        buttonSize
+    };
+}
+
+export function drawMinimap(player, mapImage, isVisible) {
+    const hudPadding = 20; // Same padding as HUD
+
+    if (!isVisible) {
+        // Draw toggle button when minimap is closed (top right)
+        const buttonSize = 50;
+        const buttonX = canvas.width - buttonSize - hudPadding;
+        const buttonY = hudPadding;
+
+        // Draw button background (matching HUD style)
+        ctx.fillStyle = "rgba(0, 0, 0, 0.7)";
+        ctx.fillRect(buttonX, buttonY, buttonSize, buttonSize);
+
+        // Draw button border
+        ctx.strokeStyle = "rgba(255, 255, 255, 0.3)";
+        ctx.lineWidth = 2;
+        ctx.strokeRect(buttonX, buttonY, buttonSize, buttonSize);
+
+        // Draw "M" for map
+        ctx.fillStyle = "#FFD700";
+        ctx.font = "bold 24px Arial";
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+        ctx.fillText("M", buttonX + buttonSize / 2, buttonY + buttonSize / 2);
+
+        return {
+            toggleButtonX: buttonX,
+            toggleButtonY: buttonY,
+            toggleButtonSize: buttonSize
+        };
+    }
+
+    // Minimap dimensions (top right, aligned with HUD)
+    const minimapWidth = 250;
+    const minimapHeight = 175;
+    const titleBarHeight = 30;
+    const minimapX = canvas.width - minimapWidth - hudPadding;
+    // Adjust minimapY so the top of the panel (including title bar) aligns with HUD
+    const minimapY = hudPadding + titleBarHeight + 5; // +5 for the border offset
+
+    // Draw minimap background (panel starts at hudPadding)
+    ctx.fillStyle = "rgba(0, 0, 0, 0.7)";
+    ctx.fillRect(minimapX - 5, hudPadding, minimapWidth + 10, minimapHeight + 40);
+
+    // Draw minimap border
+    ctx.strokeStyle = "rgba(255, 255, 255, 0.3)";
+    ctx.lineWidth = 2;
+    ctx.strokeRect(minimapX - 5, hudPadding, minimapWidth + 10, minimapHeight + 40);
+
+    // Draw title bar
+    ctx.fillStyle = "rgba(0, 0, 0, 0.9)";
+    ctx.fillRect(minimapX - 5, hudPadding, minimapWidth + 10, titleBarHeight);
+
+    // Title text
+    ctx.fillStyle = "#FFD700";
+    ctx.font = "bold 18px Arial";
+    ctx.textAlign = "left";
+    ctx.fillText("Map", minimapX, hudPadding + 20);
+
+    // Draw close button
+    const closeButtonSize = 24;
+    const closeButtonX = minimapX + minimapWidth - closeButtonSize + 5;
+    const closeButtonY = hudPadding + 3;
+
+    ctx.fillStyle = "rgba(220, 53, 69, 0.8)";
+    ctx.fillRect(closeButtonX, closeButtonY, closeButtonSize, closeButtonSize);
+
+    ctx.strokeStyle = "rgba(255, 255, 255, 0.6)";
+    ctx.lineWidth = 2;
+    ctx.strokeRect(closeButtonX, closeButtonY, closeButtonSize, closeButtonSize);
+
+    // Draw X
+    ctx.strokeStyle = "white";
+    ctx.lineWidth = 2;
+    const padding = 6;
+    ctx.beginPath();
+    ctx.moveTo(closeButtonX + padding, closeButtonY + padding);
+    ctx.lineTo(closeButtonX + closeButtonSize - padding, closeButtonY + closeButtonSize - padding);
+    ctx.moveTo(closeButtonX + closeButtonSize - padding, closeButtonY + padding);
+    ctx.lineTo(closeButtonX + padding, closeButtonY + closeButtonSize - padding);
+    ctx.stroke();
+
+    // Draw map image
+    if (mapImage && mapImage.complete) {
+        ctx.drawImage(mapImage, minimapX, minimapY, minimapWidth, minimapHeight);
+    }
+
+    // Calculate player position on minimap
+    // Map is 2500x1750 tiles, image is 500x350 pixels, minimap is 250x175
+    const mapTilesWidth = 2500;
+    const mapTilesHeight = 1750;
+
+    const playerMinimapX = minimapX + (player.mapX / mapTilesWidth) * minimapWidth;
+    const playerMinimapY = minimapY + (player.mapY / mapTilesHeight) * minimapHeight;
+
+    // Draw player indicator (pulsing dot)
+    const time = Date.now() / 1000;
+    const pulseSize = 3 + Math.sin(time * 4) * 1.5;
+
+    // Outer glow
+    ctx.fillStyle = "rgba(255, 215, 0, 0.4)";
+    ctx.beginPath();
+    ctx.arc(playerMinimapX, playerMinimapY, pulseSize + 3, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Player dot
+    ctx.fillStyle = "#FFD700";
+    ctx.beginPath();
+    ctx.arc(playerMinimapX, playerMinimapY, pulseSize, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Draw border around player dot
+    ctx.strokeStyle = "rgba(0, 0, 0, 0.8)";
+    ctx.lineWidth = 1;
+    ctx.stroke();
+
+    return {
+        closeButtonX,
+        closeButtonY,
+        closeButtonSize
+    };
+}
+
 export function ensurePlayerDefaults(player) {
     if (!player.action) player.action = "idle";
     if (!player.direction) player.direction = "down";
@@ -717,19 +884,22 @@ export function drawPickupNotifications(notifications) {
     const currentTime = Date.now();
     const notificationDuration = 3000; // Show for 3 seconds
     const fadeOutStart = 2000; // Start fading after 2 seconds
-    const startX = canvas.width - 250; // Top-right corner
-    const startY = 20;
+    const startX = canvas.width - 250; // Right side
     const notificationHeight = 40;
     const notificationSpacing = 10;
+    const bottomMargin = 20;
 
-    // Filter out expired notifications and draw remaining ones
+    // Filter out expired notifications
     const activeNotifications = notifications.filter(notif =>
         currentTime - notif.timestamp < notificationDuration
     );
 
+    // Draw notifications from bottom to top, with newest at the bottom
     activeNotifications.forEach((notif, index) => {
         const age = currentTime - notif.timestamp;
-        const y = startY + index * (notificationHeight + notificationSpacing);
+        // Calculate position from bottom up, reverse index so newest is at bottom
+        const reverseIndex = activeNotifications.length - 1 - index;
+        const y = canvas.height - bottomMargin - (reverseIndex + 1) * (notificationHeight + notificationSpacing);
 
         // Calculate opacity for fade out effect
         let opacity = 1;

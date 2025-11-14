@@ -492,9 +492,15 @@ export function startGame(wss, TILE_SIZE, VISIBLE_TILES_X, VISIBLE_TILES_Y, PASS
                 const checkX = newTileX;
                 const checkY = currentTileY;
 
+                const isBlockedCoordinate =
+                    (checkY === 1301 && checkX === 1009) ||
+                    (checkY === 1300 && checkX === 1009) ||
+                    (checkY === 1299 && checkX === 1009);
+
                 if (
                     checkY < 0 || checkY >= MAP.length || checkX < 0 || checkX >= MAP[0].length ||
-                    !PASSABLE_TILES.includes(MAP[checkY][checkX])
+                    !PASSABLE_TILES.includes(MAP[checkY][checkX]) ||
+                    isBlockedCoordinate
                 ) {
                     newPixelX = velocityX > 0 ? currentTileX * TILE_SIZE + TILE_SIZE - 1 : currentTileX * TILE_SIZE;
                     enemy.movingLeft = false;
@@ -509,9 +515,16 @@ export function startGame(wss, TILE_SIZE, VISIBLE_TILES_X, VISIBLE_TILES_Y, PASS
             if (newTileY !== currentTileY) { //Check vertical collision
                 const checkX = currentTileX;
                 const checkY = newTileY;
+
+                const isBlockedCoordinate =
+                    (checkY === 1301 && checkX === 1009) ||
+                    (checkY === 1300 && checkX === 1009) ||
+                    (checkY === 1299 && checkX === 1009);
+
                 if (
                     checkY < 0 || checkY >= MAP.length || checkX < 0 || checkX >= MAP[0].length ||
-                    !PASSABLE_TILES.includes(MAP[checkY][checkX])
+                    !PASSABLE_TILES.includes(MAP[checkY][checkX]) ||
+                    isBlockedCoordinate
                 ) {
                     newPixelY = velocityY > 0 ? currentTileY * TILE_SIZE + TILE_SIZE - 1 : currentTileY * TILE_SIZE;
                     enemy.movingUp = false;

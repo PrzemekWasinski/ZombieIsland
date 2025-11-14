@@ -1,5 +1,5 @@
 import { loadImages, sprites, playerImages } from "./images.js";
-import { drawMap, drawPlayer, drawEnemy, drawDrop, drawObject, drawInventory, isNearby, drawHUD, drawShopInventory, drawChatBox, drawPickupNotifications } from "./functions.js"
+import { drawMap, drawPlayer, drawEnemy, drawDrop, drawObject, drawInventory, isNearby, drawHUD, drawShopInventory, drawChatBox, drawPickupNotifications, drawChatToggleButton, drawMinimap } from "./functions.js"
 
 export function startGame({ userId, token }) {
 	//const socket = new WebSocket("wss://ws.zombieisland.online/"); //Main server
@@ -58,9 +58,14 @@ export function startGame({ userId, token }) {
 	let inShopInventory = false;
 	let inSellInventory = false;
 	let chatBoxVisible = true;
+	let minimapVisible = true;
 
 	let shopInventory = {};
 	let inventory = {};
+
+	// Load minimap image
+	const minimapImage = new Image();
+	minimapImage.src = "../assets/HUD/map.png";
 
 	let globalChatMessages = []; // Global chat message queue
 	let pickupNotifications = []; // Item pickup notifications queue
@@ -715,14 +720,20 @@ export function startGame({ userId, token }) {
 
 		drawHUD(players[playerId])
 
-		// Draw chat box and get close button position
+		// Draw chat box or toggle button
 		let chatCloseButton = null;
+		let chatToggleButton = null;
 		if (chatBoxVisible) {
 			chatCloseButton = drawChatBox(globalChatMessages, isTyping, inputString);
+		} else {
+			chatToggleButton = drawChatToggleButton();
 		}
 
 		// Draw pickup notifications
 		drawPickupNotifications(pickupNotifications)
+
+		// Draw minimap
+		const minimapButtons = drawMinimap(players[playerId], minimapImage, minimapVisible);
 
 		//Handle right click for item selection
 		if (mouseRightClicked) {
@@ -749,6 +760,39 @@ export function startGame({ userId, token }) {
 					mouseLeftY >= chatCloseButton.closeButtonY &&
 					mouseLeftY <= chatCloseButton.closeButtonY + chatCloseButton.closeButtonSize) {
 					chatBoxVisible = false;
+					mouseLeftClicked = false;
+				}
+			}
+
+			//Handle chat toggle button click
+			if (chatToggleButton && !chatBoxVisible) {
+				if (mouseLeftX >= chatToggleButton.buttonX &&
+					mouseLeftX <= chatToggleButton.buttonX + chatToggleButton.buttonSize &&
+					mouseLeftY >= chatToggleButton.buttonY &&
+					mouseLeftY <= chatToggleButton.buttonY + chatToggleButton.buttonSize) {
+					chatBoxVisible = true;
+					mouseLeftClicked = false;
+				}
+			}
+
+			//Handle minimap close button click
+			if (minimapButtons && minimapVisible && minimapButtons.closeButtonX) {
+				if (mouseLeftX >= minimapButtons.closeButtonX &&
+					mouseLeftX <= minimapButtons.closeButtonX + minimapButtons.closeButtonSize &&
+					mouseLeftY >= minimapButtons.closeButtonY &&
+					mouseLeftY <= minimapButtons.closeButtonY + minimapButtons.closeButtonSize) {
+					minimapVisible = false;
+					mouseLeftClicked = false;
+				}
+			}
+
+			//Handle minimap toggle button click
+			if (minimapButtons && !minimapVisible && minimapButtons.toggleButtonX) {
+				if (mouseLeftX >= minimapButtons.toggleButtonX &&
+					mouseLeftX <= minimapButtons.toggleButtonX + minimapButtons.toggleButtonSize &&
+					mouseLeftY >= minimapButtons.toggleButtonY &&
+					mouseLeftY <= minimapButtons.toggleButtonY + minimapButtons.toggleButtonSize) {
+					minimapVisible = true;
 					mouseLeftClicked = false;
 				}
 			}
