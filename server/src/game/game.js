@@ -24,6 +24,18 @@ export function startGame(wss, TILE_SIZE, VISIBLE_TILES_X, VISIBLE_TILES_Y, PASS
         newObjects.clear();
         updatedEnemies.clear();
 
+        //Clean up old chat messages (older than 5 seconds)
+        const currentTime = Date.now();
+        const MESSAGE_LIFETIME = 5000; // 5 seconds
+        for (const id in players) {
+            const player = players[id];
+            if (player.messages && player.messages.length > 0) {
+                player.messages = player.messages.filter(msg =>
+                    currentTime - msg.timestamp < MESSAGE_LIFETIME
+                );
+            }
+        }
+
         //Handle dead enemies
         const deadEnemies = Object.keys(enemies).filter(id => enemies[id].health <= 0);
         const deadObjects = Object.keys(objects).filter(id => objects[id].health <= 0);

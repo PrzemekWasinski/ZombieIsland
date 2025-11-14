@@ -340,10 +340,28 @@ export async function startWebSocket(config, url, apiKey) {
 					} else if (data.dir === "message" && data.pressed) {
 						const targetPlayer = players[playerId];
 						if (targetPlayer && targetPlayer.dbID === data.playerID) {
-							targetPlayer.messages.push({ 
-								text: data.message, 
-								timestamp: Date.now() 
+							targetPlayer.messages.push({
+								text: data.message,
+								timestamp: Date.now()
 							});
+
+							// Immediately broadcast the message to all players (including sender)
+							broadcast({
+								type: "update",
+								id: targetPlayer.id,
+								mapX: targetPlayer.mapX,
+								mapY: targetPlayer.mapY,
+								pixelX: targetPlayer.pixelX,
+								pixelY: targetPlayer.pixelY,
+								targetX: targetPlayer.targetX,
+								targetY: targetPlayer.targetY,
+								health: targetPlayer.health,
+								maxHealth: targetPlayer.maxHealth,
+								username: targetPlayer.username,
+								level: targetPlayer.level,
+								gold: targetPlayer.gold,
+								messages: targetPlayer.messages
+							}, wss);
 						}
 					} else if (data.dir === "deleteItem") {
 						const targetPlayer = players[playerId];
@@ -423,6 +441,27 @@ export async function startWebSocket(config, url, apiKey) {
 							saveProgress(player, supabase);
 						}
 					}
+				}
+
+				//Handle typing indicator
+				if (data.type === "typing") {
+					if (playerId === null) {
+						return;
+					}
+
+					const player = players[playerId];
+					if (!player) {
+						return;
+					}
+
+					player.isTyping = data.isTyping;
+
+					// Broadcast typing status to nearby players
+					broadcastToNearby(player, {
+						type: "typing",
+						id: playerId,
+						isTyping: data.isTyping
+					}, wss, players);
 				}
 			} catch (error) {
 				console.error("Error processing message:", error);

@@ -398,7 +398,23 @@ export function startGame({ userId, token }) {
 
 		const key = control.key;
 		const player = players[playerId];
-		player.action = control.action;
+
+		// Handle attack animation trigger
+		if (key === "attack") {
+			// Don't restart attack if already attacking or if attack key is already held
+			if (!player.isPlayingAttack && !keysHeld[key]) {
+				player.isPlayingAttack = true;
+				player.attackAnimationFrame = 0;
+				player.action = "attack";
+			}
+		} else {
+			// Cancel attack animation if movement key is pressed
+			if (player.isPlayingAttack && (key === "up" || key === "down" || key === "left" || key === "right")) {
+				player.isPlayingAttack = false;
+				player.attackAnimationFrame = 0;
+			}
+			player.action = control.action;
+		}
 
 		if (control.direction !== "current") {
 			player.direction = control.direction;
@@ -431,6 +447,11 @@ export function startGame({ userId, token }) {
 			}));
 
 			const player = players[playerId];
+			// Don't interrupt attack animation when releasing space
+			if (player.isPlayingAttack) {
+				return;
+			}
+
 			if (!keysHeld.up && !keysHeld.down && !keysHeld.left && !keysHeld.right) {
 				player.action = "idle";
 			} else {
@@ -647,6 +668,31 @@ export function startGame({ userId, token }) {
 					// For idle, keep frame at 0 (still frame)
 					player.frameIndex = 0;
 					player.frameTimer = 0;
+				} else if (player.action === "attack" && player.isPlayingAttack) {
+					// Play full attack animation without looping
+					player.frameTimer += deltaTime * 1000;
+					const frameDelay = 100;
+
+					if (player.frameTimer >= frameDelay) {
+						player.frameTimer = 0;
+						player.attackAnimationFrame++;
+
+						// Check if animation is complete
+						if (player.attackAnimationFrame >= frameAmount) {
+							player.isPlayingAttack = false;
+							player.attackAnimationFrame = 0;
+
+							// Check if movement keys are held, if so go to walk, otherwise idle
+							if (keysHeld.up || keysHeld.down || keysHeld.left || keysHeld.right) {
+								player.action = "walk";
+							} else {
+								player.action = "idle";
+							}
+							player.frameIndex = 0;
+						} else {
+							player.frameIndex = player.attackAnimationFrame;
+						}
+					}
 				} else {
 					player.frameTimer += deltaTime * 1000;
 					const frameDelay = 100;
