@@ -119,41 +119,72 @@ export function drawPlayer(player, isCurrentPlayer, currentPlayer, sprite) { //D
         console.error('DrawImage failed:', error);
     }
 
+    //Only show username and messages for current player, no health bar
+    if (!isCurrentPlayer) {
+        ctx.fillStyle = "rgb(255, 255, 255)";
+        ctx.font = "18px Arial";
+        ctx.textAlign = "center";
+        ctx.fillText(
+            `${player.username} lv.${player.level}`,
+            screenX + 30,
+            screenY - 10
+        );
+
+        const multiplier = tileSize / player.maxHealth;
+
+        if (player.health > 0) {
+            ctx.fillStyle = "rgb(0, 0, 0)";
+            ctx.fillRect(
+                screenX,
+                screenY + tileSize,
+                player.maxHealth * multiplier,
+                10
+            );
+
+            ctx.fillStyle = "rgb(255, 0, 0)";
+            ctx.fillRect(
+                screenX,
+                screenY + tileSize,
+                player.health * multiplier,
+                10
+            );
+        }
+    }
+
+    // Show messages for all players (filter out old messages)
+    const currentTime = Date.now();
+    const MESSAGE_LIFETIME = 5000; // 5 seconds - match server lifetime
+    const activeMessages = player.messages.filter(msg =>
+        currentTime - msg.timestamp < MESSAGE_LIFETIME
+    );
+
     ctx.fillStyle = "rgb(255, 255, 255)";
     ctx.font = "18px Arial";
     ctx.textAlign = "center";
-    ctx.fillText(
-        `${player.username} lv.${player.level}`,
-        screenX + 30,
-        screenY - 10
-    );
-
-    const multiplier = tileSize / player.maxHealth;
-
-    console.log(player.health, player.maxHealth)
-
-    if (player.health > 0) {
-        ctx.fillStyle = "rgb(0, 0, 0)";
-        ctx.fillRect(
-            screenX,
-            screenY + tileSize,
-            player.maxHealth * multiplier,
-            10
-        );
-
-        ctx.fillStyle = "rgb(255, 0, 0)";
-        ctx.fillRect(
-            screenX,
-            screenY + tileSize,
-            player.health * multiplier,
-            10
-        );
+    let space = 0;
+    for (let i = 0; i < activeMessages.length; i++) {
+        ctx.fillText(activeMessages[i].text, screenX + 32, (screenY - 40) - space);
+        space += 15;
     }
-   
-    let space = 0
-    for (let i = 0; i < player.messages.length; i++) {
-        ctx.fillText(player.messages[i].text, screenX + 32, (screenY - 25) - space)
-        space += 15
+
+    // Show typing indicator
+    if (player.isTyping && !isCurrentPlayer) {
+        const typingY = (screenY - 40) - space;
+        const dotSize = 3;
+        const dotSpacing = 5;
+        const animationSpeed = 500; // ms per animation cycle
+        const time = Date.now() % animationSpeed;
+        const animationProgress = time / animationSpeed;
+
+        // Draw "..." with bouncing animation
+        ctx.fillStyle = "rgba(255, 255, 255, 0.8)";
+        for (let i = 0; i < 3; i++) {
+            const dotX = screenX + 32 + (i - 1) * (dotSize * 2 + dotSpacing);
+            const bounce = Math.abs(Math.sin((animationProgress + i * 0.33) * Math.PI * 2)) * 3;
+            ctx.beginPath();
+            ctx.arc(dotX, typingY - bounce, dotSize, 0, Math.PI * 2);
+            ctx.fill();
+        }
     }
 }
 
@@ -305,74 +336,374 @@ export function isNearby(coord1, coord2) {
 }
 
 export function drawInventory(inventory) {
-    let y = 300
-    let x = 300
-    let i = 0;
+    // Inventory panel settings
+    const panelWidth = 960;
+    const panelHeight = 600;
+    const panelX = (canvas.width - panelWidth) / 2;
+    const panelY = (canvas.height - panelHeight) / 2;
+
+    // Draw main panel background
+    ctx.fillStyle = "rgba(0, 0, 0, 0.85)";
+    ctx.fillRect(panelX, panelY, panelWidth, panelHeight);
+
+    // Draw panel border
+    ctx.strokeStyle = "rgba(255, 255, 255, 0.4)";
+    ctx.lineWidth = 3;
+    ctx.strokeRect(panelX, panelY, panelWidth, panelHeight);
+
+    // Draw title bar
+    ctx.fillStyle = "rgba(0, 0, 0, 0.9)";
+    ctx.fillRect(panelX, panelY, panelWidth, 50);
+    ctx.strokeRect(panelX, panelY, panelWidth, 50);
+
+    // Title text
+    ctx.fillStyle = "#FFD700";
+    ctx.font = "bold 28px Arial";
+    ctx.textAlign = "center";
+    ctx.fillText("Inventory", panelX + panelWidth / 2, panelY + 35);
+
+    // Item grid settings - calculate to fit evenly
+    const itemSize = 80;
+    const itemsPerRow = 8;
+    const gridPadding = 40; // Padding on left and right
+    const totalGridWidth = panelWidth - (gridPadding * 2);
+    const itemSpacing = (totalGridWidth - (itemsPerRow * itemSize)) / (itemsPerRow - 1);
+    const startX = panelX + gridPadding;
+    const startY = panelY + 80;
+    const rowSpacing = 30; // Space for item name below
+
+    let row = 0;
+    let col = 0;
 
     for (const item in inventory) {
-        const currentItem = inventory[item]
+        const currentItem = inventory[item];
         if (currentItem.itemAmount > 0) {
-            if (7 == i) { //Make new row
-                y += 128;
-                x = 300;
-                i = 0;
-            }
-            const img = itemImages[currentItem.itemName]
+            const x = startX + col * (itemSize + itemSpacing);
+            const y = startY + row * (itemSize + itemSpacing + rowSpacing);
+
+            // Draw item slot background
+            ctx.fillStyle = "rgba(50, 50, 50, 0.6)";
+            ctx.fillRect(x, y, itemSize, itemSize);
+
+            // Draw item slot border
+            ctx.strokeStyle = "rgba(255, 255, 255, 0.3)";
+            ctx.lineWidth = 2;
+            ctx.strokeRect(x, y, itemSize, itemSize);
+
+            // Draw item image
+            const img = itemImages[currentItem.itemName];
             try {
-                ctx.drawImage(img, x, y, tileSize, tileSize)
+                ctx.drawImage(img, x + 8, y + 8, itemSize - 16, itemSize - 16);
             } catch (error) {
-                console.log(item.name, "failed to draw")
+                console.log(currentItem.itemName, "failed to draw");
             }
 
-            ctx.fillStyle = "white"
-            ctx.fillText(`${currentItem.itemName}: ${currentItem.itemAmount}`, x + 32, y + 84);
+            // Draw item quantity in bottom-right corner
+            ctx.fillStyle = "rgba(0, 0, 0, 0.8)";
+            ctx.fillRect(x + itemSize - 28, y + itemSize - 22, 26, 20);
+
+            ctx.fillStyle = "white";
+            ctx.font = "bold 14px Arial";
+            ctx.textAlign = "right";
+            ctx.fillText(currentItem.itemAmount, x + itemSize - 4, y + itemSize - 6);
+
+            // Draw item name below slot
+            ctx.fillStyle = "white";
+            ctx.font = "14px Arial";
+            ctx.textAlign = "center";
+            ctx.fillText(currentItem.itemName, x + itemSize / 2, y + itemSize + 18);
+
+            // Store position for click detection
             currentItem.xPosition = x;
             currentItem.yPosition = y;
-            ctx.strokeRect(currentItem.xPosition, currentItem.yPosition, tileSize, tileSize);
-            x += 128
-            i++;
+
+            col++;
+            if (col >= itemsPerRow) {
+                col = 0;
+                row++;
+            }
         }
     }
 }
 
 export function drawShopInventory(inventory) {
-    let y = 300
-    let x = 300
-    let i = 0;
+    // Shop panel settings
+    const panelWidth = 960;
+    const panelHeight = 600;
+    const panelX = (canvas.width - panelWidth) / 2;
+    const panelY = (canvas.height - panelHeight) / 2;
+
+    // Draw main panel background
+    ctx.fillStyle = "rgba(0, 0, 0, 0.85)";
+    ctx.fillRect(panelX, panelY, panelWidth, panelHeight);
+
+    // Draw panel border
+    ctx.strokeStyle = "rgba(255, 255, 255, 0.4)";
+    ctx.lineWidth = 3;
+    ctx.strokeRect(panelX, panelY, panelWidth, panelHeight);
+
+    // Draw title bar
+    ctx.fillStyle = "rgba(0, 0, 0, 0.9)";
+    ctx.fillRect(panelX, panelY, panelWidth, 50);
+    ctx.strokeRect(panelX, panelY, panelWidth, 50);
+
+    // Title text
+    ctx.fillStyle = "#FFD700";
+    ctx.font = "bold 28px Arial";
+    ctx.textAlign = "center";
+    ctx.fillText("Shop", panelX + panelWidth / 2, panelY + 35);
+
+    // Item grid settings - calculate to fit evenly
+    const itemSize = 80;
+    const itemsPerRow = 8;
+    const gridPadding = 40; // Padding on left and right
+    const totalGridWidth = panelWidth - (gridPadding * 2);
+    const itemSpacing = (totalGridWidth - (itemsPerRow * itemSize)) / (itemsPerRow - 1);
+    const startX = panelX + gridPadding;
+    const startY = panelY + 80;
+    const rowSpacing = 30; // Space for item name below
+
+    let row = 0;
+    let col = 0;
 
     for (const item in inventory) {
-        const currentItem = inventory[item]
-        if (7 == i) { //Make new row
-            y += 128;
-            x = 300;
-            i = 0;
-        }
-        // const img = itemImages[currentItem.itemName]
-        // try {
-        //     ctx.drawImage(img, x, y, tileSize, tileSize)
-        // } catch (error) {
-        //     console.log(item.name, "failed to draw")
-        // }
+        const currentItem = inventory[item];
+        const x = startX + col * (itemSize + itemSpacing);
+        const y = startY + row * (itemSize + itemSpacing + rowSpacing);
 
-        ctx.fillStyle = "white"
-        ctx.fillText(`${currentItem.itemName}: ${currentItem.itemValue}`, x + 32, y + 84);
+        // Draw item slot background
+        ctx.fillStyle = "rgba(50, 50, 50, 0.6)";
+        ctx.fillRect(x, y, itemSize, itemSize);
+
+        // Draw item slot border
+        ctx.strokeStyle = "rgba(255, 255, 255, 0.3)";
+        ctx.lineWidth = 2;
+        ctx.strokeRect(x, y, itemSize, itemSize);
+
+        // Draw item image
+        const img = itemImages[currentItem.itemName];
+        try {
+            ctx.drawImage(img, x + 8, y + 8, itemSize - 16, itemSize - 16);
+        } catch (error) {
+            console.log(currentItem.itemName, "failed to draw");
+        }
+
+        // Draw price in bottom-right corner with gold background
+        const priceText = `${currentItem.itemValue}g`;
+        ctx.font = "bold 14px Arial";
+        const priceWidth = ctx.measureText(priceText).width + 8;
+
+        ctx.fillStyle = "rgba(218, 165, 32, 0.9)"; // Gold background
+        ctx.fillRect(x + itemSize - priceWidth - 2, y + itemSize - 22, priceWidth + 2, 20);
+
+        ctx.fillStyle = "black";
+        ctx.textAlign = "right";
+        ctx.fillText(priceText, x + itemSize - 4, y + itemSize - 6);
+
+        // Draw item name below slot
+        ctx.fillStyle = "white";
+        ctx.font = "14px Arial";
+        ctx.textAlign = "center";
+        ctx.fillText(currentItem.itemName, x + itemSize / 2, y + itemSize + 18);
+
+        // Store position for click detection
         currentItem.xPosition = x;
         currentItem.yPosition = y;
-        ctx.strokeRect(currentItem.xPosition, currentItem.yPosition, tileSize, tileSize);
-        x += 128
-        i++;
-        
+
+        col++;
+        if (col >= itemsPerRow) {
+            col = 0;
+            row++;
+        }
     }
 }
 
 export function drawHUD(player) {
-    ctx.fillStyle = "white"
-    ctx.textAlign = "left";
-    ctx.fillText(`X: ${player.mapX}`, 30, 30);
-    ctx.fillText(`Y: ${player.mapY}`, 30, 60);
+    const padding = 20;
+    const hudWidth = 350;
+    const hudHeight = 140;
+    const barWidth = 280;
+    const barHeight = 30;
 
-    ctx.fillText(`Gold: ${player.gold}`, canvas.width - 150, 30);
-    ctx.fillText(`HP: ${player.health}/${player.maxHealth}`, canvas.width - 150, 60);
+    // Draw semi-transparent dark background panel (top-left)
+    ctx.fillStyle = "rgba(0, 0, 0, 0.7)";
+    ctx.fillRect(padding, padding, hudWidth, hudHeight);
+
+    // Draw border around panel
+    ctx.strokeStyle = "rgba(255, 255, 255, 0.3)";
+    ctx.lineWidth = 2;
+    ctx.strokeRect(padding, padding, hudWidth, hudHeight);
+
+    // Player name and level
+    ctx.fillStyle = "#FFD700"; // Gold color
+    ctx.font = "bold 24px Arial";
+    ctx.textAlign = "left";
+    ctx.fillText(`${player.username} - Lv.${player.level}`, padding + 15, padding + 30);
+
+    // Health bar background
+    const healthBarX = padding + 15;
+    const healthBarY = padding + 45;
+    ctx.fillStyle = "rgba(50, 50, 50, 0.8)";
+    ctx.fillRect(healthBarX, healthBarY, barWidth, barHeight);
+
+    // Health bar fill
+    const healthPercent = player.health / player.maxHealth;
+    const healthColor = healthPercent > 0.5 ? "#4CAF50" : healthPercent > 0.25 ? "#FFA500" : "#F44336";
+    ctx.fillStyle = healthColor;
+    ctx.fillRect(healthBarX, healthBarY, barWidth * healthPercent, barHeight);
+
+    // Health bar border
+    ctx.strokeStyle = "rgba(255, 255, 255, 0.5)";
+    ctx.lineWidth = 2;
+    ctx.strokeRect(healthBarX, healthBarY, barWidth, barHeight);
+
+    // Health text
+    ctx.fillStyle = "white";
+    ctx.font = "bold 16px Arial";
+    ctx.textAlign = "center";
+    ctx.fillText(`HP: ${Math.floor(player.health)}/${player.maxHealth}`, healthBarX + barWidth / 2, healthBarY + 20);
+
+    // Gold and coordinates
+    ctx.textAlign = "left";
+    ctx.font = "18px Arial";
+    ctx.fillStyle = "#FFD700";
+    ctx.fillText(`Gold: ${player.gold}`, padding + 15, padding + 100);
+
+    ctx.fillStyle = "white";
+    ctx.fillText(`X: ${player.mapX}`, padding + 15, padding + 120);
+    ctx.fillText(`Y: ${player.mapY}`, padding + 90, padding + 120);
+}
+
+export function drawChatBox(messages, isTyping, currentMessage) {
+    const chatWidth = 450;
+    const chatHeight = 250;
+    const chatX = 20;
+    const inputBoxHeight = isTyping ? 40 : 0; // Account for input box if typing
+    const chatY = canvas.height - chatHeight - inputBoxHeight - 40; // Move higher with more padding
+    const lineHeight = 20;
+    const messagePadding = 10;
+    const maxMessages = 10;
+
+    // Draw chat box background
+    ctx.fillStyle = "rgba(0, 0, 0, 0.75)";
+    ctx.fillRect(chatX, chatY, chatWidth, chatHeight);
+
+    // Draw chat box border
+    ctx.strokeStyle = "rgba(255, 255, 255, 0.4)";
+    ctx.lineWidth = 2;
+    ctx.strokeRect(chatX, chatY, chatWidth, chatHeight);
+
+    // Draw title bar
+    ctx.fillStyle = "rgba(0, 0, 0, 0.9)";
+    ctx.fillRect(chatX, chatY, chatWidth, 30);
+    ctx.strokeRect(chatX, chatY, chatWidth, 30);
+
+    // Title text
+    ctx.fillStyle = "#FFD700";
+    ctx.font = "bold 18px Arial";
+    ctx.textAlign = "left";
+    ctx.fillText("Chat", chatX + 10, chatY + 20);
+
+    // Draw X button in the top-right corner of the title bar
+    const closeButtonSize = 24;
+    const closeButtonX = chatX + chatWidth - closeButtonSize - 3;
+    const closeButtonY = chatY + 3;
+
+    // Draw close button background
+    ctx.fillStyle = "rgba(220, 53, 69, 0.8)";
+    ctx.fillRect(closeButtonX, closeButtonY, closeButtonSize, closeButtonSize);
+
+    // Draw close button border
+    ctx.strokeStyle = "rgba(255, 255, 255, 0.6)";
+    ctx.lineWidth = 2;
+    ctx.strokeRect(closeButtonX, closeButtonY, closeButtonSize, closeButtonSize);
+
+    // Draw X
+    ctx.strokeStyle = "white";
+    ctx.lineWidth = 2;
+    const padding = 6;
+    ctx.beginPath();
+    ctx.moveTo(closeButtonX + padding, closeButtonY + padding);
+    ctx.lineTo(closeButtonX + closeButtonSize - padding, closeButtonY + closeButtonSize - padding);
+    ctx.moveTo(closeButtonX + closeButtonSize - padding, closeButtonY + padding);
+    ctx.lineTo(closeButtonX + padding, closeButtonY + closeButtonSize - padding);
+    ctx.stroke();
+
+    // Draw messages
+    ctx.fillStyle = "white";
+    ctx.font = "14px Arial";
+    const startY = chatY + 45;
+    const displayMessages = messages.slice(-maxMessages);
+
+    for (let i = 0; i < displayMessages.length; i++) {
+        const msg = displayMessages[i];
+        const y = startY + i * lineHeight;
+
+        // Draw username in color
+        ctx.fillStyle = "#c64affff";
+        const usernameText = `${msg.username}: `;
+        ctx.fillText(usernameText, chatX + messagePadding, y);
+
+        // Draw message in white
+        const usernameWidth = ctx.measureText(usernameText).width;
+        ctx.fillStyle = "white";
+
+        // Truncate message if too long
+        const maxMessageWidth = chatWidth - messagePadding * 2 - usernameWidth;
+        let messageText = msg.text;
+        if (ctx.measureText(messageText).width > maxMessageWidth) {
+            while (ctx.measureText(messageText + "...").width > maxMessageWidth && messageText.length > 0) {
+                messageText = messageText.slice(0, -1);
+            }
+            messageText += "...";
+        }
+
+        ctx.fillText(messageText, chatX + messagePadding + usernameWidth, y);
+    }
+
+    // Draw typing indicator box if typing
+    if (isTyping) {
+        const inputBoxHeight = 35;
+        const inputBoxY = chatY + chatHeight + 5;
+
+        // Draw input box background
+        ctx.fillStyle = "rgba(0, 0, 0, 0.8)";
+        ctx.fillRect(chatX, inputBoxY, chatWidth, inputBoxHeight);
+
+        // Draw input box border
+        ctx.strokeStyle = "rgba(255, 255, 255, 0.5)";
+        ctx.lineWidth = 2;
+        ctx.strokeRect(chatX, inputBoxY, chatWidth, inputBoxHeight);
+
+        // Draw current message being typed
+        ctx.fillStyle = "white";
+        ctx.font = "14px Arial";
+        ctx.textAlign = "left";
+
+        // Add cursor animation
+        const cursorVisible = Math.floor(Date.now() / 500) % 2 === 0;
+        const displayText = currentMessage + (cursorVisible ? "|" : "");
+
+        // Truncate if too long
+        let finalText = displayText;
+        const maxInputWidth = chatWidth - messagePadding * 2;
+        if (ctx.measureText(finalText).width > maxInputWidth) {
+            // Show end of message if it's too long
+            while (ctx.measureText("..." + finalText).width > maxInputWidth && finalText.length > 0) {
+                finalText = finalText.slice(1);
+            }
+            finalText = "..." + finalText;
+        }
+
+        ctx.fillText(finalText, chatX + messagePadding, inputBoxY + 22);
+    }
+
+    // Return close button bounds for click detection
+    return {
+        closeButtonX,
+        closeButtonY,
+        closeButtonSize
+    };
 }
 
 export function ensurePlayerDefaults(player) {
@@ -380,4 +711,50 @@ export function ensurePlayerDefaults(player) {
     if (!player.direction) player.direction = "down";
     if (!player.frameIndex) player.frameIndex = 0;
     if (!player.frameTimer) player.frameTimer = 0;
+}
+
+export function drawPickupNotifications(notifications) {
+    const currentTime = Date.now();
+    const notificationDuration = 3000; // Show for 3 seconds
+    const fadeOutStart = 2000; // Start fading after 2 seconds
+    const startX = canvas.width - 250; // Top-right corner
+    const startY = 20;
+    const notificationHeight = 40;
+    const notificationSpacing = 10;
+
+    // Filter out expired notifications and draw remaining ones
+    const activeNotifications = notifications.filter(notif =>
+        currentTime - notif.timestamp < notificationDuration
+    );
+
+    activeNotifications.forEach((notif, index) => {
+        const age = currentTime - notif.timestamp;
+        const y = startY + index * (notificationHeight + notificationSpacing);
+
+        // Calculate opacity for fade out effect
+        let opacity = 1;
+        if (age > fadeOutStart) {
+            opacity = 1 - ((age - fadeOutStart) / (notificationDuration - fadeOutStart));
+        }
+
+        // Draw notification background
+        ctx.fillStyle = `rgba(0, 150, 0, ${opacity * 0.85})`;
+        ctx.fillRect(startX, y, 230, notificationHeight);
+
+        // Draw border
+        ctx.strokeStyle = `rgba(255, 255, 255, ${opacity * 0.6})`;
+        ctx.lineWidth = 2;
+        ctx.strokeRect(startX, y, 230, notificationHeight);
+
+        // Draw text
+        ctx.fillStyle = `rgba(255, 255, 255, ${opacity})`;
+        ctx.font = "bold 18px Arial";
+        ctx.textAlign = "left";
+        ctx.fillText(`+ ${notif.amount} ${notif.itemName}`, startX + 10, y + 25);
+    });
+
+    // Remove expired notifications from the array
+    while (notifications.length > 0 && currentTime - notifications[0].timestamp >= notificationDuration) {
+        notifications.shift();
+    }
 }

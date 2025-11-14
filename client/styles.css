@@ -63,7 +63,7 @@ body::after{
 }
 
 /* center layout container */
-#login-screen, #register-screen, #game-screen {
+#login-screen, #register-screen, #reset-password-screen, #update-password-screen, #game-screen {
   min-height:100vh;
   display:flex;
   align-items:center;
@@ -298,6 +298,146 @@ button:active { transform: translateY(0); filter:brightness(0.98); }
   .login-form-container {
     display: none;
   }
+
+  /* Keep register, reset, and update password forms visible on mobile */
+  .register-form-container,
+  .reset-password-form-container,
+  .update-password-form-container {
+    display: block;
+  }
+}
+
+/* -------- Login Options (Remember Me & Forgot Password) -------- */
+.login-options {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin: 12px 0;
+  font-size: 13px;
+}
+
+.remember-me {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  color: var(--muted);
+  user-select: none;
+}
+
+.remember-me input[type="checkbox"] {
+  width: auto;
+  margin: 0 6px 0 0;
+  cursor: pointer;
+  accent-color: var(--accent);
+}
+
+.remember-me span {
+  font-weight: 600;
+}
+
+#forgot-password {
+  color: var(--accent-2);
+  text-decoration: none;
+  font-weight: 600;
+  font-size: 13px;
+}
+
+#forgot-password:hover {
+  text-decoration: underline;
+}
+
+/* -------- Reset Password Screen -------- */
+.reset-password-form-container {
+  width: min(420px, 90%);
+  background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+  border-radius: var(--radius);
+  border: 1px solid var(--glass-border);
+  box-shadow: var(--shadow);
+  padding: clamp(18px, 3.5vw, 34px);
+  text-align: center;
+}
+
+.reset-password-form-container h1 {
+  font-size: clamp(28px, 4.6vw, 40px);
+  margin: 0 0 12px 0;
+  color: var(--text);
+  text-shadow: 0 2px 0 rgba(0,0,0,0.6);
+  letter-spacing: 1px;
+}
+
+.reset-description {
+  color: var(--muted);
+  margin: 12px 0 20px 0;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.reset-password-form-container input {
+  width: 100%;
+  display: block;
+  margin: 10px 0;
+}
+
+.reset-password-form-container p {
+  color: var(--muted);
+  margin-top: 16px;
+  font-size: 14px;
+}
+
+.reset-password-form-container a {
+  color: var(--accent-2);
+  text-decoration: none;
+  font-weight: 700;
+}
+
+.reset-password-form-container a:hover {
+  text-decoration: underline;
+}
+
+#reset-password-button {
+  background: linear-gradient(180deg, var(--accent-2), var(--accent));
+  color: #04121b;
+  text-shadow: 0 1px 0 rgba(255,255,255,0.12);
+  box-shadow: 0 12px 40px rgba(92,197,240,0.08), 0 2px 0 rgba(0,0,0,0.3);
+}
+
+/* -------- Update Password Screen -------- */
+.update-password-form-container {
+  width: min(420px, 90%);
+  background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+  border-radius: var(--radius);
+  border: 1px solid var(--glass-border);
+  box-shadow: var(--shadow);
+  padding: clamp(18px, 3.5vw, 34px);
+  text-align: center;
+}
+
+.update-password-form-container h1 {
+  font-size: clamp(28px, 4.6vw, 40px);
+  margin: 0 0 12px 0;
+  color: var(--text);
+  text-shadow: 0 2px 0 rgba(0,0,0,0.6);
+  letter-spacing: 1px;
+}
+
+.update-password-form-container .reset-description {
+  color: var(--muted);
+  margin: 12px 0 20px 0;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.update-password-form-container input {
+  width: 100%;
+  display: block;
+  margin: 10px 0;
+}
+
+#update-password-button {
+  background: linear-gradient(180deg, var(--accent-2), var(--accent));
+  color: #04121b;
+  text-shadow: 0 1px 0 rgba(255,255,255,0.12);
+  box-shadow: 0 12px 40px rgba(92,197,240,0.08), 0 2px 0 rgba(0,0,0,0.3);
 }
 
 /* end of styles.css */

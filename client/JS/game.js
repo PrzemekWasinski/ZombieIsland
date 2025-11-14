@@ -1,5 +1,5 @@
 import { loadImages, sprites, playerImages } from "./images.js";
-import { drawMap, drawPlayer, drawEnemy, drawDrop, drawObject, drawInventory, isNearby, drawHUD, drawShopInventory } from "./functions.js"
+import { drawMap, drawPlayer, drawEnemy, drawDrop, drawObject, drawInventory, isNearby, drawHUD, drawShopInventory, drawChatBox, drawPickupNotifications } from "./functions.js"
 
 export function startGame({ userId, token }) {
 	//const socket = new WebSocket("wss://ws.zombieisland.online/"); //Main server
@@ -57,9 +57,13 @@ export function startGame({ userId, token }) {
 	let inInventory = false;
 	let inShopInventory = false;
 	let inSellInventory = false;
+	let chatBoxVisible = true;
 
 	let shopInventory = {};
 	let inventory = {};
+
+	let globalChatMessages = []; // Global chat message queue
+	let pickupNotifications = []; // Item pickup notifications queue
 
 	let lastFrameTime = performance.now(); //Last frame time
 	let frameCount = 0;  //Frames counted
@@ -104,14 +108,16 @@ export function startGame({ userId, token }) {
 	function cleanupDeadEntities() {
 		if (++cleanupCounter < CLEANUP_FREQUENCY) return;
 		cleanupCounter = 0;
-		
+
 		for (const enemyID in enemies) {
-			if (Math.floor(enemies[enemyID].health) < 1) {
+			const enemy = enemies[enemyID];
+			// Only delete if dead AND death animation is complete
+			if (Math.floor(enemy.health) < 1 && enemy.deathAnimationComplete) {
 				delete enemies[enemyID];
 				nearbyCache.enemies.delete(enemyID);
 			}
 		}
-		
+
 		for (const objectID in objects) {
 			if (Math.floor(objects[objectID].health) < 1) {
 				delete objects[objectID];
@@ -163,11 +169,52 @@ export function startGame({ userId, token }) {
 				if (msg.username !== undefined) player.username = msg.username;
 				if (msg.level !== undefined) player.level = msg.level;
 				if (msg.gold !== undefined) player.gold = msg.gold;
-				if (msg.messages !== undefined) player.messages = msg.messages;
+				if (msg.messages !== undefined) {
+					player.messages = msg.messages;
+					// Add new messages to global chat
+					for (const message of msg.messages) {
+						const existingMessage = globalChatMessages.find(m =>
+							m.username === player.username &&
+							m.text === message.text &&
+							m.timestamp === message.timestamp
+						);
+						if (!existingMessage) {
+							globalChatMessages.push({
+								username: player.username,
+								text: message.text,
+								timestamp: message.timestamp || Date.now()
+							});
+						}
+					}
+				}
 
 				if (msg.id === playerId) {
 					if (msg.map) player.map = msg.map;
-					if (msg.inventory) inventory = msg.inventory;
+					if (msg.inventory) {
+						// Detect new items for pickup notifications
+						for (const itemName in msg.inventory) {
+							const newItem = msg.inventory[itemName];
+							const oldItem = inventory[itemName];
+
+							// If item amount increased, show notification
+							if (oldItem && newItem.itemAmount > oldItem.itemAmount) {
+								const amountGained = newItem.itemAmount - oldItem.itemAmount;
+								pickupNotifications.push({
+									itemName: itemName,
+									amount: amountGained,
+									timestamp: Date.now()
+								});
+							} else if (!oldItem && newItem.itemAmount > 0) {
+								// New item added
+								pickupNotifications.push({
+									itemName: itemName,
+									amount: newItem.itemAmount,
+									timestamp: Date.now()
+								});
+							}
+						}
+						inventory = msg.inventory;
+					}
 				}
 
 				ensurePlayerDefaults(player);
@@ -261,6 +308,11 @@ export function startGame({ userId, token }) {
 		} else if ("sell" === msg.type) {
 			inSellInventory = true;
 
+		} else if ("typing" === msg.type) {
+			if (players[msg.id]) {
+				players[msg.id].isTyping = msg.isTyping;
+			}
+
 		} else if ("leave" === msg.type) { //Player left
 			delete players[msg.id];
 			nearbyCache.players.delete(msg.id);
@@ -296,8 +348,14 @@ export function startGame({ userId, token }) {
 		}
 
 		if (!isTyping && e.key === "t") {
+			chatBoxVisible = true; // Open chat when starting to type
 			isTyping = true;
 			inputString = "";
+			socket.send(JSON.stringify({
+				type: "typing",
+				isTyping: true,
+				playerID: userId
+			}));
 		} else if (isTyping) {
 			if ("Enter" === e.key) {
 				isTyping = false;
@@ -308,8 +366,18 @@ export function startGame({ userId, token }) {
 					playerID: userId,
 					message: inputString
 				}));
+				socket.send(JSON.stringify({
+					type: "typing",
+					isTyping: false,
+					playerID: userId
+				}));
 			} else if ("Escape" === e.key) {
 				isTyping = false;
+				socket.send(JSON.stringify({
+					type: "typing",
+					isTyping: false,
+					playerID: userId
+				}));
 			} else if (1 === e.key.length) {
 				inputString += e.key;
 			} else if ("Backspace" === e.key) {
@@ -455,19 +523,33 @@ export function startGame({ userId, token }) {
 		for (const id of nearbyCache.enemies) {
 			const enemy = enemies[id];
 			if (!enemy) continue;
-			
+
 			enemy.pixelX = tileTransition(enemy.pixelX, enemy.targetX, time);
 			enemy.pixelY = tileTransition(enemy.pixelY, enemy.targetY, time);
 			enemy.frameTimer += deltaTime * 1000;
-			
+
 			const frameDelay = 100;
 			const sprite = getEnemySprite(enemy);
-			
+
 			if (sprite) {
 				const frameAmount = sprite[2];
+				const isDead = Math.floor(enemy.health) <= 0;
+
 				if (enemy.frameTimer >= frameDelay) {
 					enemy.frameTimer = 0;
-					enemy.frameIndex = (enemy.frameIndex + 1) % frameAmount;
+
+					if (isDead) {
+						// For death animation, don't loop - stop at last frame
+						if (enemy.frameIndex < frameAmount - 1) {
+							enemy.frameIndex++;
+						} else {
+							// Mark as ready for deletion after animation completes
+							enemy.deathAnimationComplete = true;
+						}
+					} else {
+						// Normal looping animation
+						enemy.frameIndex = (enemy.frameIndex + 1) % frameAmount;
+					}
 				}
 			}
 		}
@@ -556,18 +638,23 @@ export function startGame({ userId, token }) {
 		if (players[playerId]) {
 			const player = players[playerId];
 			ensurePlayerDefaults(player); //Ensure current player has valid defaults
-			
+
 			const sprite = playerImages[player.action];
 			if (sprite) {
 				let frameAmount = sprite[1];
 
-
-				player.frameTimer += deltaTime * 1000;
-				const frameDelay = 100;
-
-				if (player.frameTimer >= frameDelay) {
+				if (player.action === "idle") {
+					// For idle, keep frame at 0 (still frame)
+					player.frameIndex = 0;
 					player.frameTimer = 0;
-					player.frameIndex = (player.frameIndex + 1) % frameAmount;
+				} else {
+					player.frameTimer += deltaTime * 1000;
+					const frameDelay = 100;
+
+					if (player.frameTimer >= frameDelay) {
+						player.frameTimer = 0;
+						player.frameIndex = (player.frameIndex + 1) % frameAmount;
+					}
 				}
 				drawPlayer(currentPlayer, true, currentPlayer, sprite);
 			}
@@ -581,7 +668,16 @@ export function startGame({ userId, token }) {
 		} 
 
 		drawHUD(players[playerId])
-		
+
+		// Draw chat box and get close button position
+		let chatCloseButton = null;
+		if (chatBoxVisible) {
+			chatCloseButton = drawChatBox(globalChatMessages, isTyping, inputString);
+		}
+
+		// Draw pickup notifications
+		drawPickupNotifications(pickupNotifications)
+
 		//Handle right click for item selection
 		if (mouseRightClicked) {
 			selectedItem = null;
@@ -589,26 +685,36 @@ export function startGame({ userId, token }) {
 			if (inInventory) {
 				for (const item in inventory) {
 					const currentItem = inventory[item];
-					if (mouseRightX >= currentItem.xPosition && mouseRightX <= currentItem.xPosition + 50 &&
-						mouseRightY >= currentItem.yPosition && mouseRightY <= currentItem.yPosition + 50) {
+					if (mouseRightX >= currentItem.xPosition && mouseRightX <= currentItem.xPosition + 80 &&
+						mouseRightY >= currentItem.yPosition && mouseRightY <= currentItem.yPosition + 80) {
 						selectedItem = currentItem;
 						itemMenuOpen = true;
 						break;
 					}
 				}
-			} 
+			}
 			mouseRightClicked = false;
 
 		} else if (mouseLeftClicked) {
+			//Handle chat close button click
+			if (chatCloseButton && chatBoxVisible) {
+				if (mouseLeftX >= chatCloseButton.closeButtonX &&
+					mouseLeftX <= chatCloseButton.closeButtonX + chatCloseButton.closeButtonSize &&
+					mouseLeftY >= chatCloseButton.closeButtonY &&
+					mouseLeftY <= chatCloseButton.closeButtonY + chatCloseButton.closeButtonSize) {
+					chatBoxVisible = false;
+					mouseLeftClicked = false;
+				}
+			}
+
 			//Handle item menu deletion first (before other click handlers)
 			if (itemMenuOpen && selectedItem && selectedItem.itemAmount > 0) {
-				const deleteButtonX = selectedItem.xPosition + 35;
-				const deleteButtonY = selectedItem.yPosition - 20;
-				const deleteButtonWidth = 40;
-				const deleteButtonHeight = 40;
+				const deleteButtonSize = 28;
+				const deleteButtonX = selectedItem.xPosition + 80 - deleteButtonSize;
+				const deleteButtonY = selectedItem.yPosition;
 
-				if (mouseLeftX > deleteButtonX && mouseLeftX < deleteButtonX + deleteButtonWidth &&
-					mouseLeftY > deleteButtonY && mouseLeftY < deleteButtonY + deleteButtonHeight) {
+				if (mouseLeftX > deleteButtonX && mouseLeftX < deleteButtonX + deleteButtonSize &&
+					mouseLeftY > deleteButtonY && mouseLeftY < deleteButtonY + deleteButtonSize) {
 					selectedItem.itemAmount -= 1;
 					socket.send(JSON.stringify({
 						type: "keydown",
@@ -625,8 +731,8 @@ export function startGame({ userId, token }) {
 			if (mouseLeftClicked && inShopInventory) {
 				for (const item in shopInventory) {
 					const currentItem = shopInventory[item];
-					if (mouseLeftX >= currentItem.xPosition && mouseLeftX <= currentItem.xPosition + 50 &&
-						mouseLeftY >= currentItem.yPosition && mouseLeftY <= currentItem.yPosition + 50) {
+					if (mouseLeftX >= currentItem.xPosition && mouseLeftX <= currentItem.xPosition + 80 &&
+						mouseLeftY >= currentItem.yPosition && mouseLeftY <= currentItem.yPosition + 80) {
 						selectedItem = currentItem;
 						socket.send(JSON.stringify({
 							type: "keydown",
@@ -642,8 +748,8 @@ export function startGame({ userId, token }) {
 			} else if (mouseLeftClicked && inSellInventory) {
 				for (const item in inventory) {
 					const currentItem = inventory[item];
-					if (mouseLeftX >= currentItem.xPosition && mouseLeftX <= currentItem.xPosition + 50 &&
-						mouseLeftY >= currentItem.yPosition && mouseLeftY <= currentItem.yPosition + 50) {
+					if (mouseLeftX >= currentItem.xPosition && mouseLeftX <= currentItem.xPosition + 80 &&
+						mouseLeftY >= currentItem.yPosition && mouseLeftY <= currentItem.yPosition + 80) {
 						selectedItem = currentItem;
 						socket.send(JSON.stringify({
 							type: "keydown",
@@ -659,15 +765,33 @@ export function startGame({ userId, token }) {
 			}
 		}
 
-		//Draw item menu 
+		//Draw item menu
 		if (itemMenuOpen && selectedItem && selectedItem.itemAmount > 0) {
-			const deleteButtonX = selectedItem.xPosition + 35;
-			const deleteButtonY = selectedItem.yPosition - 20;
-			const deleteButtonWidth = 40;
-			const deleteButtonHeight = 40;
+			const deleteButtonSize = 28;
+			const deleteButtonX = selectedItem.xPosition + 80 - deleteButtonSize;
+			const deleteButtonY = selectedItem.yPosition;
 
-			ctx.fillStyle = "red";
-			ctx.fillRect(deleteButtonX, deleteButtonY, deleteButtonWidth, deleteButtonHeight);
+			// Draw red background
+			ctx.fillStyle = "rgba(220, 53, 69, 0.9)";
+			ctx.fillRect(deleteButtonX, deleteButtonY, deleteButtonSize, deleteButtonSize);
+
+			// Draw border
+			ctx.strokeStyle = "rgba(255, 255, 255, 0.8)";
+			ctx.lineWidth = 2;
+			ctx.strokeRect(deleteButtonX, deleteButtonY, deleteButtonSize, deleteButtonSize);
+
+			// Draw black X
+			ctx.strokeStyle = "black";
+			ctx.lineWidth = 3;
+			const padding = 6;
+			ctx.beginPath();
+			// First diagonal
+			ctx.moveTo(deleteButtonX + padding, deleteButtonY + padding);
+			ctx.lineTo(deleteButtonX + deleteButtonSize - padding, deleteButtonY + deleteButtonSize - padding);
+			// Second diagonal
+			ctx.moveTo(deleteButtonX + deleteButtonSize - padding, deleteButtonY + padding);
+			ctx.lineTo(deleteButtonX + padding, deleteButtonY + deleteButtonSize - padding);
+			ctx.stroke();
 		}
 
 		requestAnimationFrame(draw);

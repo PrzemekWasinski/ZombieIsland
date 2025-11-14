@@ -17,6 +17,13 @@
       <h1>Login</h1>
       <input type="email" id="login-email" placeholder="Email">
       <input type="password" id="login-password" placeholder="Password">
+      <div class="login-options">
+        <label class="remember-me">
+          <input type="checkbox" id="remember-me">
+          <span>Remember Me</span>
+        </label>
+        <a href="#" id="forgot-password">Forgot Password?</a>
+      </div>
       <button id="login-button">Log In</button>
       <p>No account? <a href="#" id="go-register">Register</a></p>
     </div>
@@ -50,6 +57,27 @@
   </div>
 </div>
 
+  <!--Reset Password Page-->
+<div id="reset-password-screen" style="display:none;">
+  <div class="reset-password-form-container">
+    <h1>Reset Password</h1>
+    <p class="reset-description">Enter your email address and we'll send you a link to reset your password.</p>
+    <input type="email" id="reset-email" placeholder="Email">
+    <button id="reset-password-button">Send Reset Link</button>
+    <p><a href="#" id="back-to-login">Back to Login</a></p>
+  </div>
+</div>
+
+  <!--Update Password Page-->
+<div id="update-password-screen" style="display:none;">
+  <div class="update-password-form-container">
+    <h1>Update Password</h1>
+    <p class="reset-description">Enter your new password below.</p>
+    <input type="password" id="new-password" placeholder="New Password">
+    <input type="password" id="confirm-password" placeholder="Confirm Password">
+    <button id="update-password-button">Update Password</button>
+  </div>
+</div>
 
   <!--Game Page-->
   <div id="game-screen" style="display:none;">

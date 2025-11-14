@@ -8,6 +8,8 @@ const supabase = createClient(
 
 const loginScreen = document.getElementById('login-screen');
 const registerScreen = document.getElementById('register-screen');
+const resetPasswordScreen = document.getElementById('reset-password-screen');
+const updatePasswordScreen = document.getElementById('update-password-screen');
 const gameScreen = document.getElementById('game-screen');
 
 //Navigation
@@ -20,6 +22,19 @@ document.getElementById('go-register').onclick = (e) => {
 document.getElementById('go-login').onclick = (e) => {
 	e.preventDefault();
 	registerScreen.style.display = 'none';
+	resetPasswordScreen.style.display = 'none';
+	loginScreen.style.display = 'flex';
+};
+
+document.getElementById('forgot-password').onclick = (e) => {
+	e.preventDefault();
+	loginScreen.style.display = 'none';
+	resetPasswordScreen.style.display = 'flex';
+};
+
+document.getElementById('back-to-login').onclick = (e) => {
+	e.preventDefault();
+	resetPasswordScreen.style.display = 'none';
 	loginScreen.style.display = 'flex';
 };
 
@@ -78,13 +93,35 @@ document.getElementById('register-button').onclick = async () => {
 	loginScreen.style.display = 'flex';
 };
 
+//Check if credentials are saved on page load
+window.addEventListener('DOMContentLoaded', () => {
+	const savedEmail = localStorage.getItem('rememberedEmail');
+	const savedPassword = localStorage.getItem('rememberedPassword');
+
+	if (savedEmail && savedPassword) {
+		document.getElementById('login-email').value = savedEmail;
+		document.getElementById('login-password').value = savedPassword;
+		document.getElementById('remember-me').checked = true;
+	}
+});
+
 //Login
 document.getElementById('login-button').onclick = async () => {
 	const email = document.getElementById('login-email').value;
 	const password = document.getElementById('login-password').value;
+	const rememberMe = document.getElementById('remember-me').checked;
 
 	const { data, error } = await supabase.auth.signInWithPassword({ email, password });
 	if (error) return alert(error.message);
+
+	//Handle Remember Me
+	if (rememberMe) {
+		localStorage.setItem('rememberedEmail', email);
+		localStorage.setItem('rememberedPassword', password);
+	} else {
+		localStorage.removeItem('rememberedEmail');
+		localStorage.removeItem('rememberedPassword');
+	}
 
 	const token = data.session.access_token;
 	const userId = data.user.id;
@@ -96,4 +133,81 @@ document.getElementById('login-button').onclick = async () => {
 
 	//Start game and pass user ID + token
 	startGame({ userId, token });
+};
+
+//Reset Password
+document.getElementById('reset-password-button').onclick = async () => {
+	const email = document.getElementById('reset-email').value.trim();
+
+	if (!email) {
+		return alert('Please enter your email address.');
+	}
+
+	const { error } = await supabase.auth.resetPasswordForEmail(email, {
+		redirectTo: 'https://www.zombieisland.online'
+	});
+
+	if (error) {
+		return alert(error.message);
+	}
+
+	alert('Password reset email sent! Please check your inbox.');
+	resetPasswordScreen.style.display = 'none';
+	loginScreen.style.display = 'flex';
+};
+
+//Check for password reset token on page load
+window.addEventListener('DOMContentLoaded', async () => {
+	//Check URL hash for recovery token
+	const hash = window.location.hash;
+	console.log('URL hash:', hash); // Debug log
+
+	if (hash) {
+		const hashParams = new URLSearchParams(hash.substring(1));
+		const accessToken = hashParams.get('access_token');
+		const type = hashParams.get('type');
+
+		console.log('Type:', type, 'Access Token:', accessToken ? 'present' : 'missing'); // Debug log
+
+		if (type === 'recovery' && accessToken) {
+			//User clicked the reset password link from email
+			loginScreen.style.display = 'none';
+			registerScreen.style.display = 'none';
+			resetPasswordScreen.style.display = 'none';
+			updatePasswordScreen.style.display = 'flex';
+		}
+	}
+});
+
+//Update Password (after clicking email link)
+document.getElementById('update-password-button').onclick = async () => {
+	const newPassword = document.getElementById('new-password').value;
+	const confirmPassword = document.getElementById('confirm-password').value;
+
+	if (!newPassword || !confirmPassword) {
+		return alert('Please fill in both password fields.');
+	}
+
+	if (newPassword !== confirmPassword) {
+		return alert('Passwords do not match.');
+	}
+
+	if (newPassword.length < 6) {
+		return alert('Password must be at least 6 characters long.');
+	}
+
+	const { error } = await supabase.auth.updateUser({
+		password: newPassword
+	});
+
+	if (error) {
+		return alert(error.message);
+	}
+
+	alert('Password updated successfully! You can now log in with your new password.');
+	updatePasswordScreen.style.display = 'none';
+	loginScreen.style.display = 'flex';
+
+	//Clear the URL hash
+	window.location.hash = '';
 };
