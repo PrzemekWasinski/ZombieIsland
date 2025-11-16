@@ -852,6 +852,25 @@ export function startGame({ userId, token }) {
 					}
 				}
 				mouseLeftClicked = false;
+			} else if (mouseLeftClicked && inInventory && !inShopInventory && !inSellInventory) {
+				for (const item in inventory) {
+					const currentItem = inventory[item];
+					if (mouseLeftX >= currentItem.xPosition && mouseLeftX <= currentItem.xPosition + 80 &&
+						mouseLeftY >= currentItem.yPosition && mouseLeftY <= currentItem.yPosition + 80) {
+						if (currentItem.itemAmount > 0) {
+							selectedItem = currentItem;
+							socket.send(JSON.stringify({
+								type: "keydown",
+								dir: "consumeItem",
+								pressed: true,
+								playerID: userId,
+								item: selectedItem.itemName
+							}));
+							break;
+						}
+					}
+				}
+				mouseLeftClicked = false;
 			}
 		}
 

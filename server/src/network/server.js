@@ -439,6 +439,61 @@ export async function startWebSocket(config, url, apiKey) {
 
 							saveProgress(player, supabase);
 						}
+					} else if (data.dir === "consumeItem") {
+						console.log("test")
+						const targetPlayer = players[playerId];
+						if (targetPlayer && targetPlayer.dbID === data.playerID && targetPlayer.inventory[data.item]) {
+							const itemName = targetPlayer.inventory[data.item].itemName;
+
+							// Only consume if item amount is greater than 0
+							if (targetPlayer.inventory[data.item].itemAmount > 0) {
+								console.log(data.item, "consumed by", targetPlayer.username);
+
+								// Decrease item amount by 1
+								targetPlayer.inventory[data.item].itemAmount -= 1;
+
+								// Add 10 health to player (cap at maxHealth)
+								const oldHealth = targetPlayer.health;
+								targetPlayer.health = Math.min(targetPlayer.maxHealth, targetPlayer.health + 10);
+
+								// Mark health as changed if it actually changed
+								if (targetPlayer.health !== oldHealth) {
+									targetPlayer.healthChanged = true;
+								}
+
+								// Update database for item
+								try {
+									const success = await deleteItem(itemName, targetPlayer.dbID, supabase, targetPlayer, data.item);
+									if (!success) {
+										console.log("Failed to consume item in DB");
+									}
+								} catch (err) {
+									console.error("Failed to consume item:", err);
+								}
+
+								// Save player progress (health and stats)
+								saveProgress(targetPlayer, supabase);
+
+								// Broadcast update to all clients
+								broadcast({
+									type: "update",
+									id: targetPlayer.id,
+									mapX: targetPlayer.mapX,
+									mapY: targetPlayer.mapY,
+									pixelX: targetPlayer.pixelX,
+									pixelY: targetPlayer.pixelY,
+									targetX: targetPlayer.targetX,
+									targetY: targetPlayer.targetY,
+									health: targetPlayer.health,
+									maxHealth: targetPlayer.maxHealth,
+									username: targetPlayer.username,
+									level: targetPlayer.level,
+									gold: targetPlayer.gold,
+									inBoat: targetPlayer.inBoat,
+									inventory: targetPlayer.inventory
+								}, wss);
+							}
+						}
 					}
 				}
 
