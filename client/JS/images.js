@@ -241,8 +241,8 @@ export const objectImages = {
 	"Palm Tree": "../assets/objects/trees/palm_tree.png",
 	"Green Palm Tree": "../assets/objects/trees/green_palm_tree.png",
 
-	"Wood Chest": "../assets/map/Interactable/wood-chest.png",
-	"Metal Chest": "../assets/map/Interactable/metal-chest.png"
+	"Sell Chest": "../assets/map/Interactable/sell-chest.png",
+	"Upgrades Chest": "../assets/map/Interactable/upgrade-chest.png"
 }
 
 export const playerImages = {

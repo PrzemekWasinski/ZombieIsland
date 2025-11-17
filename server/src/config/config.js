@@ -13,7 +13,7 @@ export const config = {
     VISIBLE_TILES_X: 32,
     VISIBLE_TILES_Y: 24,
     PASSABLE_TILES: [
-        1, 2, 3, 4, 1000, 1001
+        1, 2, 3, 4
     ],
     biomes: {
         "Ocean": [0],

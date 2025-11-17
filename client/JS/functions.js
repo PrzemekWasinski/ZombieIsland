@@ -48,13 +48,13 @@ export function drawMap(currentPlayer) { //Draw game map
             } else {
                 if (map[y][x] == 1000) {
                     ctx.drawImage(tileImages[3], screenX, screenY, tileSize, tileSize);
-                    img = objectImages["Wood Chest"]
+                    img = objectImages["Sell Chest"]
                     ctx.drawImage(img, screenX, screenY, tileSize, tileSize);
                 }
 
                 if (map[y][x] == 1001) {
                     ctx.drawImage(tileImages[3], screenX, screenY, tileSize, tileSize);
-                    img = objectImages["Metal Chest"]
+                    img = objectImages["Upgrades Chest"]
                     ctx.drawImage(img, screenX, screenY, tileSize, tileSize);
                 }
             }

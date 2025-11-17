@@ -114,7 +114,7 @@ export async function startWebSocket(config, url, apiKey) {
 
 					const serializableNewPlayer = getSerializablePlayer(players[id]);
 
-					console.log(`Player ${id} connected and authenticated.`);
+					console.log(`${characterData.username} connected and authenticated.`);
 					await updateStats("active_players", Object.keys(players).length, supabase);
 
 					//Send only essential data
@@ -324,13 +324,37 @@ export async function startWebSocket(config, url, apiKey) {
 							}, wss);
 						}
 
-						if (player.mapX === 1022 && player.mapY === 1300) { //Check if player near shop
+						const upgradesCoords = (
+							(player.mapX === 1021 && player.mapY === 1300) ||
+							(player.mapX === 1022 && player.mapY === 1299) ||
+							(player.mapX === 1023 && player.mapY === 1300) ||
+							(player.mapX === 1022 && player.mapY === 1301) ||
+							(player.mapX === 1021 && player.mapY === 1300) ||
+							(player.mapX === 1023 && player.mapY === 1300) ||
+							(player.mapX === 1021 && player.mapY === 1299) ||
+							(player.mapX === 1023 && player.mapY === 1299) ||
+							(player.mapX === 1022 && player.mapY === 1300)
+						);
+
+						const sellingCoords = (
+							(player.mapX === 1018 && player.mapY === 1301) ||
+							(player.mapX === 1019 && player.mapY === 1300) ||
+							(player.mapX === 1018 && player.mapY === 1299) ||
+							(player.mapX === 1017 && player.mapY === 1300) ||
+							(player.mapX === 1017 && player.mapY === 1299) ||
+							(player.mapX === 1019 && player.mapY === 1299) ||
+							(player.mapX === 1017 && player.mapY === 1301) ||
+							(player.mapX === 1019 && player.mapY === 1301) ||
+							(player.mapX === 1018 && player.mapY === 1300)
+						);
+
+						if (upgradesCoords) { //Check if player near shop
 							ws.send(JSON.stringify({
 								type: "shop",
 								name: shops.SHOP1.name,
 								inventory: shops.SHOP1.inventory
 							}));
-						} else if (player.mapX === 1018 && player.mapY === 1300) {
+						} else if (sellingCoords) {
 							ws.send(JSON.stringify({
 								type: "sell",
 							}));
@@ -391,6 +415,9 @@ export async function startWebSocket(config, url, apiKey) {
 								player.damage += 1
 							}
 
+							// Increment level by 1 for any upgrade purchase
+							player.level += 1;
+
 							saveProgress(player, supabase);
 
 							broadcast({
@@ -414,7 +441,19 @@ export async function startWebSocket(config, url, apiKey) {
 						}
 					
 					} else if (data.dir === "sellItem") {
-						if (player.mapX === 1018 && player.mapY === 1300) {
+						const sellingCoords = (
+							(player.mapX === 1018 && player.mapY === 1301) ||
+							(player.mapX === 1019 && player.mapY === 1300) ||
+							(player.mapX === 1018 && player.mapY === 1299) ||
+							(player.mapX === 1017 && player.mapY === 1300) ||
+							(player.mapX === 1017 && player.mapY === 1299) ||
+							(player.mapX === 1019 && player.mapY === 1299) ||
+							(player.mapX === 1017 && player.mapY === 1301) ||
+							(player.mapX === 1019 && player.mapY === 1301) ||
+							(player.mapX === 1018 && player.mapY === 1300)
+						);
+						
+						if (sellingCoords) {
 							console.log(data.item, "sold");
 							player.inventory[data.item].itemAmount -= 1;
 							player.gold += 10;
@@ -445,11 +484,9 @@ export async function startWebSocket(config, url, apiKey) {
 						if (targetPlayer && targetPlayer.dbID === data.playerID && targetPlayer.inventory[data.item]) {
 							const itemName = targetPlayer.inventory[data.item].itemName;
 
-							// Only consume if item amount is greater than 0
-							if (targetPlayer.inventory[data.item].itemAmount > 0) {
-								console.log(data.item, "consumed by", targetPlayer.username);
+							// Only consume if item amount is greater than 0 and player is not max health
+							if (targetPlayer.inventory[data.item].itemAmount > 0 && targetPlayer.health < targetPlayer.maxHealth) {
 
-								// Decrease item amount by 1
 								targetPlayer.inventory[data.item].itemAmount -= 1;
 
 								// Add 10 health to player (cap at maxHealth)

@@ -71,9 +71,36 @@ body::after{
   padding:40px;
 }
 
+/* Auth screens background */
+#login-screen, #register-screen, #reset-password-screen, #update-password-screen {
+  position: relative;
+  background: none !important;
+}
+
+#login-screen::before, #register-screen::before, #reset-password-screen::before, #update-password-screen::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  background-image: url('./assets/UI/background.png');
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  filter: blur(3px);
+  z-index: 0;
+}
+
+/* Ensure form containers appear above background */
+.login-form-container, .login-info-container,
+.register-form-container,
+.reset-password-form-container,
+.update-password-form-container {
+  position: relative;
+  z-index: 1;
+}
+
 /* -------- Login screen layout (two-column) -------- */
 .login-form-container, .login-info-container {
-  background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+  background: rgba(10, 14, 20, 0.95);
   border-radius: var(--radius);
   border: 1px solid var(--glass-border);
   box-shadow: var(--shadow);
@@ -118,8 +145,8 @@ input[type="email"], input[type="password"], input[type="text"] {
   display:block;
   padding:14px 16px;
   margin: 10px 0;
-  background: linear-gradient(180deg, rgba(255,255,255,0.01), rgba(255,255,255,0.02));
-  border: 2px solid rgba(255,255,255,0.04);
+  background: rgba(15, 20, 30, 0.9);
+  border: 2px solid rgba(255,255,255,0.1);
   outline:none;
   border-radius:8px;
   color:var(--text);
@@ -216,7 +243,7 @@ button:active { transform: translateY(0); filter:brightness(0.98); }
 /* container box for register form */
 .register-form-container {
   width: min(420px, 90%);
-  background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+  background: rgba(10, 14, 20, 0.95);
   border-radius: var(--radius);
   border: 1px solid var(--glass-border);
   box-shadow: var(--shadow);
@@ -349,7 +376,7 @@ button:active { transform: translateY(0); filter:brightness(0.98); }
 /* -------- Reset Password Screen -------- */
 .reset-password-form-container {
   width: min(420px, 90%);
-  background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+  background: rgba(10, 14, 20, 0.95);
   border-radius: var(--radius);
   border: 1px solid var(--glass-border);
   box-shadow: var(--shadow);
@@ -404,7 +431,7 @@ button:active { transform: translateY(0); filter:brightness(0.98); }
 /* -------- Update Password Screen -------- */
 .update-password-form-container {
   width: min(420px, 90%);
-  background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+  background: rgba(10, 14, 20, 0.95);
   border-radius: var(--radius);
   border: 1px solid var(--glass-border);
   box-shadow: var(--shadow);
