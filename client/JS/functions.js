@@ -434,7 +434,7 @@ export function drawInventory(inventory) {
     }
 }
 
-export function drawShopInventory(inventory) {
+export function drawShopInventory(inventory, playerSpeed) {
     // Shop panel settings
     const panelWidth = 960;
     const panelHeight = 600;
@@ -497,16 +497,29 @@ export function drawShopInventory(inventory) {
         }
 
         // Draw price in bottom-right corner with gold background
-        const priceText = `${currentItem.itemValue} G`;
-        ctx.font = "bold 14px Arial";
-        const priceWidth = ctx.measureText(priceText).width + 8;
+        if (currentItem.itemName === "Speed Upgrade" && playerSpeed === 10) {
+            const priceText = `No Stock`;
+            ctx.font = "bold 14px Arial";
+            const priceWidth = ctx.measureText(priceText).width + 8;
 
-        ctx.fillStyle = "rgba(218, 165, 32, 0.9)"; // Gold background
-        ctx.fillRect(x + itemSize - priceWidth - 2, y + itemSize - 22, priceWidth + 2, 20);
+            ctx.fillStyle = "rgba(218, 44, 32, 0.9)"; // Gold background
+            ctx.fillRect(x + itemSize - priceWidth - 2, y + itemSize - 22, priceWidth + 2, 20);
 
-        ctx.fillStyle = "black";
-        ctx.textAlign = "right";
-        ctx.fillText(priceText, x + itemSize - 4, y + itemSize - 6);
+            ctx.fillStyle = "black";
+            ctx.textAlign = "right";
+            ctx.fillText(priceText, x + itemSize - 4, y + itemSize - 6);
+        } else {
+            const priceText = `${currentItem.itemValue} G`;
+            ctx.font = "bold 14px Arial";
+            const priceWidth = ctx.measureText(priceText).width + 8;
+
+            ctx.fillStyle = "rgba(218, 165, 32, 0.9)"; // Gold background
+            ctx.fillRect(x + itemSize - priceWidth - 2, y + itemSize - 22, priceWidth + 2, 20);
+
+            ctx.fillStyle = "black";
+            ctx.textAlign = "right";
+            ctx.fillText(priceText, x + itemSize - 4, y + itemSize - 6);
+        }
 
         // Draw item name below slot
         ctx.fillStyle = "white";

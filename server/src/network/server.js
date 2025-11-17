@@ -403,20 +403,25 @@ export async function startWebSocket(config, url, apiKey) {
 					} else if (data.dir === "buyItem") {
 						console.log(data.item)
 						if (player.gold >= shops.SHOP1.inventory[data.item].itemValue) {
-							player.gold -= shops.SHOP1.inventory[data.item].itemValue;
+							
 							if (data.item === "Health Upgrade") {
 								player.maxHealth += 10;
 								player.health = player.maxHealth;
+								player.level += 1;
+								player.gold -= shops.SHOP1.inventory[data.item].itemValue;
 							} else if (data.item === "Speed Upgrade") {
-								if (player.speed < 9) {
+								if (player.speed < 10) { //Ensure player is still controllable
 									player.speed += 1;
+									player.level += 1;
+									player.gold -= shops.SHOP1.inventory[data.item].itemValue;
 								}
 							} else if (data.item === "Sword Upgrade") {
 								player.damage += 1
+								player.level += 1;
+								player.gold -= shops.SHOP1.inventory[data.item].itemValue;
 							}
 
-							// Increment level by 1 for any upgrade purchase
-							player.level += 1;
+							
 
 							saveProgress(player, supabase);
 
@@ -435,7 +440,8 @@ export async function startWebSocket(config, url, apiKey) {
 								level: player.level,
 								gold: player.gold,
 								inBoat: player.inBoat,
-								inventory: player.inventory
+								inventory: player.inventory,
+								speed: player.speed
 							}, wss);
 						
 						}
@@ -452,31 +458,47 @@ export async function startWebSocket(config, url, apiKey) {
 							(player.mapX === 1019 && player.mapY === 1301) ||
 							(player.mapX === 1018 && player.mapY === 1300)
 						);
-						
-						if (sellingCoords) {
-							console.log(data.item, "sold");
-							player.inventory[data.item].itemAmount -= 1;
-							player.gold += 10;
 
-							broadcast({
-								type: "update",
-								id: player.id,
-								mapX: player.mapX,
-								mapY: player.mapY,
-								pixelX: player.pixelX,
-								pixelY: player.pixelY,
-								targetX: player.targetX,
-								targetY: player.targetY,
-								health: player.health,
-								maxHealth: player.maxHealth,
-								username: player.username,
-								level: player.level,
-								gold: player.gold,
-								inBoat: player.inBoat,
-								inventory: player.inventory
-							}, wss);
+						if (sellingCoords && player.inventory[data.item]) {
+							const itemName = player.inventory[data.item].itemName;
 
-							saveProgress(player, supabase);
+							// Only sell if item amount is greater than 0
+							if (player.inventory[data.item].itemAmount > 0) {
+								console.log(data.item, "sold");
+								player.inventory[data.item].itemAmount -= 1;
+								player.gold += 10;
+
+								// Update database for item
+								try {
+									const success = await deleteItem(itemName, player.dbID, supabase, player, data.item);
+									if (!success) {
+										console.log("Failed to sell item in DB");
+									}
+								} catch (err) {
+									console.error("Failed to sell item:", err);
+								}
+
+								// Save player progress (gold)
+								saveProgress(player, supabase);
+
+								broadcast({
+									type: "update",
+									id: player.id,
+									mapX: player.mapX,
+									mapY: player.mapY,
+									pixelX: player.pixelX,
+									pixelY: player.pixelY,
+									targetX: player.targetX,
+									targetY: player.targetY,
+									health: player.health,
+									maxHealth: player.maxHealth,
+									username: player.username,
+									level: player.level,
+									gold: player.gold,
+									inBoat: player.inBoat,
+									inventory: player.inventory
+								}, wss);
+							}
 						}
 					} else if (data.dir === "consumeItem") {
 						console.log("test")

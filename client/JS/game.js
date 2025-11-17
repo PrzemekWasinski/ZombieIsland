@@ -2,8 +2,8 @@ import { loadImages, sprites, playerImages } from "./images.js";
 import { drawMap, drawPlayer, drawEnemy, drawDrop, drawObject, drawInventory, isNearby, drawHUD, drawShopInventory, drawChatBox, drawPickupNotifications, drawChatToggleButton, drawMinimap } from "./functions.js"
 
 export function startGame({ userId, token }) {
-	//const socket = new WebSocket("wss://ws.zombieisland.online/"); //Main server
-	const socket = new WebSocket("ws://localhost:8080"); //Local server
+	const socket = new WebSocket("wss://ws.zombieisland.online/"); //Main server
+	//const socket = new WebSocket("ws://localhost:8080"); //Local server
 
 	socket.onopen = () => {
 		console.log("Connected to server");
@@ -174,6 +174,7 @@ export function startGame({ userId, token }) {
 				if (msg.username !== undefined) player.username = msg.username;
 				if (msg.level !== undefined) player.level = msg.level;
 				if (msg.gold !== undefined) player.gold = msg.gold;
+				if (msg.speed !== undefined) player.speed = msg.speed;
 				if (msg.messages !== undefined) {
 					player.messages = msg.messages;
 					// Add new messages to global chat
@@ -288,7 +289,7 @@ export function startGame({ userId, token }) {
 						health: msg.health,
 						maxHealth: msg.maxHealth,
 						name: msg.name,
-						lastHitTime: msg.lastHitTime
+						lastHitTime: msg.lastHitTime ? Date.now() : undefined
 					};
 				} else { //Existing object - direct property assignment
 					if (msg.mapX !== undefined) object.mapX = msg.mapX;
@@ -298,7 +299,7 @@ export function startGame({ userId, token }) {
 					if (msg.health !== undefined) object.health = msg.health;
 					if (msg.maxHealth !== undefined) object.maxHealth = msg.maxHealth;
 					if (msg.name !== undefined) object.name = msg.name;
-					if (msg.lastHitTime !== undefined) object.lastHitTime = msg.lastHitTime;
+					if (msg.lastHitTime !== undefined) object.lastHitTime = Date.now();
 				}
 				nearbyCache.objects.add(msg.id);
 			}
@@ -715,7 +716,7 @@ export function startGame({ userId, token }) {
 		if (inInventory || inSellInventory) {
 			drawInventory(inventory);
 		} else if (inShopInventory) {
-			drawShopInventory(shopInventory);
+			drawShopInventory(shopInventory, players[playerId].speed);
 		} 
 
 		drawHUD(players[playerId])
