@@ -2,8 +2,8 @@ import { loadImages, sprites, playerImages } from "./images.js";
 import { drawMap, drawPlayer, drawEnemy, drawDrop, drawObject, drawInventory, isNearby, drawHUD, drawShopInventory, drawChatBox, drawPickupNotifications, drawChatToggleButton, drawMinimap } from "./functions.js"
 
 export function startGame({ userId, token }) {
-	const socket = new WebSocket("wss://ws.zombieisland.online/"); //Main server
-	//const socket = new WebSocket("ws://localhost:8080"); //Local server
+	//const socket = new WebSocket("wss://ws.zombieisland.online/"); //Main server
+	const socket = new WebSocket("ws://localhost:8080"); //Local server
 
 	socket.onopen = () => {
 		console.log("Connected to server");
@@ -175,6 +175,7 @@ export function startGame({ userId, token }) {
 				if (msg.level !== undefined) player.level = msg.level;
 				if (msg.gold !== undefined) player.gold = msg.gold;
 				if (msg.speed !== undefined) player.speed = msg.speed;
+				if (msg.damage !== undefined) player.damage = msg.damage;
 				if (msg.messages !== undefined) {
 					player.messages = msg.messages;
 					// Add new messages to global chat
@@ -275,6 +276,10 @@ export function startGame({ userId, token }) {
 					pixelY: msg.pixelY
 				};
 			}
+
+		} else if ("dropDelete" === msg.type) {
+			// Remove drop from client when picked up
+			delete drops[msg.id];
 
 		} else if ("object" === msg.type) {
 			if (playerId && players[playerId] && isNearby([players[playerId].mapX, players[playerId].mapY], [msg.mapX, msg.mapY])) {
@@ -639,27 +644,11 @@ export function startGame({ userId, token }) {
 			}
 		}
 
-		//Draw drops and check for pickup
-		const dropsToDelete = [];
+		//Draw drops (server handles pickup and deletion)
 		for (const id in drops) {
 			const drop = drops[id];
 			drawDrop(drop, currentPlayer);
-
-			//Check if any player picked up the drop
-			for (const playerID in players) {
-				const player = players[playerID];
-				const dx = Math.abs(player.pixelX - drop.pixelX);
-				const dy = Math.abs(player.pixelY - drop.pixelY);
-
-				if (dx < TILE_SIZE - 0.5 && dy < TILE_SIZE - 0.5) {
-					dropsToDelete.push(id);
-					break;
-				}
-			}
 		}
-		
-		//Batch delete picked up drops
-		dropsToDelete.forEach(id => delete drops[id]);
 
 		//Draw current player
 		if (players[playerId]) {
@@ -716,7 +705,7 @@ export function startGame({ userId, token }) {
 		if (inInventory || inSellInventory) {
 			drawInventory(inventory);
 		} else if (inShopInventory) {
-			drawShopInventory(shopInventory, players[playerId].speed);
+			drawShopInventory(shopInventory, players[playerId].speed, players[playerId].damage, players[playerId].maxHealth);
 		} 
 
 		drawHUD(players[playerId])

@@ -189,7 +189,7 @@ export function spawnEnemy(enemies, PASSABLE_TILES, MAP, enemyID, TILE_SIZE, bio
 export function sendNearbyObjects(player, objects, wss) {
     for (const objectID in objects) {
         const object = objects[objectID];
-        
+
         if (isNearby([player.mapX, player.mapY], [object.mapX, object.mapY])) {
             if (player.ws && player.ws.readyState === 1) {
                 player.ws.send(JSON.stringify({
@@ -210,12 +210,62 @@ export function sendNearbyObjects(player, objects, wss) {
     }
 }
 
+// When player connects or changes significant area, send all nearby drops
+export function sendNearbyDrops(player, drops, wss) {
+    for (const dropID in drops) {
+        const drop = drops[dropID];
+
+        if (isNearby([player.mapX, player.mapY], [drop.mapX, drop.mapY])) {
+            if (player.ws && player.ws.readyState === 1) {
+                player.ws.send(JSON.stringify({
+                    type: "drop",
+                    id: drop.id,
+                    name: drop.name,
+                    mapX: drop.mapX,
+                    mapY: drop.mapY,
+                    pixelX: drop.pixelX,
+                    pixelY: drop.pixelY
+                }));
+            } else {
+                console.log(`WebSocket not ready for player ${player.id}`);
+            }
+        }
+    }
+}
+
 export function spawnObject(objects, PASSABLE_TILES, MAP, objectID, TILE_SIZE, biome, spawnLocation, objectStats, biomes) {
 	const x = Math.floor(Math.random() * 2500); // 0–2499
 	const y = Math.floor(Math.random() * 1750); // 0–1749
 
+	// Check if current tile is in correct biome
 	if (!biomes[biome].includes(MAP[y][x])) {
 		return null; // Invalid tile, cancel spawn
+	}
+
+	// Check if current tile is only base passable tiles (1, 2, 3, or 4)
+	if (!PASSABLE_TILES.includes(MAP[y][x])) {
+		return null; // Object should only spawn on center tiles
+	}
+
+	// Check if all surrounding tiles (4 directions) are also passable
+	const adjacentTiles = [
+		{ x: x, y: y - 1 },  // Up
+		{ x: x, y: y + 1 },  // Down
+		{ x: x - 1, y: y },  // Left
+		{ x: x + 1, y: y }   // Right
+	];
+
+	for (const tile of adjacentTiles) {
+		// Check bounds
+		if (tile.y < 0 || tile.y >= MAP.length || tile.x < 0 || tile.x >= MAP[0].length) {
+			return null; // Out of bounds
+		}
+
+		// Check if adjacent tile is passable
+		const adjacentTileValue = MAP[tile.y][tile.x];
+		if (!PASSABLE_TILES.includes(adjacentTileValue) && !biomes[biome].includes(adjacentTileValue)) {
+			return null; // Adjacent tile not passable
+		}
 	}
 
 	objects[objectID] = {
@@ -258,14 +308,18 @@ export function isNearby(coord1, coord2) {
 	return dx + dy <= 50;
 }
 
-export function spawnDrop(dropData, x, y, id, drops, TILE_SIZE) {
+export function spawnDrop(dropData, x, y, id, drops, TILE_SIZE, offsetX = 0, offsetY = 0) {
+	// Apply offset to position the drop on adjacent tiles
+	const finalX = x + (offsetX * TILE_SIZE);
+	const finalY = y + (offsetY * TILE_SIZE);
+
 	drops[id] = {
 		id: id,
 		name: dropData.name,
-		mapX: Math.floor(x / TILE_SIZE),
-		mapY: Math.floor(y / TILE_SIZE),
-		pixelX: x,
-		pixelY: y,
+		mapX: Math.floor(finalX / TILE_SIZE),
+		mapY: Math.floor(finalY / TILE_SIZE),
+		pixelX: finalX,
+		pixelY: finalY,
 		value: dropData.value
 	}
 }

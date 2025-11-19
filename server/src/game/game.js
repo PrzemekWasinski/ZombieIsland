@@ -599,7 +599,7 @@ export function startGame(wss, TILE_SIZE, VISIBLE_TILES_X, VISIBLE_TILES_Y, PASS
                 const player = players[playerID]
                 const dx = Math.abs(player.pixelX - drop.pixelX);
                 const dy = Math.abs(player.pixelY - drop.pixelY);
-                if (dx < TILE_SIZE - 0.5 && dy < TILE_SIZE - 0.5) {
+                if (dx < TILE_SIZE * 0.4 && dy < TILE_SIZE * 0.4) {
                     if (player.health > player.maxHealth - 10) {
                         player.health = player.maxHealth
                     } else {
@@ -638,7 +638,18 @@ export function startGame(wss, TILE_SIZE, VISIBLE_TILES_X, VISIBLE_TILES_Y, PASS
         }
 
         for (let i = 0; i < deadDrops.length; i++) {
-            delete drops[deadDrops[i]]
+            const dropID = deadDrops[i];
+            const drop = drops[dropID];
+
+            // Broadcast drop deletion to nearby players
+            if (drop) {
+                broadcastToNearby(drop, {
+                    type: "dropDelete",
+                    id: dropID
+                }, wss, players);
+            }
+
+            delete drops[dropID];
         }
     }, 20);
 

@@ -6,5 +6,15 @@ export const shops = {
             "Speed Upgrade": {itemName: "Speed Upgrade", itemValue: 100},
             "Sword Upgrade": {itemName: "Sword Upgrade", itemValue: 100},
         }
+    },
+    POTION_SHOP: {
+        name: "Potion Shop",
+        inventory: {
+            "Small Healing Potion": {itemName: "Small Healing Potion", itemValue: 15},
+            "Medium Healing Potion": {itemName: "Medium Healing Potion", itemValue: 30},
+            "Large Healing Potion": {itemName: "Large Healing Potion", itemValue: 50},
+            "Greater Healing Potion": {itemName: "Greater Healing Potion", itemValue: 75},
+            "Supreme Healing Potion": {itemName: "Supreme Healing Potion", itemValue: 100},
+        }
     }
 }

@@ -434,7 +434,7 @@ export function drawInventory(inventory) {
     }
 }
 
-export function drawShopInventory(inventory, playerSpeed) {
+export function drawShopInventory(inventory, playerSpeed, playerDamage, playerMaxHealth) {
     // Shop panel settings
     const panelWidth = 960;
     const panelHeight = 600;
@@ -525,7 +525,17 @@ export function drawShopInventory(inventory, playerSpeed) {
         ctx.fillStyle = "white";
         ctx.font = "14px Arial";
         ctx.textAlign = "center";
-        ctx.fillText(currentItem.itemName, x + itemSize / 2, y + itemSize + 18);
+
+        if (currentItem.itemName === "Speed Upgrade") {
+            ctx.fillText(`+ Speed: ${playerSpeed}`, x + itemSize / 2, y + itemSize + 18);
+        } else if (currentItem.itemName === "Sword Upgrade") {
+            ctx.fillText(`+ Damage: ${playerDamage}`, x + itemSize / 2, y + itemSize + 18);
+        } else if (currentItem.itemName === "Health Upgrade") {
+            ctx.fillText(`+ Max Health: ${playerMaxHealth}`, x + itemSize / 2, y + itemSize + 18);
+        } else {
+            ctx.fillText(currentItem.itemName, x + itemSize / 2, y + itemSize + 18);
+        }
+
 
         // Store position for click detection
         currentItem.xPosition = x;

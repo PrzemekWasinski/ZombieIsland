@@ -1,8 +1,8 @@
 import { WebSocketServer } from "ws";
 import http from "http";
 import { createClient } from "@supabase/supabase-js";
-import { broadcast, updateStats, getMap, deleteItem, broadcastToNearby, sendNearbyObjects, saveProgress } from "../game/functions.js";
-import { players, enemies, getNextId, objects } from "../game/state.js";
+import { broadcast, updateStats, getMap, deleteItem, broadcastToNearby, sendNearbyObjects, sendNearbyDrops, saveProgress, spawnDrop, saveItem } from "../game/functions.js";
+import { players, enemies, getNextId, objects, drops, getNextDropID } from "../game/state.js";
 import { startGame } from "../game/game.js";
 import { shops } from "../config/shop.js";
 
@@ -125,6 +125,7 @@ export async function startWebSocket(config, url, apiKey) {
 					}));
 
 					sendNearbyObjects(players[id], objects, wss)
+					sendNearbyDrops(players[id], drops, wss)
 
 					//Send existing players to new player
 					for (const existingId in players) {
@@ -221,6 +222,48 @@ export async function startWebSocket(config, url, apiKey) {
 									//Only broadcast if health actually changed
 									if (object.health !== oldHealth) {
 										object.lastHitTime = Date.now(); // Track when object was hit for flash effect
+
+										// Check for random drops when hitting object (not destroyed)
+										if (object.health > 0 && OBJECT_SPAWNS[object.location]) {
+											const possibleDrops = OBJECT_SPAWNS[object.location].objectStats.possibleDrops;
+
+											// Check each possible drop
+											for (let i = 0; i < possibleDrops.length; i++) {
+												const dropData = possibleDrops[i];
+												const rand = Math.floor(Math.random() * 100) + 1; // 1-100
+
+												// If random number is less than chance, spawn the drop
+												if (rand < dropData.chance) {
+													// Choose random adjacent tile (up, down, left, right)
+													const directions = [
+														{ x: 0, y: -1 },  // Up
+														{ x: 0, y: 1 },   // Down
+														{ x: -1, y: 0 },  // Left
+														{ x: 1, y: 0 }    // Right
+													];
+													const randomDir = directions[Math.floor(Math.random() * directions.length)];
+
+													// Spawn drop on adjacent tile
+													const dropID = getNextDropID();
+													spawnDrop(dropData, object.pixelX, object.pixelY, dropID, drops, TILE_SIZE, randomDir.x, randomDir.y);
+
+													// Broadcast new drop to nearby players
+													const drop = drops[dropID];
+													if (drop) {
+														broadcastToNearby(drop, {
+															type: "drop",
+															id: drop.id,
+															name: drop.name,
+															mapX: drop.mapX,
+															mapY: drop.mapY,
+															pixelX: drop.pixelX,
+															pixelY: drop.pixelY
+														}, wss, players);
+													}
+												}
+											}
+										}
+
 										broadcastToNearby(object, {
 											type: "object",
 											id: object.id,
@@ -348,6 +391,18 @@ export async function startWebSocket(config, url, apiKey) {
 							(player.mapX === 1018 && player.mapY === 1300)
 						);
 
+						const potionShopCoords = (
+							(player.mapX === 1019 && player.mapY === 1296) ||
+							(player.mapX === 1020 && player.mapY === 1295) ||
+							(player.mapX === 1021 && player.mapY === 1296) ||
+							(player.mapX === 1020 && player.mapY === 1297) ||
+							(player.mapX === 1019 && player.mapY === 1295) ||
+							(player.mapX === 1021 && player.mapY === 1295) ||
+							(player.mapX === 1019 && player.mapY === 1297) ||
+							(player.mapX === 1021 && player.mapY === 1297) ||
+							(player.mapX === 1020 && player.mapY === 1296)
+						);
+
 						if (upgradesCoords) { //Check if player near shop
 							ws.send(JSON.stringify({
 								type: "shop",
@@ -357,6 +412,12 @@ export async function startWebSocket(config, url, apiKey) {
 						} else if (sellingCoords) {
 							ws.send(JSON.stringify({
 								type: "sell",
+							}));
+						} else if (potionShopCoords) { //Check if player near potion shop
+							ws.send(JSON.stringify({
+								type: "shop",
+								name: shops.POTION_SHOP.name,
+								inventory: shops.POTION_SHOP.inventory
 							}));
 						}
 
@@ -391,37 +452,124 @@ export async function startWebSocket(config, url, apiKey) {
 						if (targetPlayer && targetPlayer.dbID === data.playerID && targetPlayer.inventory[data.item]) {
 							const itemName = targetPlayer.inventory[data.item].itemName;
 
-							try {
-								const success = await deleteItem(itemName, targetPlayer.dbID, supabase, targetPlayer, data.item);
-								if (!success) {
-									console.log("Failed to delete item in DB");
+							// Check if item amount is greater than 0
+							if (targetPlayer.inventory[data.item].itemAmount > 0) {
+								// Find valid adjacent tile (base tiles 0, 1, 2, 3, 4 only)
+								const validTiles = [0, 1, 2, 3, 4];
+								const adjacentOffsets = [
+									{ x: 0, y: -1 },  // Up
+									{ x: 0, y: 1 },   // Down
+									{ x: -1, y: 0 },  // Left
+									{ x: 1, y: 0 },   // Right
+									{ x: 0, y: 0 }    // Same tile (player's position)
+								];
+
+								let dropPosition = null;
+
+								// Check each adjacent tile for validity
+								for (const offset of adjacentOffsets) {
+									const checkX = targetPlayer.mapX + offset.x;
+									const checkY = targetPlayer.mapY + offset.y;
+
+									// Check bounds
+									if (checkY >= 0 && checkY < MAP.length && checkX >= 0 && checkX < MAP[0].length) {
+										const tileValue = MAP[checkY][checkX];
+
+										// Check if tile is a valid base tile
+										if (validTiles.includes(tileValue)) {
+											dropPosition = { x: checkX, y: checkY, offsetX: offset.x, offsetY: offset.y };
+											break;
+										}
+									}
 								}
-							} catch (err) {
-								console.error("Failed to delete item:", err);
+
+								// If valid position found, drop the item
+								if (dropPosition) {
+									// Remove item from inventory
+									try {
+										const success = await deleteItem(itemName, targetPlayer.dbID, supabase, targetPlayer, data.item);
+										if (success) {
+											// Create drop at valid tile position
+											const dropID = getNextDropID();
+											const dropData = { name: itemName };
+
+											// Spawn drop on the valid tile
+											spawnDrop(dropData, targetPlayer.pixelX, targetPlayer.pixelY, dropID, drops, TILE_SIZE, dropPosition.offsetX, dropPosition.offsetY);
+
+											// Broadcast new drop to nearby players
+											const drop = drops[dropID];
+											if (drop) {
+												broadcastToNearby(drop, {
+													type: "drop",
+													id: drop.id,
+													name: drop.name,
+													mapX: drop.mapX,
+													mapY: drop.mapY,
+													pixelX: drop.pixelX,
+													pixelY: drop.pixelY
+												}, wss, players);
+											}
+
+											console.log(`${targetPlayer.username} dropped ${itemName} at (${dropPosition.x}, ${dropPosition.y})`);
+										} else {
+											console.log("Failed to delete item from inventory");
+										}
+									} catch (err) {
+										console.error("Failed to drop item:", err);
+									}
+								} else {
+									console.log("No valid tile found to drop item");
+								}
 							}
 						}
 					} else if (data.dir === "buyItem") {
 						console.log(data.item)
-						if (player.gold >= shops.SHOP1.inventory[data.item].itemValue) {
-							
-							if (data.item === "Health Upgrade") {
-								player.maxHealth += 10;
-								player.health = player.maxHealth;
-								player.level += 1;
-								player.gold -= shops.SHOP1.inventory[data.item].itemValue;
-							} else if (data.item === "Speed Upgrade") {
-								if (player.speed < 10) { //Ensure player is still controllable
-									player.speed += 1;
-									player.level += 1;
-									player.gold -= shops.SHOP1.inventory[data.item].itemValue;
-								}
-							} else if (data.item === "Sword Upgrade") {
-								player.damage += 1
-								player.level += 1;
-								player.gold -= shops.SHOP1.inventory[data.item].itemValue;
-							}
 
-							
+						// Check which shop the item is from
+						let itemPrice = null;
+						let isUpgrade = false;
+						let isPotion = false;
+
+						if (shops.SHOP1.inventory[data.item]) {
+							itemPrice = shops.SHOP1.inventory[data.item].itemValue;
+							isUpgrade = true;
+						} else if (shops.POTION_SHOP.inventory[data.item]) {
+							itemPrice = shops.POTION_SHOP.inventory[data.item].itemValue;
+							isPotion = true;
+						}
+
+						if (itemPrice && player.gold >= itemPrice) {
+							player.gold -= itemPrice;
+
+							if (isUpgrade) {
+								// Handle upgrade items (permanent stat increases)
+								if (data.item === "Health Upgrade") {
+									player.maxHealth += 10;
+									player.health = player.maxHealth;
+									player.level += 1;
+								} else if (data.item === "Speed Upgrade") {
+									if (player.speed < 10) { //Ensure player is still controllable
+										player.speed += 1;
+										player.level += 1;
+									}
+								} else if (data.item === "Sword Upgrade") {
+									player.damage += 1;
+									player.level += 1;
+								}
+							} else if (isPotion) {
+								// Handle potion items (add to inventory)
+								if (!player.inventory[data.item]) {
+									player.inventory[data.item] = {
+										itemName: data.item,
+										itemAmount: 1
+									};
+								} else {
+									player.inventory[data.item].itemAmount++;
+								}
+
+								// Save item to database
+								saveItem(data.item, player.dbID, supabase);
+							}
 
 							saveProgress(player, supabase);
 
@@ -441,11 +589,10 @@ export async function startWebSocket(config, url, apiKey) {
 								gold: player.gold,
 								inBoat: player.inBoat,
 								inventory: player.inventory,
-								speed: player.speed
+								speed: player.speed,
+								damage: player.damage
 							}, wss);
-						
 						}
-					
 					} else if (data.dir === "sellItem") {
 						const sellingCoords = (
 							(player.mapX === 1018 && player.mapY === 1301) ||
@@ -501,7 +648,6 @@ export async function startWebSocket(config, url, apiKey) {
 							}
 						}
 					} else if (data.dir === "consumeItem") {
-						console.log("test")
 						const targetPlayer = players[playerId];
 						if (targetPlayer && targetPlayer.dbID === data.playerID && targetPlayer.inventory[data.item]) {
 							const itemName = targetPlayer.inventory[data.item].itemName;
@@ -511,14 +657,32 @@ export async function startWebSocket(config, url, apiKey) {
 
 								targetPlayer.inventory[data.item].itemAmount -= 1;
 
-								// Add 10 health to player (cap at maxHealth)
+								// Determine healing amount based on potion type
+								let healAmount = 10; // Default healing for non-potion items
+
+								// Healing potion tiers
+								if (itemName === "Small Healing Potion") {
+									healAmount = 25;
+								} else if (itemName === "Medium Healing Potion") {
+									healAmount = 50;
+								} else if (itemName === "Large Healing Potion") {
+									healAmount = 75;
+								} else if (itemName === "Greater Healing Potion") {
+									healAmount = 100;
+								} else if (itemName === "Supreme Healing Potion") {
+									healAmount = 150;
+								}
+
+								// Add health to player (cap at maxHealth)
 								const oldHealth = targetPlayer.health;
-								targetPlayer.health = Math.min(targetPlayer.maxHealth, targetPlayer.health + 10);
+								targetPlayer.health = Math.min(targetPlayer.maxHealth, targetPlayer.health + healAmount);
 
 								// Mark health as changed if it actually changed
 								if (targetPlayer.health !== oldHealth) {
 									targetPlayer.healthChanged = true;
 								}
+
+								console.log(`${targetPlayer.username} consumed ${itemName} and healed ${targetPlayer.health - oldHealth} HP`);
 
 								// Update database for item
 								try {
