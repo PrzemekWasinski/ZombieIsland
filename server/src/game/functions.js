@@ -61,7 +61,7 @@ export async function saveItem(dropName, playerID, supabase) {
 		}
 		
 		if (dropData) {
-			if (dropData.itemAmount >= 99) {
+			if (dropData.itemAmount >= 999) {
 				return false;
 			} else {
 				const { error: updateError } = await supabase

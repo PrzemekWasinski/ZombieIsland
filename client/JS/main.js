@@ -43,6 +43,12 @@ document.getElementById('register-button').onclick = async () => {
 	const username = document.getElementById("register-username").value.trim();
 	const email = document.getElementById('register-email').value.trim();
 	const password = document.getElementById('register-password').value;
+	const confirmPassword = document.getElementById('register-confirm-password').value;
+
+	//Check if passwords match
+	if (password !== confirmPassword) {
+		return alert("Passwords do not match. Please try again.");
+	}
 
 	//Check if username already exists
 	const { data: existingUser, error: fetchError } = await supabase

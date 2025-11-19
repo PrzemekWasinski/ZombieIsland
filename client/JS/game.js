@@ -61,6 +61,7 @@ export function startGame({ userId, token }) {
 	let minimapVisible = true;
 
 	let shopInventory = {};
+	let shopName = "";
 	let inventory = {};
 
 	// Load minimap image
@@ -97,6 +98,7 @@ export function startGame({ userId, token }) {
 		if (!player.direction) player.direction = "down";
 		if (!player.frameIndex) player.frameIndex = 0;
 		if (!player.frameTimer) player.frameTimer = 0;
+		if (player.inBoat === undefined) player.inBoat = false;
 	}
 
 	function getEnemySprite(enemy) {
@@ -155,6 +157,15 @@ export function startGame({ userId, token }) {
 			if (!player.targetY) player.targetY = player.pixelY;
 			ensurePlayerDefaults(player); //Ensure new player has valid defaults
 
+		} else if ("systemMessage" === msg.type) { //System message (join/leave)
+			// Add system message to global chat
+			globalChatMessages.push({
+				text: msg.text,
+				timestamp: msg.timestamp || Date.now(),
+				color: msg.color || "yellow",
+				isSystem: true
+			});
+
 		} else if ("update" === msg.type) { //Player update
 			if (!players[msg.id]) {
 				return;
@@ -176,6 +187,9 @@ export function startGame({ userId, token }) {
 				if (msg.gold !== undefined) player.gold = msg.gold;
 				if (msg.speed !== undefined) player.speed = msg.speed;
 				if (msg.damage !== undefined) player.damage = msg.damage;
+				if (msg.direction !== undefined) player.direction = msg.direction;
+				if (msg.action !== undefined) player.action = msg.action;
+				if (msg.inBoat !== undefined) player.inBoat = msg.inBoat;
 				if (msg.messages !== undefined) {
 					player.messages = msg.messages;
 					// Add new messages to global chat
@@ -315,6 +329,7 @@ export function startGame({ userId, token }) {
 
 			inShopInventory = true;
 			shopInventory = msg.inventory;
+			shopName = msg.name;
 
 		} else if ("sell" === msg.type) {
 			inSellInventory = true;
@@ -607,12 +622,13 @@ export function startGame({ userId, token }) {
 
 			if (player.action === "idle") {
 				player.frameIndex = 0;
+				player.frameTimer = 0;
 				if (player.direction === "up") {
 					frameAmount = 4;
 				}
 			} else {
 				player.frameTimer += deltaTime * 1000;
-				let loopTime = 1200;
+				let loopTime = 600; // Faster animation (was 1200)
 				const frameDelay = loopTime / frameAmount;
 
 				if (player.frameTimer >= frameDelay) {
@@ -702,10 +718,12 @@ export function startGame({ userId, token }) {
 		}
 
 		//Draw UI elements
-		if (inInventory || inSellInventory) {
-			drawInventory(inventory);
+		if (inInventory) {
+			drawInventory(inventory, "Inventory");
+		} else if (inSellInventory) {
+			drawInventory(inventory, "Sell Items");
 		} else if (inShopInventory) {
-			drawShopInventory(shopInventory, players[playerId].speed, players[playerId].damage, players[playerId].maxHealth);
+			drawShopInventory(shopInventory, players[playerId].speed, players[playerId].damage, players[playerId].maxHealth, shopName);
 		} 
 
 		drawHUD(players[playerId])

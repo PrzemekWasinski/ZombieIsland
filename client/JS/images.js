@@ -254,6 +254,13 @@ export const playerImages = {
 	"walk": ["../assets/player_sprite/lv1/walk.png", 6]
 };
 
+export const boatImages = {
+	"down": "../assets/player_sprite/boat/down.png",
+	"up": "../assets/player_sprite/boat/up.png",
+	"left": "../assets/player_sprite/boat/left.png",
+	"right": "../assets/player_sprite/boat/right.png"
+};
+
 export const itemImages = {
 	"Apple": "../assets/items/Apple.png",
 	"Blue Berry": "../assets/items/Blue Berry.png",
@@ -298,7 +305,7 @@ export const itemImages = {
 export const tileImages = {};
 
 export function loadImages(callback) {
-	let totalImages = Object.keys(tileSources).length + Object.keys(sprites).length;
+	let totalImages = Object.keys(tileSources).length + Object.keys(sprites).length + Object.keys(boatImages).length;
 	let imagesLoaded = 0;
 
 	const checkDone = () => {
@@ -356,5 +363,15 @@ export function loadImages(callback) {
 		itemImg.onerror = () => console.error(`Failed to load image: ${itemImages[key]}`);
 
 		itemImages[key] = itemImg;
+	}
+
+	for (let key in boatImages) {
+		const boatImg = new Image();
+		boatImg.src = boatImages[key];
+
+		boatImg.onload = checkDone;
+		boatImg.onerror = () => console.error(`Failed to load image: ${boatImages[key]}`);
+
+		boatImages[key] = boatImg;
 	}
 }

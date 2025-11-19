@@ -47,6 +47,30 @@ export async function startWebSocket(config, url, apiKey) {
 
 					ws.userId = userData.user.id;
 
+					// Check if this user is already connected and disconnect the old session
+					for (const existingPlayerId in players) {
+						const existingPlayer = players[existingPlayerId];
+						if (existingPlayer.dbID === ws.userId) {
+							console.log(`User ${ws.userId} already connected. Disconnecting old session.`);
+
+							// Broadcast leave message for the old session
+							broadcast({
+								type: "leave",
+								id: existingPlayer.id
+							}, wss);
+
+							// Close the old websocket connection
+							if (existingPlayer.ws && existingPlayer.ws.readyState === 1) {
+								existingPlayer.ws.close();
+							}
+
+							// Remove the old player from memory
+							delete players[existingPlayerId];
+							await updateStats("active_players", Object.keys(players).length, supabase);
+							break;
+						}
+					}
+
 					const { data: characterData, error: fetchError } = await supabase
 						.from("Characters")
 						.select("*")
@@ -109,6 +133,8 @@ export async function startWebSocket(config, url, apiKey) {
 						messages: [],
 						inventory: inventory,
 						healthChanged: false,
+						direction: "down",
+						action: "idle",
 						ready: true
 					};
 
@@ -142,6 +168,14 @@ export async function startWebSocket(config, url, apiKey) {
 						type: "join",
 						player: serializableNewPlayer
 					}, wss, ws); //Exclude the new player from broadcast
+
+					// Broadcast join message to all players as a system message
+					broadcast({
+						type: "systemMessage",
+						text: `${characterData.username} joined the game`,
+						timestamp: Date.now(),
+						color: "yellow"
+					}, wss);
 
 					return;
 				}
@@ -564,6 +598,12 @@ export async function startWebSocket(config, url, apiKey) {
 										itemAmount: 1
 									};
 								} else {
+									// Check if adding would exceed 999 limit
+									if (player.inventory[data.item].itemAmount >= 999) {
+										// Inventory full for this item, refund the player
+										player.gold += itemValue;
+										return;
+									}
 									player.inventory[data.item].itemAmount++;
 								}
 
@@ -747,7 +787,19 @@ export async function startWebSocket(config, url, apiKey) {
 
 		ws.on("close", async () => {
 			if (playerId !== null) {
+				const leavingPlayer = players[playerId];
+				const username = leavingPlayer ? leavingPlayer.username : "Unknown Player";
+
 				console.log(`Player ${playerId} disconnected.`);
+
+				// Broadcast leave message to all remaining players as a system message
+				broadcast({
+					type: "systemMessage",
+					text: `${username} left the game`,
+					timestamp: Date.now(),
+					color: "yellow"
+				}, wss);
+
 				delete players[playerId];
 				await updateStats("active_players", Object.keys(players).length, supabase);
 

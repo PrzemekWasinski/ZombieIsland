@@ -1,4 +1,4 @@
-import { tileImages, objectImages, playerImages, itemImages } from "./images.js";
+import { tileImages, objectImages, playerImages, itemImages, boatImages } from "./images.js";
 
 const canvas = document.getElementById('game');
 const ctx = canvas.getContext('2d');
@@ -63,7 +63,6 @@ export function drawMap(currentPlayer) { //Draw game map
 }
 
 export function drawPlayer(player, isCurrentPlayer, currentPlayer, sprite) { //Draw player
-    const spritePath = sprite[0];
     let screenX, screenY;
     if (isCurrentPlayer) { //You
         screenX = Math.round((canvas.width - tileSize) / 2);
@@ -80,51 +79,80 @@ export function drawPlayer(player, isCurrentPlayer, currentPlayer, sprite) { //D
             return;
         }
     }
-    const spriteSize = 64;
-   
-    const frameWidth = spriteSize;
-    const frameHeight = spriteSize;
-    let sourceX = player.frameIndex * frameWidth;
-    let sourceY;
-   
-    if (player.direction == "down" || player.direction == "down-left" || player.direction == "down-right") {
-        sourceY = 0
-    } else if (player.direction == "left") {
-        sourceY = 1
-    } else if (player.direction == "right") {
-        sourceY = 2
-    } else if (player.direction == "up" || player.direction == "up-left" || player.direction == "up-right") {
-        sourceY = 3
-    }
 
-    if (player.action === "idle" && player.direction === "up") {
-        sourceX = 1;
-    }
-
-    sourceY *= frameHeight;
-    //Check if image is loaded
-    if (!spritePath.complete || spritePath.naturalHeight === 0) {
-        console.warn('Image not ready, skipping draw');
-        return;
-    }
-
-    try {
-        if (spriteSize == 128) {
-            ctx.drawImage(
-                spritePath,
-                sourceX, sourceY, frameWidth, frameHeight,
-                screenX - 32, screenY - 32, frameWidth, frameHeight
-            );
+    // Check if player is in a boat
+    if (player.inBoat) {
+        // Use boat sprites (static images based on direction)
+        let boatImage;
+        if (player.direction === "up" || player.direction === "up-left" || player.direction === "up-right") {
+            boatImage = boatImages.up;
+        } else if (player.direction === "down" || player.direction === "down-left" || player.direction === "down-right") {
+            boatImage = boatImages.down;
+        } else if (player.direction === "left") {
+            boatImage = boatImages.left;
+        } else if (player.direction === "right") {
+            boatImage = boatImages.right;
         } else {
-            ctx.drawImage(
-                spritePath,
-                sourceX, sourceY, frameWidth, frameHeight,
-                screenX, screenY, frameWidth, frameHeight
-            );
+            boatImage = boatImages.down; // Default to down
         }
-       
-    } catch (error) {
-        console.error('DrawImage failed:', error);
+
+        // Check if boat image is loaded
+        if (boatImage && boatImage.complete && boatImage.naturalHeight > 0) {
+            try {
+                ctx.drawImage(boatImage, screenX, screenY, tileSize, tileSize);
+            } catch (error) {
+                console.error('Failed to draw boat image:', error);
+            }
+        }
+    } else {
+        // Use regular player sprites with animations
+        const spritePath = sprite[0];
+        const spriteSize = 64;
+
+        const frameWidth = spriteSize;
+        const frameHeight = spriteSize;
+        let sourceX = player.frameIndex * frameWidth;
+        let sourceY;
+
+        if (player.direction == "down" || player.direction == "down-left" || player.direction == "down-right") {
+            sourceY = 0
+        } else if (player.direction == "left") {
+            sourceY = 1
+        } else if (player.direction == "right") {
+            sourceY = 2
+        } else if (player.direction == "up" || player.direction == "up-left" || player.direction == "up-right") {
+            sourceY = 3
+        }
+
+        if (player.action === "idle" && player.direction === "up") {
+            sourceX = 1;
+        }
+
+        sourceY *= frameHeight;
+        //Check if image is loaded
+        if (!spritePath.complete || spritePath.naturalHeight === 0) {
+            console.warn('Image not ready, skipping draw');
+            return;
+        }
+
+        try {
+            if (spriteSize == 128) {
+                ctx.drawImage(
+                    spritePath,
+                    sourceX, sourceY, frameWidth, frameHeight,
+                    screenX - 32, screenY - 32, frameWidth, frameHeight
+                );
+            } else {
+                ctx.drawImage(
+                    spritePath,
+                    sourceX, sourceY, frameWidth, frameHeight,
+                    screenX, screenY, frameWidth, frameHeight
+                );
+            }
+
+        } catch (error) {
+            console.error('DrawImage failed:', error);
+        }
     }
 
     //Only show username and messages for current player, no health bar
@@ -159,11 +187,11 @@ export function drawPlayer(player, isCurrentPlayer, currentPlayer, sprite) { //D
         }
     }
 
-    // Show messages for all players (filter out old messages)
+    // Show messages for all players (filter out old messages and system messages)
     const currentTime = Date.now();
     const MESSAGE_LIFETIME = 5000; // 5 seconds - match server lifetime
     const activeMessages = player.messages.filter(msg =>
-        currentTime - msg.timestamp < MESSAGE_LIFETIME
+        currentTime - msg.timestamp < MESSAGE_LIFETIME && !msg.isSystem
     );
 
     ctx.fillStyle = "rgb(255, 255, 255)";
@@ -343,7 +371,7 @@ export function isNearby(coord1, coord2) {
 	return dx + dy <= 50;
 }
 
-export function drawInventory(inventory) {
+export function drawInventory(inventory, title = "Inventory") {
     // Inventory panel settings
     const panelWidth = 960;
     const panelHeight = 600;
@@ -368,7 +396,7 @@ export function drawInventory(inventory) {
     ctx.fillStyle = "#FFD700";
     ctx.font = "bold 28px Arial";
     ctx.textAlign = "center";
-    ctx.fillText("Inventory", panelX + panelWidth / 2, panelY + 35);
+    ctx.fillText(title, panelX + panelWidth / 2, panelY + 35);
 
     // Item grid settings - calculate to fit evenly
     const itemSize = 80;
@@ -434,7 +462,7 @@ export function drawInventory(inventory) {
     }
 }
 
-export function drawShopInventory(inventory, playerSpeed, playerDamage, playerMaxHealth) {
+export function drawShopInventory(inventory, playerSpeed, playerDamage, playerMaxHealth, shopName = "Shop") {
     // Shop panel settings
     const panelWidth = 960;
     const panelHeight = 600;
@@ -459,7 +487,7 @@ export function drawShopInventory(inventory, playerSpeed, playerDamage, playerMa
     ctx.fillStyle = "#FFD700";
     ctx.font = "bold 28px Arial";
     ctx.textAlign = "center";
-    ctx.fillText("Shop", panelX + panelWidth / 2, panelY + 35);
+    ctx.fillText(shopName, panelX + panelWidth / 2, panelY + 35);
 
     // Item grid settings - calculate to fit evenly
     const itemSize = 80;
@@ -670,26 +698,42 @@ export function drawChatBox(messages, isTyping, currentMessage) {
         const msg = displayMessages[i];
         const y = startY + i * lineHeight;
 
-        // Draw username in color
-        ctx.fillStyle = "#c64affff";
-        const usernameText = `${msg.username}: `;
-        ctx.fillText(usernameText, chatX + messagePadding, y);
-
-        // Draw message in white
-        const usernameWidth = ctx.measureText(usernameText).width;
-        ctx.fillStyle = "white";
-
-        // Truncate message if too long
-        const maxMessageWidth = chatWidth - messagePadding * 2 - usernameWidth;
-        let messageText = msg.text;
-        if (ctx.measureText(messageText).width > maxMessageWidth) {
-            while (ctx.measureText(messageText + "...").width > maxMessageWidth && messageText.length > 0) {
-                messageText = messageText.slice(0, -1);
+        // Check if this is a system message
+        if (msg.isSystem) {
+            // System messages (join/leave) - render in yellow without username
+            ctx.fillStyle = msg.color || "yellow";
+            const maxMessageWidth = chatWidth - messagePadding * 2;
+            let messageText = msg.text;
+            if (ctx.measureText(messageText).width > maxMessageWidth) {
+                while (ctx.measureText(messageText + "...").width > maxMessageWidth && messageText.length > 0) {
+                    messageText = messageText.slice(0, -1);
+                }
+                messageText += "...";
             }
-            messageText += "...";
-        }
+            ctx.fillText(messageText, chatX + messagePadding, y);
+        } else {
+            // Regular player messages
+            // Draw username in color
+            ctx.fillStyle = "#c64affff";
+            const usernameText = `${msg.username}: `;
+            ctx.fillText(usernameText, chatX + messagePadding, y);
 
-        ctx.fillText(messageText, chatX + messagePadding + usernameWidth, y);
+            // Draw message in white
+            const usernameWidth = ctx.measureText(usernameText).width;
+            ctx.fillStyle = "white";
+
+            // Truncate message if too long
+            const maxMessageWidth = chatWidth - messagePadding * 2 - usernameWidth;
+            let messageText = msg.text;
+            if (ctx.measureText(messageText).width > maxMessageWidth) {
+                while (ctx.measureText(messageText + "...").width > maxMessageWidth && messageText.length > 0) {
+                    messageText = messageText.slice(0, -1);
+                }
+                messageText += "...";
+            }
+
+            ctx.fillText(messageText, chatX + messagePadding + usernameWidth, y);
+        }
     }
 
     // Draw typing indicator box if typing
@@ -797,6 +841,9 @@ export function drawMinimap(player, mapImage, isVisible) {
         ctx.textAlign = "center";
         ctx.textBaseline = "middle";
         ctx.fillText("M", buttonX + buttonSize / 2, buttonY + buttonSize / 2);
+
+        // Reset text baseline to default
+        ctx.textBaseline = "alphabetic";
 
         return {
             toggleButtonX: buttonX,

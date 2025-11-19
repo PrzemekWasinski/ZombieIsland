@@ -150,6 +150,7 @@ export function startGame(wss, TILE_SIZE, VISIBLE_TILES_X, VISIBLE_TILES_Y, PASS
             const player = players[id];
 
             let playerMoved = false; //Track if player  moved
+            let actionChanged = false; //Track if action changed
 
             for (let i = player.messages.length - 1; i >= 0; i--) {
                 if (player.messages[i] && Date.now() - player.messages[i].timestamp > 3000) {
@@ -166,6 +167,23 @@ export function startGame(wss, TILE_SIZE, VISIBLE_TILES_X, VISIBLE_TILES_Y, PASS
             else if (player.movingDown) velocityY = player.speed;
             if (player.movingLeft) velocityX = -player.speed;
             else if (player.movingRight) velocityX = player.speed;
+
+            // Calculate direction based on movement
+            if (player.movingUp) player.direction = "up";
+            else if (player.movingDown) player.direction = "down";
+            else if (player.movingLeft) player.direction = "left";
+            else if (player.movingRight) player.direction = "right";
+
+            // Set action based on movement and track if it changed
+            const previousAction = player.action;
+            if (velocityX !== 0 || velocityY !== 0) {
+                player.action = "walk";
+            } else {
+                player.action = "idle";
+            }
+            if (previousAction !== player.action) {
+                actionChanged = true;
+            }
 
             if (velocityX !== 0 && velocityY !== 0) { //Normalize diagonal speed
                 const normalizer = 1 / Math.sqrt(2);
@@ -333,8 +351,8 @@ export function startGame(wss, TILE_SIZE, VISIBLE_TILES_X, VISIBLE_TILES_Y, PASS
                 ws_client.send(JSON.stringify(selfUpdatePayload));
             }
 
-            //Only broadcast to other players if this player moved or health changed
-            if (playerMoved || player.healthChanged) {
+            //Only broadcast to other players if this player moved, health changed, or action changed
+            if (playerMoved || player.healthChanged || actionChanged) {
                 const othersUpdatePayload = {
                     type: "update",
                     id: player.id,
@@ -348,8 +366,10 @@ export function startGame(wss, TILE_SIZE, VISIBLE_TILES_X, VISIBLE_TILES_Y, PASS
                     username: player.username,
                     level: player.level,
                     gold: player.gold,
-                    inBoat: player.inBoat, 
+                    inBoat: player.inBoat,
                     messages: player.messages,
+                    direction: player.direction,
+                    action: player.action,
                     //No inventory for others
                 };
                 broadcast(othersUpdatePayload, wss, ws_client);
@@ -615,6 +635,10 @@ export function startGame(wss, TILE_SIZE, VISIBLE_TILES_X, VISIBLE_TILES_Y, PASS
                             itemAmount : 1
                         };
                     } else {
+                        // Check if adding would exceed 999 limit
+                        if (player.inventory[drop.name].itemAmount >= 999) {
+                            continue; // Skip this drop, inventory full for this item
+                        }
                         player.inventory[drop.name].itemAmount++;
                     }
                     
