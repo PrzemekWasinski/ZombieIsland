@@ -18,16 +18,11 @@ export function startGame({ userId, token }) {
 	const ctx = canvas.getContext("2d");
 	const TILE_SIZE = 64; //Tile size in pixels
 
-	let mouseRightX = 0;
-	let mouseRightY = 0;
-	let mouseRightClicked = false;
-
 	let mouseLeftX = 0;
 	let mouseLeftY = 0;
 	let mouseLeftClicked = false;
 
-	let selectedItem = null;   
-	let itemMenuOpen = false;
+	let selectedItem = null;
 
 	const rect = canvas.getBoundingClientRect();
 
@@ -36,15 +31,15 @@ export function startGame({ userId, token }) {
 
 	canvas.addEventListener('contextmenu', (e) => {
 		e.preventDefault();
-		mouseRightX = (e.clientX - rect.left) * scaleX;
-		mouseRightY = (e.clientY - rect.top) * scaleY;
-		mouseRightClicked = true;
 	});
 
 	canvas.addEventListener('mousedown', (e) => {
-		mouseLeftX = (e.clientX - rect.left) * scaleX;
-		mouseLeftY = (e.clientY - rect.top) * scaleY;
-		mouseLeftClicked = true;
+		// Only handle left mouse button (button 0)
+		if (e.button === 0) {
+			mouseLeftX = (e.clientX - rect.left) * scaleX;
+			mouseLeftY = (e.clientY - rect.top) * scaleY;
+			mouseLeftClicked = true;
+		}
 	});
 
 	let playerId = null; //player ID (not userID)
@@ -96,8 +91,8 @@ export function startGame({ userId, token }) {
 	function ensurePlayerDefaults(player) {
 		if (!player.action) player.action = "idle";
 		if (!player.direction) player.direction = "down";
-		if (!player.frameIndex) player.frameIndex = 0;
-		if (!player.frameTimer) player.frameTimer = 0;
+		if (typeof player.frameIndex !== 'number') player.frameIndex = 0;
+		if (typeof player.frameTimer !== 'number') player.frameTimer = 0;
 		if (player.inBoat === undefined) player.inBoat = false;
 	}
 
@@ -171,7 +166,7 @@ export function startGame({ userId, token }) {
 				return;
 			} //Skip if invalid player
 			const player = players[msg.id];
-			
+
 			//Only update if player is nearby OR it's the current player
 			if (msg.id === playerId || isNearby([players[playerId].mapX, players[playerId].mapY], [msg.mapX, msg.mapY])) {
 				if (msg.health !== undefined) player.health = Number(msg.health);
@@ -188,7 +183,21 @@ export function startGame({ userId, token }) {
 				if (msg.speed !== undefined) player.speed = msg.speed;
 				if (msg.damage !== undefined) player.damage = msg.damage;
 				if (msg.direction !== undefined) player.direction = msg.direction;
-				if (msg.action !== undefined) player.action = msg.action;
+				if (msg.action !== undefined) {
+					// If this is the current player and they're attacking,
+					// ignore ALL server action updates - client fully controls attack animation
+					if (msg.id === playerId && player.action === "attack") {
+						// Client is animating attack, ignore all server action updates
+					} else {
+						// For other players, trust server's action updates
+						player.action = msg.action;
+						// Reset frame when action changes
+						if (msg.action === "attack") {
+							player.frameIndex = 0;
+							player.frameTimer = 0;
+						}
+					}
+				}
 				if (msg.inBoat !== undefined) player.inBoat = msg.inBoat;
 				if (msg.messages !== undefined) {
 					player.messages = msg.messages;
@@ -411,10 +420,8 @@ export function startGame({ userId, token }) {
 			}
 		} else if ("Escape" === e.key) {
 			inInventory = false;
-			itemMenuOpen = false;
 		} else if ("i" === e.key) {
 			inInventory = !inInventory;
-			itemMenuOpen = false;
 		} 
 	});
 
@@ -425,28 +432,13 @@ export function startGame({ userId, token }) {
 		const key = control.key;
 		const player = players[playerId];
 
-		// Handle attack animation trigger
-		if (key === "attack") {
-			// Don't restart attack if already attacking or if attack key is already held
-			if (!player.isPlayingAttack && !keysHeld[key]) {
-				player.isPlayingAttack = true;
-				player.attackAnimationFrame = 0;
-				player.action = "attack";
-			}
-		} else {
-			// Cancel attack animation if movement key is pressed
-			if (player.isPlayingAttack && (key === "up" || key === "down" || key === "left" || key === "right")) {
-				player.isPlayingAttack = false;
-				player.attackAnimationFrame = 0;
-			}
-			player.action = control.action;
+		// Check if key is already held (prevent keyboard repeat)
+		if (key && keysHeld[key]) {
+			return;
 		}
 
-		if (control.direction !== "current") {
-			player.direction = control.direction;
-		}
-
-		if (key && !keysHeld[key]) {
+		// Set keysHeld and send to server
+		if (key) {
 			keysHeld[key] = true;
 			socket.send(JSON.stringify({
 				type: "keydown",
@@ -454,6 +446,24 @@ export function startGame({ userId, token }) {
 				pressed: true,
 				playerID: userId,
 			}));
+		}
+
+		// Handle attack key separately
+		if (key === "attack") {
+			// Only start attack if not already attacking
+			if (player.action !== "attack") {
+				player.action = "attack";
+				player.frameIndex = 0;
+				player.frameTimer = 0;
+				player.attackEndTime = Date.now() + 400; // Attack lasts 800ms (8 frames * 100ms)
+			}
+		} else {
+			// For non-attack keys, update action and direction
+			player.action = control.action;
+
+			if (control.direction !== "current") {
+				player.direction = control.direction;
+			}
 		}
 	});
 
@@ -473,8 +483,9 @@ export function startGame({ userId, token }) {
 			}));
 
 			const player = players[playerId];
-			// Don't interrupt attack animation when releasing space
-			if (player.isPlayingAttack) {
+
+			// Skip action updates for attack key - server handles it
+			if (key === "attack") {
 				return;
 			}
 
@@ -607,17 +618,17 @@ export function startGame({ userId, token }) {
 
 		drawMap(currentPlayer);
 
-		//Draw other players 
+		//Draw other players
 		for (const id of nearbyCache.players) {
 			const player = players[id];
 			if (!player) continue;
-			
+
 			//Ensure player has valid defaults before drawing
 			ensurePlayerDefaults(player);
-			
+
 			const sprite = playerImages[player.action];
 			if (!sprite) continue;
-			
+
 			let frameAmount = sprite[1];
 
 			if (player.action === "idle") {
@@ -625,6 +636,15 @@ export function startGame({ userId, token }) {
 				player.frameTimer = 0;
 				if (player.direction === "up") {
 					frameAmount = 4;
+				}
+			} else if (player.action === "attack") {
+				// Attack animation - cycle through frames
+				player.frameTimer += deltaTime * 1000;
+				const frameDelay = 100;
+
+				if (player.frameTimer >= frameDelay) {
+					player.frameTimer = 0;
+					player.frameIndex = (player.frameIndex + 1) % 8; // Loop through 8 frames
 				}
 			} else {
 				player.frameTimer += deltaTime * 1000;
@@ -669,7 +689,21 @@ export function startGame({ userId, token }) {
 		//Draw current player
 		if (players[playerId]) {
 			const player = players[playerId];
-			ensurePlayerDefaults(player); //Ensure current player has valid defaults
+
+			// Initialize defaults ONLY if truly undefined (not 0)
+			if (player.action === undefined) player.action = "idle";
+			if (player.direction === undefined) player.direction = "down";
+			if (player.frameIndex === undefined) player.frameIndex = 0;
+			if (player.frameTimer === undefined) player.frameTimer = 0;
+			if (player.inBoat === undefined) player.inBoat = false;
+
+			// Check if attack timer has expired
+			if (player.action === "attack" && player.attackEndTime && Date.now() >= player.attackEndTime) {
+				player.action = "idle";
+				player.frameIndex = 0;
+				player.frameTimer = 0;
+				player.attackEndTime = null;
+			}
 
 			const sprite = playerImages[player.action];
 			if (sprite) {
@@ -679,32 +713,17 @@ export function startGame({ userId, token }) {
 					// For idle, keep frame at 0 (still frame)
 					player.frameIndex = 0;
 					player.frameTimer = 0;
-				} else if (player.action === "attack" && player.isPlayingAttack) {
-					// Play full attack animation without looping
+				} else if (player.action === "attack") {
+					// Attack animation - cycle through frames
 					player.frameTimer += deltaTime * 1000;
 					const frameDelay = 100;
 
 					if (player.frameTimer >= frameDelay) {
 						player.frameTimer = 0;
-						player.attackAnimationFrame++;
-
-						// Check if animation is complete
-						if (player.attackAnimationFrame >= frameAmount) {
-							player.isPlayingAttack = false;
-							player.attackAnimationFrame = 0;
-
-							// Check if movement keys are held, if so go to walk, otherwise idle
-							if (keysHeld.up || keysHeld.down || keysHeld.left || keysHeld.right) {
-								player.action = "walk";
-							} else {
-								player.action = "idle";
-							}
-							player.frameIndex = 0;
-						} else {
-							player.frameIndex = player.attackAnimationFrame;
-						}
+						player.frameIndex = (player.frameIndex + 1) % 8; // Loop through 8 frames
 					}
 				} else {
+					// For other animated actions (walk, etc.), cycle through frames
 					player.frameTimer += deltaTime * 1000;
 					const frameDelay = 100;
 
@@ -743,24 +762,7 @@ export function startGame({ userId, token }) {
 		// Draw minimap
 		const minimapButtons = drawMinimap(players[playerId], minimapImage, minimapVisible);
 
-		//Handle right click for item selection
-		if (mouseRightClicked) {
-			selectedItem = null;
-
-			if (inInventory) {
-				for (const item in inventory) {
-					const currentItem = inventory[item];
-					if (mouseRightX >= currentItem.xPosition && mouseRightX <= currentItem.xPosition + 80 &&
-						mouseRightY >= currentItem.yPosition && mouseRightY <= currentItem.yPosition + 80) {
-						selectedItem = currentItem;
-						itemMenuOpen = true;
-						break;
-					}
-				}
-			}
-			mouseRightClicked = false;
-
-		} else if (mouseLeftClicked) {
+		if (mouseLeftClicked) {
 			//Handle chat close button click
 			if (chatCloseButton && chatBoxVisible) {
 				if (mouseLeftX >= chatCloseButton.closeButtonX &&
@@ -805,23 +807,58 @@ export function startGame({ userId, token }) {
 				}
 			}
 
-			//Handle item menu deletion first (before other click handlers)
-			if (itemMenuOpen && selectedItem && selectedItem.itemAmount > 0) {
+			//Handle inventory item clicks (delete X or consume item)
+			if (mouseLeftClicked && inInventory && !inShopInventory && !inSellInventory) {
 				const deleteButtonSize = 28;
-				const deleteButtonX = selectedItem.xPosition + 80 - deleteButtonSize;
-				const deleteButtonY = selectedItem.yPosition;
+				let clickedDeleteButton = false;
 
-				if (mouseLeftX > deleteButtonX && mouseLeftX < deleteButtonX + deleteButtonSize &&
-					mouseLeftY > deleteButtonY && mouseLeftY < deleteButtonY + deleteButtonSize) {
-					selectedItem.itemAmount -= 1;
-					socket.send(JSON.stringify({
-						type: "keydown",
-						dir: "deleteItem",
-						pressed: true,
-						playerID: userId,
-						item: selectedItem.itemName
-					}));
-					mouseLeftClicked = false;
+				// First check if clicking on any delete button
+				for (const item in inventory) {
+					const currentItem = inventory[item];
+					if (currentItem.itemAmount > 0) {
+						const deleteButtonX = currentItem.xPosition + 80 - deleteButtonSize;
+						const deleteButtonY = currentItem.yPosition;
+
+						if (mouseLeftX >= deleteButtonX && mouseLeftX <= deleteButtonX + deleteButtonSize &&
+							mouseLeftY >= deleteButtonY && mouseLeftY <= deleteButtonY + deleteButtonSize) {
+							// Clicked on delete button - drop item
+							socket.send(JSON.stringify({
+								type: "keydown",
+								dir: "deleteItem",
+								pressed: true,
+								playerID: userId,
+								item: currentItem.itemName
+							}));
+							clickedDeleteButton = true;
+							mouseLeftClicked = false;
+							break;
+						}
+					}
+				}
+
+				// If didn't click delete button, check for item consumption
+				if (!clickedDeleteButton && mouseLeftClicked) {
+					for (const item in inventory) {
+						const currentItem = inventory[item];
+						// Check if clicking on the item body (excluding the delete button area)
+						const deleteButtonX = currentItem.xPosition + 80 - deleteButtonSize;
+
+						if (mouseLeftX >= currentItem.xPosition && mouseLeftX < deleteButtonX &&
+							mouseLeftY >= currentItem.yPosition && mouseLeftY <= currentItem.yPosition + 80) {
+							if (currentItem.itemAmount > 0) {
+								// Clicked on item body - consume item
+								socket.send(JSON.stringify({
+									type: "keydown",
+									dir: "consumeItem",
+									pressed: true,
+									playerID: userId,
+									item: currentItem.itemName
+								}));
+								mouseLeftClicked = false;
+								break;
+							}
+						}
+					}
 				}
 			}
 
@@ -860,55 +897,42 @@ export function startGame({ userId, token }) {
 					}
 				}
 				mouseLeftClicked = false;
-			} else if (mouseLeftClicked && inInventory && !inShopInventory && !inSellInventory) {
-				for (const item in inventory) {
-					const currentItem = inventory[item];
-					if (mouseLeftX >= currentItem.xPosition && mouseLeftX <= currentItem.xPosition + 80 &&
-						mouseLeftY >= currentItem.yPosition && mouseLeftY <= currentItem.yPosition + 80) {
-						if (currentItem.itemAmount > 0) {
-							selectedItem = currentItem;
-							socket.send(JSON.stringify({
-								type: "keydown",
-								dir: "consumeItem",
-								pressed: true,
-								playerID: userId,
-								item: selectedItem.itemName
-							}));
-							break;
-						}
-					}
-				}
-				mouseLeftClicked = false;
 			}
 		}
 
-		//Draw item menu
-		if (itemMenuOpen && selectedItem && selectedItem.itemAmount > 0) {
+		//Draw delete X on all inventory items
+		if (inInventory && !inShopInventory && !inSellInventory) {
 			const deleteButtonSize = 28;
-			const deleteButtonX = selectedItem.xPosition + 80 - deleteButtonSize;
-			const deleteButtonY = selectedItem.yPosition;
 
-			// Draw red background
-			ctx.fillStyle = "rgba(220, 53, 69, 0.9)";
-			ctx.fillRect(deleteButtonX, deleteButtonY, deleteButtonSize, deleteButtonSize);
+			for (const item in inventory) {
+				const currentItem = inventory[item];
+				if (currentItem.itemAmount > 0) {
+					const deleteButtonX = currentItem.xPosition + 80 - deleteButtonSize;
+					const deleteButtonY = currentItem.yPosition;
 
-			// Draw border
-			ctx.strokeStyle = "rgba(255, 255, 255, 0.8)";
-			ctx.lineWidth = 2;
-			ctx.strokeRect(deleteButtonX, deleteButtonY, deleteButtonSize, deleteButtonSize);
+					// Draw red background
+					ctx.fillStyle = "rgba(220, 53, 69, 0.9)";
+					ctx.fillRect(deleteButtonX, deleteButtonY, deleteButtonSize, deleteButtonSize);
 
-			// Draw black X
-			ctx.strokeStyle = "black";
-			ctx.lineWidth = 3;
-			const padding = 6;
-			ctx.beginPath();
-			// First diagonal
-			ctx.moveTo(deleteButtonX + padding, deleteButtonY + padding);
-			ctx.lineTo(deleteButtonX + deleteButtonSize - padding, deleteButtonY + deleteButtonSize - padding);
-			// Second diagonal
-			ctx.moveTo(deleteButtonX + deleteButtonSize - padding, deleteButtonY + padding);
-			ctx.lineTo(deleteButtonX + padding, deleteButtonY + deleteButtonSize - padding);
-			ctx.stroke();
+					// Draw border
+					ctx.strokeStyle = "rgba(255, 255, 255, 0.8)";
+					ctx.lineWidth = 2;
+					ctx.strokeRect(deleteButtonX, deleteButtonY, deleteButtonSize, deleteButtonSize);
+
+					// Draw black X
+					ctx.strokeStyle = "black";
+					ctx.lineWidth = 3;
+					const padding = 6;
+					ctx.beginPath();
+					// First diagonal
+					ctx.moveTo(deleteButtonX + padding, deleteButtonY + padding);
+					ctx.lineTo(deleteButtonX + deleteButtonSize - padding, deleteButtonY + deleteButtonSize - padding);
+					// Second diagonal
+					ctx.moveTo(deleteButtonX + deleteButtonSize - padding, deleteButtonY + padding);
+					ctx.lineTo(deleteButtonX + padding, deleteButtonY + deleteButtonSize - padding);
+					ctx.stroke();
+				}
+			}
 		}
 
 		requestAnimationFrame(draw);

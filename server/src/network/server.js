@@ -135,7 +135,9 @@ export async function startWebSocket(config, url, apiKey) {
 						healthChanged: false,
 						direction: "down",
 						action: "idle",
-						ready: true
+						ready: true,
+						lastAttackTime: 0,
+						attackStartTime: null
 					};
 
 					const serializableNewPlayer = getSerializablePlayer(players[id]);
@@ -205,7 +207,34 @@ export async function startWebSocket(config, url, apiKey) {
 					else if (data.dir === "right") { 
 						player.movingRight = data.pressed; 
 					}
-					else if (data.dir === "attack" && data.pressed) { 
+					else if (data.dir === "attack" && data.pressed) {
+						// Check attack cooldown (500ms = 0.5 seconds)
+						const currentTime = Date.now();
+						const attackCooldown = 500;
+
+						if (currentTime - player.lastAttackTime < attackCooldown) {
+							return; // Still on cooldown, ignore this attack
+						}
+
+						player.lastAttackTime = currentTime;
+						player.action = "attack"; // Set action to attack
+						player.attackStartTime = currentTime; // Track when attack started
+
+						// Broadcast attack to nearby players only (not to attacker - they control their own animation)
+						const attackUpdate = {
+							type: "update",
+							id: player.id,
+							username: player.username,
+							mapX: player.mapX,
+							mapY: player.mapY,
+							pixelX: player.pixelX,
+							pixelY: player.pixelY,
+							action: player.action,
+							direction: player.direction
+						};
+
+						broadcastToNearby(player, attackUpdate, wss, players);
+
 						let attackHit = false;
 
 						for (const enemyID in enemies) {

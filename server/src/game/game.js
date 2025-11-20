@@ -175,11 +175,27 @@ export function startGame(wss, TILE_SIZE, VISIBLE_TILES_X, VISIBLE_TILES_Y, PASS
             else if (player.movingRight) player.direction = "right";
 
             // Set action based on movement and track if it changed
+            // Don't override action if player is attacking
             const previousAction = player.action;
-            if (velocityX !== 0 || velocityY !== 0) {
-                player.action = "walk";
-            } else {
-                player.action = "idle";
+
+            // Check if attack animation should end (800ms = 8 frames * 100ms per frame)
+            if (player.action === "attack" && player.attackStartTime) {
+                const attackDuration = 800; // 8 frames * 100ms
+                const elapsed = currentTime - player.attackStartTime;
+                if (elapsed >= attackDuration) {
+                    // Attack animation finished, clear it
+                    player.action = null; // Will be set below based on movement
+                    player.attackStartTime = null;
+                    actionChanged = true; // Force broadcast of action change
+                }
+            }
+
+            if (player.action !== "attack") {
+                if (velocityX !== 0 || velocityY !== 0) {
+                    player.action = "walk";
+                } else {
+                    player.action = "idle";
+                }
             }
             if (previousAction !== player.action) {
                 actionChanged = true;
