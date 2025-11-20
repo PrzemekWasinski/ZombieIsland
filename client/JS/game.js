@@ -450,8 +450,8 @@ export function startGame({ userId, token }) {
 
 		// Handle attack key separately
 		if (key === "attack") {
-			// Only start attack if not already attacking
-			if (player.action !== "attack") {
+			// Only start attack if not already attacking AND attack timer isn't active
+			if (player.action !== "attack" && (!player.attackEndTime || Date.now() >= player.attackEndTime)) {
 				player.action = "attack";
 				player.frameIndex = 0;
 				player.frameTimer = 0;
