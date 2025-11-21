@@ -2,8 +2,8 @@ import { loadImages, sprites, playerImages } from "./images.js";
 import { drawMap, drawPlayer, drawEnemy, drawDrop, drawObject, drawInventory, isNearby, drawHUD, drawShopInventory, drawChatBox, drawPickupNotifications, drawChatToggleButton, drawMinimap } from "./functions.js"
 
 export function startGame({ userId, token }) {
-	//const socket = new WebSocket("wss://ws.zombieisland.online/"); //Main server
-	const socket = new WebSocket("ws://localhost:8080"); //Local server
+	const socket = new WebSocket("wss://ws.zombieisland.online/"); //Main server
+	//const socket = new WebSocket("ws://localhost:8080"); //Local server
 
 	socket.onopen = () => {
 		console.log("Connected to server");
@@ -699,7 +699,17 @@ export function startGame({ userId, token }) {
 
 			// Check if attack timer has expired
 			if (player.action === "attack" && player.attackEndTime && Date.now() >= player.attackEndTime) {
-				player.action = "idle";
+				// Check if any movement keys are still held
+				if (keysHeld.up || keysHeld.down || keysHeld.left || keysHeld.right) {
+					player.action = "walk";
+					// Set direction based on which key is held
+					if (keysHeld.up) player.direction = "up";
+					else if (keysHeld.down) player.direction = "down";
+					else if (keysHeld.left) player.direction = "left";
+					else if (keysHeld.right) player.direction = "right";
+				} else {
+					player.action = "idle";
+				}
 				player.frameIndex = 0;
 				player.frameTimer = 0;
 				player.attackEndTime = null;

@@ -355,7 +355,7 @@ export async function startWebSocket(config, url, apiKey) {
 
 						//Get into boat logic
 						if (!player.inBoat) {
-							if (player.mapY > 0 && (MAP[player.mapY - 2][player.mapX] === 9)) {
+							if (player.mapY > 0 && (MAP[player.mapY - 2][player.mapX] === 0)) {
 								player.mapY -= 2;
 								player.pixelY -= TILE_SIZE * 2;
 								player.targetY -= TILE_SIZE * 2;
@@ -819,7 +819,7 @@ export async function startWebSocket(config, url, apiKey) {
 				const leavingPlayer = players[playerId];
 				const username = leavingPlayer ? leavingPlayer.username : "Unknown Player";
 
-				console.log(`Player ${playerId} disconnected.`);
+				console.log(`Player ${username} disconnected.`);
 
 				// Broadcast leave message to all remaining players as a system message
 				broadcast({

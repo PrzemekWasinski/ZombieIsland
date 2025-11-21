@@ -379,7 +379,7 @@ export function drawInventory(inventory, title = "Inventory") {
     const panelY = (canvas.height - panelHeight) / 2;
 
     // Draw main panel background
-    ctx.fillStyle = "rgba(0, 0, 0, 0.85)";
+    ctx.fillStyle = "rgba(0, 0, 0, 0.55)";
     ctx.fillRect(panelX, panelY, panelWidth, panelHeight);
 
     // Draw panel border
@@ -634,7 +634,7 @@ export function drawHUD(player) {
 }
 
 export function drawChatBox(messages, isTyping, currentMessage) {
-    const chatWidth = 450;
+    const chatWidth = 440;
     const chatHeight = 250;
     const chatX = 20;
     const inputBoxHeight = isTyping ? 40 : 0; // Account for input box if typing

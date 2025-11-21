@@ -629,19 +629,12 @@ export function startGame(wss, TILE_SIZE, VISIBLE_TILES_X, VISIBLE_TILES_Y, PASS
 
         for (const dropID in drops) {
             const drop = drops[dropID]
-            let pickedUp = false;
 
             for (const playerID in players) {
                 const player = players[playerID]
                 const dx = Math.abs(player.pixelX - drop.pixelX);
                 const dy = Math.abs(player.pixelY - drop.pixelY);
                 if (dx < TILE_SIZE * 0.4 && dy < TILE_SIZE * 0.4) {
-                    if (player.health > player.maxHealth - 10) {
-                        player.health = player.maxHealth
-                    } else {
-                        player.health += 10
-                    }
-
                     //Update inventory in memory
                     player.healthChanged = true;
 
@@ -670,8 +663,6 @@ export function startGame(wss, TILE_SIZE, VISIBLE_TILES_X, VISIBLE_TILES_Y, PASS
                             inventory: player.inventory
                         }));
                     }
-
-                    pickedUp = true;
                     break; //One player picks it up
                 }
             }
