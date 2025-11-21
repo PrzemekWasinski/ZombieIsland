@@ -49,6 +49,9 @@ export function startGame({ userId, token }) {
 	let drops = {} //All drops
 	let objects = {} //All objects
 
+	// Client-side prediction for local player
+	let predictedPosition = { mapX: 0, mapY: 0, pixelX: 0, pixelY: 0, targetX: 0, targetY: 0 };
+
 	let inInventory = false;
 	let inShopInventory = false;
 	let inSellInventory = false;
@@ -57,6 +60,7 @@ export function startGame({ userId, token }) {
 
 	let shopInventory = {};
 	let shopName = "";
+	let shopPosition = null; // Store shop position when opened
 	let inventory = {};
 
 	// Load minimap image
@@ -141,6 +145,16 @@ export function startGame({ userId, token }) {
 				player.targetX = Number(player.targetX) || player.pixelX;
 				player.targetY = Number(player.targetY) || player.pixelY;
 				ensurePlayerDefaults(player); // Ensure player has valid defaults
+
+				// Initialize predicted position
+				predictedPosition = {
+					mapX: player.mapX,
+					mapY: player.mapY,
+					pixelX: player.pixelX,
+					pixelY: player.pixelY,
+					targetX: player.targetX,
+					targetY: player.targetY
+				};
 			}
 
 		} else if ("join" === msg.type) { //New player joined
@@ -199,6 +213,28 @@ export function startGame({ userId, token }) {
 					}
 				}
 				if (msg.inBoat !== undefined) player.inBoat = msg.inBoat;
+
+				// Update predicted position for local player based on server correction
+				if (msg.id === playerId) {
+					// Smoothly reconcile prediction with server position
+					const errorThreshold = TILE_SIZE * 2; // If error is more than 2 tiles, snap to server position
+					const errorX = Math.abs(predictedPosition.targetX - player.targetX);
+					const errorY = Math.abs(predictedPosition.targetY - player.targetY);
+
+					if (errorX > errorThreshold || errorY > errorThreshold) {
+						// Large error - snap to server position
+						predictedPosition.targetX = player.targetX;
+						predictedPosition.targetY = player.targetY;
+						predictedPosition.pixelX = player.pixelX;
+						predictedPosition.pixelY = player.pixelY;
+						predictedPosition.mapX = player.mapX;
+						predictedPosition.mapY = player.mapY;
+					} else {
+						// Small error - gently correct prediction
+						predictedPosition.targetX += (player.targetX - predictedPosition.targetX) * 0.3;
+						predictedPosition.targetY += (player.targetY - predictedPosition.targetY) * 0.3;
+					}
+				}
 				if (msg.messages !== undefined) {
 					player.messages = msg.messages;
 					// Add new messages to global chat
@@ -336,12 +372,22 @@ export function startGame({ userId, token }) {
 			console.log(msg.name)
 			console.log(msg.inventory)
 
+			inInventory = false; // Close player inventory when shop opens
 			inShopInventory = true;
 			shopInventory = msg.inventory;
 			shopName = msg.name;
+			// Store current player position when shop opens
+			if (players[playerId]) {
+				shopPosition = { mapX: players[playerId].mapX, mapY: players[playerId].mapY };
+			}
 
 		} else if ("sell" === msg.type) {
+			inInventory = false; // Close player inventory when sell inventory opens
 			inSellInventory = true;
+			// Store current player position when sell inventory opens
+			if (players[playerId]) {
+				shopPosition = { mapX: players[playerId].mapX, mapY: players[playerId].mapY };
+			}
 
 		} else if ("typing" === msg.type) {
 			if (players[msg.id]) {
@@ -374,12 +420,29 @@ export function startGame({ userId, token }) {
 	let isTyping = false;
 	let inputString = "";
 
+	let interactKeyBlocked = false; // Flag to prevent E from reopening shop
+
 	window.addEventListener("keydown", (e) => {
+		// Close shop/sell inventory on any key press when open
 		if (inShopInventory) {
 			shopInventory = {};
 			inShopInventory = false;
+			shopPosition = null;
+			// Block only the interact key if E was pressed
+			if (e.key === "e" || e.key === "E") {
+				interactKeyBlocked = true;
+				setTimeout(() => { interactKeyBlocked = false; }, 10);
+			}
+			// Don't return - let the key event continue to second handler for movement
 		} else if (inSellInventory) {
 			inSellInventory = false;
+			shopPosition = null;
+			// Block only the interact key if E was pressed
+			if (e.key === "e" || e.key === "E") {
+				interactKeyBlocked = true;
+				setTimeout(() => { interactKeyBlocked = false; }, 10);
+			}
+			// Don't return - let the key event continue to second handler for movement
 		}
 
 		if (!isTyping && e.key === "t") {
@@ -427,7 +490,11 @@ export function startGame({ userId, token }) {
 
 	window.addEventListener("keydown", (event) => {
 		const control = controls[event.key];
+		// Don't process controls if typing or player not ready
 		if (!control || isTyping || !playerId || !players[playerId]) return;
+
+		// Block only interact key if shop just closed
+		if (interactKeyBlocked && control.key === "interact") return;
 
 		const key = control.key;
 		const player = players[playerId];
@@ -463,6 +530,29 @@ export function startGame({ userId, token }) {
 
 			if (control.direction !== "current") {
 				player.direction = control.direction;
+			}
+
+			// Client-side prediction: immediately update predicted position for movement keys
+			if (key === "up" || key === "down" || key === "left" || key === "right") {
+				const speed = player.speed || 1;
+				switch(key) {
+					case "up":
+						predictedPosition.targetY = predictedPosition.targetY - (TILE_SIZE * speed);
+						predictedPosition.mapY = Math.round(predictedPosition.targetY / TILE_SIZE);
+						break;
+					case "down":
+						predictedPosition.targetY = predictedPosition.targetY + (TILE_SIZE * speed);
+						predictedPosition.mapY = Math.round(predictedPosition.targetY / TILE_SIZE);
+						break;
+					case "left":
+						predictedPosition.targetX = predictedPosition.targetX - (TILE_SIZE * speed);
+						predictedPosition.mapX = Math.round(predictedPosition.targetX / TILE_SIZE);
+						break;
+					case "right":
+						predictedPosition.targetX = predictedPosition.targetX + (TILE_SIZE * speed);
+						predictedPosition.mapX = Math.round(predictedPosition.targetX / TILE_SIZE);
+						break;
+				}
 			}
 		}
 	});
@@ -573,8 +663,23 @@ export function startGame({ userId, token }) {
 		//Update positions for all players
 		for (const id in players) {
 			const player = players[id];
-			player.pixelX = tileTransition(player.pixelX, player.targetX, time);
-			player.pixelY = tileTransition(player.pixelY, player.targetY, time);
+
+			// Use predicted position for local player, server position for others
+			if (id === playerId) {
+				// Interpolate predicted position
+				predictedPosition.pixelX = tileTransition(predictedPosition.pixelX, predictedPosition.targetX, time);
+				predictedPosition.pixelY = tileTransition(predictedPosition.pixelY, predictedPosition.targetY, time);
+
+				// Override player's render position with predicted position
+				player.renderPixelX = predictedPosition.pixelX;
+				player.renderPixelY = predictedPosition.pixelY;
+			} else {
+				// Use server-authoritative position for other players
+				player.pixelX = tileTransition(player.pixelX, player.targetX, time);
+				player.pixelY = tileTransition(player.pixelY, player.targetY, time);
+				player.renderPixelX = player.pixelX;
+				player.renderPixelY = player.pixelY;
+			}
 		}
 
 		//Update enemy positions and animations
@@ -743,6 +848,24 @@ export function startGame({ userId, token }) {
 					}
 				}
 				drawPlayer(currentPlayer, true, currentPlayer, sprite);
+			}
+		}
+
+		// Check if player has moved too far from shop/sell inventory
+		if ((inShopInventory || inSellInventory) && shopPosition && players[playerId]) {
+			const currentPos = [players[playerId].mapX, players[playerId].mapY];
+			const shopPos = [shopPosition.mapX, shopPosition.mapY];
+
+			if (!isNearby(currentPos, shopPos)) {
+				// Player moved too far, close shop/sell inventory
+				if (inShopInventory) {
+					shopInventory = {};
+					inShopInventory = false;
+				}
+				if (inSellInventory) {
+					inSellInventory = false;
+				}
+				shopPosition = null;
 			}
 		}
 

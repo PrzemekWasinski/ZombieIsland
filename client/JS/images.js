@@ -61,8 +61,6 @@ export const tileSources = {
 	409: "../assets/map/Snow/br-corner.png",
 	410: "../assets/map/Snow/bl-corner.png",
 	411: "../assets/map/Snow/tl-corner.png",
-
-
 };
 
 export const sprites = {
@@ -241,8 +239,9 @@ export const objectImages = {
 	"Palm Tree": "../assets/objects/trees/palm_tree.png",
 	"Green Palm Tree": "../assets/objects/trees/green_palm_tree.png",
 
-	"Sell Chest": "../assets/map/Interactable/sell-chest.png",
-	"Upgrades Chest": "../assets/map/Interactable/upgrade-chest.png"
+	"Sell Chest": "../assets/objects/Interactable/sell-chest.png",
+	"Upgrades Chest": "../assets/objects/Interactable/upgrade-chest.png",
+	"Potions Chest": "../assets/objects/Interactable/potion-chest.png"
 }
 
 export const playerImages = {

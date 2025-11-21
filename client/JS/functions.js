@@ -14,48 +14,64 @@ export function drawMap(currentPlayer) { //Draw game map
     }
 
     const map = currentPlayer.map;
-    const pixelX = currentPlayer.pixelX;
-    const pixelY = currentPlayer.pixelY;
     const centerTileX = Math.floor(map[0].length / 2);
     const centerTileY = Math.floor(map.length / 2);
-    const modX = pixelX % tileSize;
-    const modY = pixelY % tileSize;
+
+    // Use predicted render position for camera
+    const renderX = currentPlayer.renderPixelX !== undefined ? currentPlayer.renderPixelX : currentPlayer.pixelX;
+    const renderY = currentPlayer.renderPixelY !== undefined ? currentPlayer.renderPixelY : currentPlayer.pixelY;
+    const modX = renderX % tileSize;
+    const modY = renderY % tileSize;
+
+    // Tile type constants
+    const WATER = 0;
+    const OAK_TREE = 98;
+    const FRUIT_TREE = 99;
+    const SELL_CHEST = 1000;
+    const UPGRADES_CHEST = 1001;
+    const POTIONS_CHEST = 1002;
+    const FLOOR_TILE = 3;
+
+    // Object name mapping for chests
+    const chestTypes = {
+        [SELL_CHEST]: "Sell Chest",
+        [UPGRADES_CHEST]: "Upgrades Chest",
+        [POTIONS_CHEST]: "Potions Chest"
+    };
+
+    // Tree type mapping
+    const treeTypes = {
+        [OAK_TREE]: "Oak Tree",
+        [FRUIT_TREE]: "Fruit Tree"
+    };
 
     for (let y = 0; y < map.length; y++) {
         for (let x = 0; x < map[y].length; x++) {
-            if (currentPlayer.map[y][x] === 0) {
-                continue; //Dont draw water tiles
-            }
+            const tileValue = map[y][x];
 
-            let img = tileImages[map[y][x]];
+            if (tileValue === WATER) continue; //Don't draw water tiles
 
             const screenX = Math.round(halfCanvasWidth + (x - centerTileX) * tileSize - modX);
             const screenY = Math.round(halfCanvasHeight + (y - centerTileY) * tileSize - modY);
 
-            if (map[y][x] != 1000 && map[y][x] != 1001) {
-                if (img && img.complete) {
-                    ctx.drawImage(img, screenX, screenY, tileSize, tileSize);
-                }
-
-                if (map[y][x] === 98) {
-                    img = objectImages["Oak Tree"]
-                    ctx.drawImage(img, screenX, screenY, tileSize, tileSize);
-                } else if (map[y][x] === 99) {
-                    img = objectImages["Fruit Tree"]
-                    ctx.drawImage(img, screenX, screenY, tileSize, tileSize);
-                }
-                continue;
+            // Draw base tile
+            let baseTile;
+            if (tileValue >= 1000) {
+                baseTile = tileImages[FLOOR_TILE];
             } else {
-                if (map[y][x] == 1000) {
-                    ctx.drawImage(tileImages[3], screenX, screenY, tileSize, tileSize);
-                    img = objectImages["Sell Chest"]
-                    ctx.drawImage(img, screenX, screenY, tileSize, tileSize);
-                }
+                baseTile = tileImages[tileValue];
+            }
 
-                if (map[y][x] == 1001) {
-                    ctx.drawImage(tileImages[3], screenX, screenY, tileSize, tileSize);
-                    img = objectImages["Upgrades Chest"]
-                    ctx.drawImage(img, screenX, screenY, tileSize, tileSize);
+            if (baseTile && baseTile.complete) {
+                ctx.drawImage(baseTile, screenX, screenY, tileSize, tileSize);
+            }
+
+            // Draw object on top of tile (trees or chests)
+            const objectName = chestTypes[tileValue] || treeTypes[tileValue];
+            if (objectName) {
+                const objectImg = objectImages[objectName];
+                if (objectImg && objectImg.complete) {
+                    ctx.drawImage(objectImg, screenX, screenY, tileSize, tileSize);
                 }
             }
         }
@@ -68,8 +84,14 @@ export function drawPlayer(player, isCurrentPlayer, currentPlayer, sprite) { //D
         screenX = Math.round((canvas.width - tileSize) / 2);
         screenY = Math.round((canvas.height - tileSize) / 2);
     } else { //Other players
-        const relativeX = player.pixelX - currentPlayer.pixelX;
-        const relativeY = player.pixelY - currentPlayer.pixelY;
+        // Use renderPixelX/Y for positioning (supports client-side prediction)
+        const playerRenderX = player.renderPixelX !== undefined ? player.renderPixelX : player.pixelX;
+        const playerRenderY = player.renderPixelY !== undefined ? player.renderPixelY : player.pixelY;
+        const currentRenderX = currentPlayer.renderPixelX !== undefined ? currentPlayer.renderPixelX : currentPlayer.pixelX;
+        const currentRenderY = currentPlayer.renderPixelY !== undefined ? currentPlayer.renderPixelY : currentPlayer.pixelY;
+
+        const relativeX = playerRenderX - currentRenderX;
+        const relativeY = playerRenderY - currentRenderY;
         screenX = Math.round(halfCanvasWidth - halfTileSize + relativeX);
         screenY = Math.round(halfCanvasHeight - halfTileSize + relativeY);
         if ( //Skip if off-screen
@@ -225,8 +247,12 @@ export function drawPlayer(player, isCurrentPlayer, currentPlayer, sprite) { //D
 }
 
 export function drawEnemy(enemy, currentPlayer, sprite) {
-    const relativeX = enemy.pixelX - currentPlayer.pixelX;
-    const relativeY = enemy.pixelY - currentPlayer.pixelY;
+    // Use predicted render position for camera
+    const currentRenderX = currentPlayer.renderPixelX !== undefined ? currentPlayer.renderPixelX : currentPlayer.pixelX;
+    const currentRenderY = currentPlayer.renderPixelY !== undefined ? currentPlayer.renderPixelY : currentPlayer.pixelY;
+
+    const relativeX = enemy.pixelX - currentRenderX;
+    const relativeY = enemy.pixelY - currentRenderY;
     let screenX = Math.round(halfCanvasWidth - halfTileSize + relativeX);
     let screenY = Math.round(halfCanvasHeight - halfTileSize + relativeY);
 
@@ -307,9 +333,13 @@ export function drawEnemy(enemy, currentPlayer, sprite) {
 }
 
 export function drawObject(object, currentPlayer) {
+    // Use predicted render position for camera
+    const currentRenderX = currentPlayer.renderPixelX !== undefined ? currentPlayer.renderPixelX : currentPlayer.pixelX;
+    const currentRenderY = currentPlayer.renderPixelY !== undefined ? currentPlayer.renderPixelY : currentPlayer.pixelY;
+
     let screenX, screenY;
-    const relativeX = object.pixelX - currentPlayer.pixelX;
-    const relativeY = object.pixelY - currentPlayer.pixelY;
+    const relativeX = object.pixelX - currentRenderX;
+    const relativeY = object.pixelY - currentRenderY;
     screenX = Math.round(halfCanvasWidth - halfTileSize + relativeX);
     screenY = Math.round(halfCanvasHeight - halfTileSize + relativeY);
 
@@ -356,8 +386,12 @@ export function drawObject(object, currentPlayer) {
 }
 
 export function drawDrop(drop, currentPlayer) { //Draw drop
-    const relativeX = drop.pixelX - currentPlayer.pixelX;
-    const relativeY = drop.pixelY - currentPlayer.pixelY;
+    // Use predicted render position for camera
+    const currentRenderX = currentPlayer.renderPixelX !== undefined ? currentPlayer.renderPixelX : currentPlayer.pixelX;
+    const currentRenderY = currentPlayer.renderPixelY !== undefined ? currentPlayer.renderPixelY : currentPlayer.pixelY;
+
+    const relativeX = drop.pixelX - currentRenderX;
+    const relativeY = drop.pixelY - currentRenderY;
     const screenX = Math.round(halfCanvasWidth - halfTileSize + relativeX);
     const screenY = Math.round(halfCanvasHeight - halfTileSize + relativeY);
 
@@ -470,7 +504,7 @@ export function drawShopInventory(inventory, playerSpeed, playerDamage, playerMa
     const panelY = (canvas.height - panelHeight) / 2;
 
     // Draw main panel background
-    ctx.fillStyle = "rgba(0, 0, 0, 0.85)";
+    ctx.fillStyle = "rgba(0, 0, 0, 0.55)";
     ctx.fillRect(panelX, panelY, panelWidth, panelHeight);
 
     // Draw panel border

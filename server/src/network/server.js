@@ -455,15 +455,14 @@ export async function startWebSocket(config, url, apiKey) {
 						);
 
 						const potionShopCoords = (
-							(player.mapX === 1019 && player.mapY === 1296) ||
-							(player.mapX === 1020 && player.mapY === 1295) ||
+							(player.mapX === 1020 && player.mapY === 1296) ||
 							(player.mapX === 1021 && player.mapY === 1296) ||
-							(player.mapX === 1020 && player.mapY === 1297) ||
-							(player.mapX === 1019 && player.mapY === 1295) ||
-							(player.mapX === 1021 && player.mapY === 1295) ||
-							(player.mapX === 1019 && player.mapY === 1297) ||
 							(player.mapX === 1021 && player.mapY === 1297) ||
-							(player.mapX === 1020 && player.mapY === 1296)
+							(player.mapX === 1021 && player.mapY === 1298) ||
+							(player.mapX === 1020 && player.mapY === 1298) ||
+							(player.mapX === 1019 && player.mapY === 1298) ||
+							(player.mapX === 1019 && player.mapY === 1297) ||
+							(player.mapX === 1019 && player.mapY === 1296) 
 						);
 
 						if (upgradesCoords) { //Check if player near shop
