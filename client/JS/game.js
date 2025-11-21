@@ -42,6 +42,145 @@ export function startGame({ userId, token }) {
 		}
 	});
 
+	// Mobile touch controls
+	let activeTouches = new Map(); // Track active touch buttons
+	let touchStartTimes = new Map(); // Track when each touch started (for hold detection)
+	let touchStartPositions = new Map(); // Track where each touch started
+
+	let lastTouchWasButton = false; // Track if last touch was on a mobile button
+	let lastShopPurchaseTime = 0; // Prevent rapid-fire purchases
+	const SHOP_PURCHASE_COOLDOWN = 300; // 300ms cooldown between purchases
+
+	canvas.addEventListener('touchstart', (e) => {
+		e.preventDefault();
+		for (let i = 0; i < e.touches.length; i++) {
+			const touch = e.touches[i];
+			const touchX = (touch.clientX - rect.left) * scaleX;
+			const touchY = (touch.clientY - rect.top) * scaleY;
+
+			// Store touch for mobile button handling
+			activeTouches.set(touch.identifier, { x: touchX, y: touchY });
+			touchStartTimes.set(touch.identifier, Date.now());
+			touchStartPositions.set(touch.identifier, { x: touchX, y: touchY });
+
+			// Set mouse position for potential UI clicks
+			mouseLeftX = touchX;
+			mouseLeftY = touchY;
+			// Will set mouseLeftClicked = true later if not touching a mobile button
+			lastTouchWasButton = false;
+		}
+	});
+
+	canvas.addEventListener('touchend', (e) => {
+		e.preventDefault();
+		for (let i = 0; i < e.changedTouches.length; i++) {
+			const touch = e.changedTouches[i];
+			const touchEndX = (touch.clientX - rect.left) * scaleX;
+			const touchEndY = (touch.clientY - rect.top) * scaleY;
+			const touchStartTime = touchStartTimes.get(touch.identifier);
+			const touchStartPos = touchStartPositions.get(touch.identifier);
+			const touchDuration = Date.now() - (touchStartTime || 0);
+
+
+			const isHold = touchDuration > 500; // 500ms = hold
+			const moveDist = touchStartPos ? Math.sqrt(Math.pow(touchEndX - touchStartPos.x, 2) + Math.pow(touchEndY - touchStartPos.y, 2)) : 0;
+			const isTap = touchDuration < 500 && moveDist < 20; 
+
+
+			if (isTap || isHold) {
+				if (inInventory && !inShopInventory && !inSellInventory) {
+					for (const item in inventory) {
+						const currentItem = inventory[item];
+						if (currentItem.itemAmount > 0) {
+							if (touchEndX >= currentItem.xPosition && touchEndX <= currentItem.xPosition + 80 &&
+							    touchEndY >= currentItem.yPosition && touchEndY <= currentItem.yPosition + 80) {
+
+								if (isHold) {
+									// Hold = drop item
+									socket.send(JSON.stringify({
+										type: "keydown",
+										dir: "deleteItem",
+										pressed: true,
+										playerID: userId,
+										item: currentItem.itemName
+									}));
+								} else if (isTap) {
+									// Tap = consume item
+									socket.send(JSON.stringify({
+										type: "keydown",
+										dir: "consumeItem",
+										pressed: true,
+										playerID: userId,
+										item: currentItem.itemName
+									}));
+								}
+								break;
+							}
+						}
+					}
+				}
+		
+				else if (inShopInventory && isTap) {
+					const now = Date.now();
+					if (now - lastShopPurchaseTime >= SHOP_PURCHASE_COOLDOWN) {
+						for (const item in shopInventory) {
+							const currentItem = shopInventory[item];
+							if (touchEndX >= currentItem.xPosition && touchEndX <= currentItem.xPosition + 80 &&
+							    touchEndY >= currentItem.yPosition && touchEndY <= currentItem.yPosition + 80) {
+								socket.send(JSON.stringify({
+									type: "keydown",
+									dir: "buyItem",
+									pressed: true,
+									playerID: userId,
+									item: currentItem.itemName
+								}));
+								lastShopPurchaseTime = now;
+								break;
+							}
+						}
+					}
+				}
+	
+				else if (inSellInventory && isTap) {
+					const now = Date.now();
+					if (now - lastShopPurchaseTime >= SHOP_PURCHASE_COOLDOWN) {
+						for (const item in inventory) {
+							const currentItem = inventory[item];
+							if (touchEndX >= currentItem.xPosition && touchEndX <= currentItem.xPosition + 80 &&
+							    touchEndY >= currentItem.yPosition && touchEndY <= currentItem.yPosition + 80) {
+								socket.send(JSON.stringify({
+									type: "keydown",
+									dir: "sellItem",
+									pressed: true,
+									playerID: userId,
+									item: currentItem.itemName
+								}));
+								lastShopPurchaseTime = now;
+								break;
+							}
+						}
+					}
+				}
+			}
+
+			activeTouches.delete(touch.identifier);
+			touchStartTimes.delete(touch.identifier);
+			touchStartPositions.delete(touch.identifier);
+		}
+	});
+
+	canvas.addEventListener('touchmove', (e) => {
+		e.preventDefault();
+		for (let i = 0; i < e.touches.length; i++) {
+			const touch = e.touches[i];
+			const touchX = (touch.clientX - rect.left) * scaleX;
+			const touchY = (touch.clientY - rect.top) * scaleY;
+
+			// Update touch position
+			activeTouches.set(touch.identifier, { x: touchX, y: touchY });
+		}
+	});
+
 	let playerId = null; //player ID (not userID)
 
 	let players = {}; //All players
@@ -55,6 +194,7 @@ export function startGame({ userId, token }) {
 	let inInventory = false;
 	let inShopInventory = false;
 	let inSellInventory = false;
+	let inControlsMenu = false;
 	let chatBoxVisible = true;
 	let minimapVisible = true;
 
@@ -66,6 +206,19 @@ export function startGame({ userId, token }) {
 	// Load minimap image
 	const minimapImage = new Image();
 	minimapImage.src = "../assets/HUD/map.png";
+
+	// Load controls menu image
+	const controlsImage = new Image();
+	controlsImage.src = "../assets/UI/controls.png";
+
+	// Load water sprite animation
+	const waterSprite = new Image();
+	waterSprite.src = "../assets/map/Water/water-sprite.png";
+	let waterFrameIndex = 0;
+	let waterFrameTimer = 0;
+	const WATER_FRAME_DELAY = 500; // 500ms between frames
+	const WATER_FRAME_SIZE = 64;
+	const WATER_FRAME_COUNT = 4;
 
 	let globalChatMessages = []; // Global chat message queue
 	let pickupNotifications = []; // Item pickup notifications queue
@@ -422,7 +575,19 @@ export function startGame({ userId, token }) {
 
 	let interactKeyBlocked = false; // Flag to prevent E from reopening shop
 
+	// Detect if on mobile device (force mobile for testing or use device detection)
+	const isMobile = window.innerWidth <= 768 || // Mobile screen size
+	                 /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) ||
+	                 ('ontouchstart' in window) ||
+	                 (navigator.maxTouchPoints > 0);
+
 	window.addEventListener("keydown", (e) => {
+		// Close controls menu on any key press when open
+		if (inControlsMenu) {
+			inControlsMenu = false;
+			// Don't return - let the key event continue to process the action
+		}
+
 		// Close shop/sell inventory on any key press when open
 		if (inShopInventory) {
 			shopInventory = {};
@@ -482,7 +647,11 @@ export function startGame({ userId, token }) {
 				inputString = inputString.slice(0, -1);
 			}
 		} else if ("Escape" === e.key) {
-			inInventory = false;
+			// Only open menu if not already open (closing is handled at top of function)
+			if (!inControlsMenu) {
+				inInventory = false;
+				inControlsMenu = true;
+			}
 		} else if ("i" === e.key) {
 			inInventory = !inInventory;
 		} 
@@ -717,11 +886,17 @@ export function startGame({ userId, token }) {
 			}
 		}
 
-		//Fill water
-		ctx.fillStyle = "#4287f5"
-		ctx.fillRect(0, 0, canvas.width, canvas.height);
+		//Animate water
+		waterFrameTimer += deltaTime * 1000;
+		if (waterFrameTimer >= WATER_FRAME_DELAY) {
+			waterFrameTimer = 0;
+			waterFrameIndex = (waterFrameIndex + 1) % WATER_FRAME_COUNT;
+		}
 
-		drawMap(currentPlayer);
+		// Clear canvas
+		ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+		drawMap(currentPlayer, waterSprite, waterFrameIndex, WATER_FRAME_SIZE);
 
 		//Draw other players
 		for (const id of nearbyCache.players) {
@@ -876,26 +1051,267 @@ export function startGame({ userId, token }) {
 			drawInventory(inventory, "Sell Items");
 		} else if (inShopInventory) {
 			drawShopInventory(shopInventory, players[playerId].speed, players[playerId].damage, players[playerId].maxHealth, shopName);
-		} 
+		}
 
 		drawHUD(players[playerId])
 
-		// Draw chat box or toggle button
+		// Draw chat box or toggle button (only on desktop)
 		let chatCloseButton = null;
 		let chatToggleButton = null;
-		if (chatBoxVisible) {
-			chatCloseButton = drawChatBox(globalChatMessages, isTyping, inputString);
-		} else {
-			chatToggleButton = drawChatToggleButton();
+		if (!isMobile) {
+			if (chatBoxVisible) {
+				chatCloseButton = drawChatBox(globalChatMessages, isTyping, inputString);
+			} else {
+				chatToggleButton = drawChatToggleButton();
+			}
 		}
 
 		// Draw pickup notifications
 		drawPickupNotifications(pickupNotifications)
 
+		// Draw and handle mobile controls
+		if (isMobile && playerId && players[playerId]) {
+			const buttonSize = 80;
+			const buttonGap = 15;
+			const edgeMargin = 20;
+
+			// Movement buttons (bottom left)
+			const upButton = { x: edgeMargin + buttonSize + buttonGap, y: canvas.height - edgeMargin - buttonSize * 2 - buttonGap };
+			const downButton = { x: edgeMargin + buttonSize + buttonGap, y: canvas.height - edgeMargin - buttonSize };
+			const leftButton = { x: edgeMargin, y: canvas.height - edgeMargin - buttonSize };
+			const rightButton = { x: edgeMargin + (buttonSize + buttonGap) * 2, y: canvas.height - edgeMargin - buttonSize };
+
+			// Action buttons (bottom right)
+			const attackButton = { x: canvas.width - edgeMargin - buttonSize * 2 - buttonGap, y: canvas.height - edgeMargin - buttonSize };
+			const interactButton = { x: canvas.width - edgeMargin - buttonSize, y: canvas.height - edgeMargin - buttonSize };
+
+			// Inventory button (top left, below HUD which is ~120px tall)
+			const inventoryButton = { x: edgeMargin, y: 175 };
+
+			const mobileButtons = {
+				up: { ...upButton, width: buttonSize, height: buttonSize, key: "up", direction: "up", action: "walk" },
+				down: { ...downButton, width: buttonSize, height: buttonSize, key: "down", direction: "down", action: "walk" },
+				left: { ...leftButton, width: buttonSize, height: buttonSize, key: "left", direction: "left", action: "walk" },
+				right: { ...rightButton, width: buttonSize, height: buttonSize, key: "right", direction: "right", action: "walk" },
+				attack: { ...attackButton, width: buttonSize, height: buttonSize, key: "attack", direction: "current", action: "attack" },
+				interact: { ...interactButton, width: buttonSize, height: buttonSize, key: "interact", direction: "current", action: "idle" },
+				inventory: { ...inventoryButton, width: buttonSize, height: buttonSize, key: "inventory", direction: "current", action: "idle" }
+			};
+
+			// Check which buttons are being touched
+			const touchedButtons = new Set();
+			let touchingAnyButton = false;
+			for (const [touchId, touchPos] of activeTouches) {
+				for (const [btnName, btn] of Object.entries(mobileButtons)) {
+					if (touchPos.x >= btn.x && touchPos.x <= btn.x + btn.width &&
+					    touchPos.y >= btn.y && touchPos.y <= btn.y + btn.height) {
+						touchedButtons.add(btnName);
+						touchingAnyButton = true;
+					}
+				}
+			}
+
+			// If not touching any mobile button, allow UI clicks (but not continuously)
+			// Only set mouseLeftClicked once when touch first starts, not every frame
+			if (!touchingAnyButton && activeTouches.size > 0 && !lastTouchWasButton) {
+				// Don't set mouseLeftClicked here - let touchend handle it
+			} else if (touchingAnyButton) {
+				// Touching a mobile button, don't trigger UI clicks
+				lastTouchWasButton = true;
+			}
+
+			// Process button touches
+			const player = players[playerId];
+			for (const [btnName, btn] of Object.entries(mobileButtons)) {
+				const isTouched = touchedButtons.has(btnName);
+				const wasHeld = keysHeld[btn.key];
+
+				if (isTouched && !wasHeld) {
+					// Button just pressed
+					keysHeld[btn.key] = true;
+
+					// Close shop/sell inventory when any mobile button is pressed (except inventory button)
+					if (btn.key !== "inventory") {
+						if (inShopInventory) {
+							shopInventory = {};
+							inShopInventory = false;
+							shopPosition = null;
+						} else if (inSellInventory) {
+							inSellInventory = false;
+							shopPosition = null;
+						}
+					}
+
+					// Handle inventory button specially (toggle, not send to server)
+					if (btn.key === "inventory") {
+						inInventory = !inInventory;
+					} else {
+						socket.send(JSON.stringify({
+							type: "keydown",
+							dir: btn.key,
+							pressed: true,
+							playerID: userId
+						}));
+
+						if (btn.key === "attack") {
+							if (player.action !== "attack" && (!player.attackEndTime || Date.now() >= player.attackEndTime)) {
+								player.action = "attack";
+								player.frameIndex = 0;
+								player.frameTimer = 0;
+								player.attackEndTime = Date.now() + 400;
+							}
+						} else if (btn.key !== "interact") {
+							player.action = btn.action;
+							if (btn.direction !== "current") {
+								player.direction = btn.direction;
+							}
+
+							// Client-side prediction for movement
+							if (btn.key === "up" || btn.key === "down" || btn.key === "left" || btn.key === "right") {
+								const speed = player.speed || 1;
+								switch(btn.key) {
+									case "up":
+										predictedPosition.targetY -= TILE_SIZE * speed;
+										predictedPosition.mapY = Math.round(predictedPosition.targetY / TILE_SIZE);
+										break;
+									case "down":
+										predictedPosition.targetY += TILE_SIZE * speed;
+										predictedPosition.mapY = Math.round(predictedPosition.targetY / TILE_SIZE);
+										break;
+									case "left":
+										predictedPosition.targetX -= TILE_SIZE * speed;
+										predictedPosition.mapX = Math.round(predictedPosition.targetX / TILE_SIZE);
+										break;
+									case "right":
+										predictedPosition.targetX += TILE_SIZE * speed;
+										predictedPosition.mapX = Math.round(predictedPosition.targetX / TILE_SIZE);
+										break;
+								}
+							}
+						}
+					}
+				} else if (!isTouched && wasHeld) {
+					// Button just released
+					keysHeld[btn.key] = false;
+
+					// Don't send server message for inventory button
+					if (btn.key !== "inventory") {
+						socket.send(JSON.stringify({
+							type: "keydown",
+							dir: btn.key,
+							pressed: false,
+							playerID: userId
+						}));
+
+						if (btn.key !== "attack" && btn.key !== "interact") {
+							// Update player action based on remaining held keys
+							if (!keysHeld.up && !keysHeld.down && !keysHeld.left && !keysHeld.right) {
+								player.action = "idle";
+							}
+						}
+					}
+				}
+			}
+
+			// Draw mobile buttons
+			const drawMobileButton = (btn, label, color = "rgba(255, 255, 255, 0.3)", btnName) => {
+				const isTouched = touchedButtons.has(btnName);
+				ctx.fillStyle = isTouched ? "rgba(255, 255, 255, 0.6)" : color;
+				ctx.fillRect(btn.x, btn.y, buttonSize, buttonSize);
+				ctx.strokeStyle = "rgba(255, 255, 255, 0.8)";
+				ctx.lineWidth = 2;
+				ctx.strokeRect(btn.x, btn.y, buttonSize, buttonSize);
+				ctx.fillStyle = "white";
+				ctx.font = "bold 20px Arial";
+				ctx.textAlign = "center";
+				ctx.textBaseline = "middle";
+				ctx.fillText(label, btn.x + buttonSize / 2, btn.y + buttonSize / 2);
+			};
+
+			drawMobileButton(upButton, "↑", "rgba(255, 255, 255, 0.3)", "up");
+			drawMobileButton(downButton, "↓", "rgba(255, 255, 255, 0.3)", "down");
+			drawMobileButton(leftButton, "←", "rgba(255, 255, 255, 0.3)", "left");
+			drawMobileButton(rightButton, "→", "rgba(255, 255, 255, 0.3)", "right");
+			drawMobileButton(attackButton, "⚔", "rgba(220, 53, 69, 0.5)", "attack");
+			drawMobileButton(interactButton, "E", "rgba(53, 152, 220, 0.5)", "interact");
+			drawMobileButton(inventoryButton, "I", inInventory ? "rgba(255, 193, 7, 0.8)" : "rgba(255, 193, 7, 0.5)", "inventory");
+		}
+
 		// Draw minimap
 		const minimapButtons = drawMinimap(players[playerId], minimapImage, minimapVisible);
 
+		// Draw controls menu (after chat and minimap so overlay covers them)
+		let logoutButton = null;
+		if (inControlsMenu) {
+			// Draw semi-transparent overlay over everything
+			ctx.fillStyle = "rgba(0, 0, 0, 0.7)";
+			ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+			// Draw controls image in center with background
+			if (controlsImage.complete) {
+				const imgWidth = controlsImage.width;
+				const imgHeight = controlsImage.height;
+				const padding = 30;
+				const bgWidth = imgWidth + padding * 2;
+				const bgHeight = imgHeight + padding * 2;
+				const bgX = (canvas.width - bgWidth) / 2;
+				const bgY = (canvas.height - bgHeight) / 2;
+				const imgX = (canvas.width - imgWidth) / 2;
+				const imgY = (canvas.height - imgHeight) / 2;
+
+				// Draw semi-transparent black background rectangle (like inventory)
+				ctx.fillStyle = "rgba(0, 0, 0, 0.55)";
+				ctx.fillRect(bgX, bgY, bgWidth, bgHeight);
+
+				// Draw border
+				ctx.strokeStyle = "rgba(255, 255, 255, 0.5)";
+				ctx.lineWidth = 3;
+				ctx.strokeRect(bgX, bgY, bgWidth, bgHeight);
+
+				// Draw controls image with brightness filter (only affects non-transparent pixels)
+				ctx.filter = "brightness(1.8) contrast(1.1)";
+				ctx.drawImage(controlsImage, imgX, imgY);
+				ctx.filter = "none"; // Reset filter
+			}
+
+			// Draw logout button in top left (bigger size)
+			const buttonWidth = 150;
+			const buttonHeight = 50;
+			const buttonX = 20;
+			const buttonY = 20;
+
+			// Button background
+			ctx.fillStyle = "rgba(220, 53, 69, 0.9)";
+			ctx.fillRect(buttonX, buttonY, buttonWidth, buttonHeight);
+
+			// Button border
+			ctx.strokeStyle = "rgba(255, 255, 255, 0.8)";
+			ctx.lineWidth = 2;
+			ctx.strokeRect(buttonX, buttonY, buttonWidth, buttonHeight);
+
+			// Button text
+			ctx.fillStyle = "white";
+			ctx.font = "bold 18px Arial";
+			ctx.textAlign = "center";
+			ctx.textBaseline = "middle";
+			ctx.fillText("Logout", buttonX + buttonWidth / 2, buttonY + buttonHeight / 2);
+
+			logoutButton = { x: buttonX, y: buttonY, width: buttonWidth, height: buttonHeight };
+		}
+
 		if (mouseLeftClicked) {
+			//Handle logout button click
+			if (logoutButton && inControlsMenu) {
+				if (mouseLeftX >= logoutButton.x &&
+					mouseLeftX <= logoutButton.x + logoutButton.width &&
+					mouseLeftY >= logoutButton.y &&
+					mouseLeftY <= logoutButton.y + logoutButton.height) {
+					// Redirect to login page
+					window.location.href = "/";
+					mouseLeftClicked = false;
+				}
+			}
+
 			//Handle chat close button click
 			if (chatCloseButton && chatBoxVisible) {
 				if (mouseLeftX >= chatCloseButton.closeButtonX &&
@@ -940,8 +1356,8 @@ export function startGame({ userId, token }) {
 				}
 			}
 
-			//Handle inventory item clicks (delete X or consume item)
-			if (mouseLeftClicked && inInventory && !inShopInventory && !inSellInventory) {
+			//Handle inventory item clicks (delete X or consume item) - Desktop only
+			if (!isMobile && mouseLeftClicked && inInventory && !inShopInventory && !inSellInventory) {
 				const deleteButtonSize = 28;
 				let clickedDeleteButton = false;
 
@@ -995,8 +1411,8 @@ export function startGame({ userId, token }) {
 				}
 			}
 
-			//Handle shop/sell inventory clicks
-			if (mouseLeftClicked && inShopInventory) {
+			//Handle shop/sell inventory clicks - Desktop only
+			if (!isMobile && mouseLeftClicked && inShopInventory) {
 				for (const item in shopInventory) {
 					const currentItem = shopInventory[item];
 					if (mouseLeftX >= currentItem.xPosition && mouseLeftX <= currentItem.xPosition + 80 &&
@@ -1013,7 +1429,7 @@ export function startGame({ userId, token }) {
 					}
 				}
 				mouseLeftClicked = false;
-			} else if (mouseLeftClicked && inSellInventory) {
+			} else if (!isMobile && mouseLeftClicked && inSellInventory) {
 				for (const item in inventory) {
 					const currentItem = inventory[item];
 					if (mouseLeftX >= currentItem.xPosition && mouseLeftX <= currentItem.xPosition + 80 &&
@@ -1033,8 +1449,8 @@ export function startGame({ userId, token }) {
 			}
 		}
 
-		//Draw delete X on all inventory items
-		if (inInventory && !inShopInventory && !inSellInventory) {
+		//Draw delete X on all inventory items (desktop only - mobile uses hold to drop)
+		if (!isMobile && inInventory && !inShopInventory && !inSellInventory) {
 			const deleteButtonSize = 28;
 
 			for (const item in inventory) {

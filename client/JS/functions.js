@@ -8,7 +8,7 @@ const halfCanvasWidth = canvas.width / 2; //Half canvas width
 const halfCanvasHeight = canvas.height / 2; //Half canvas height
 const halfTileSize = tileSize / 2; //Half tile size
 
-export function drawMap(currentPlayer) { //Draw game map
+export function drawMap(currentPlayer, waterSprite, waterFrameIndex, waterFrameSize) { //Draw game map
     if (!currentPlayer.map) {
         return;
     }
@@ -49,10 +49,43 @@ export function drawMap(currentPlayer) { //Draw game map
         for (let x = 0; x < map[y].length; x++) {
             const tileValue = map[y][x];
 
-            if (tileValue === WATER) continue; //Don't draw water tiles
-
             const screenX = Math.round(halfCanvasWidth + (x - centerTileX) * tileSize - modX);
             const screenY = Math.round(halfCanvasHeight + (y - centerTileY) * tileSize - modY);
+
+            // Draw water tiles where map value is 0
+            if (tileValue === WATER) {
+                if (waterSprite && waterSprite.complete) {
+                    ctx.drawImage(
+                        waterSprite,
+                        waterFrameIndex * waterFrameSize, 0, // Source x, y
+                        waterFrameSize, waterFrameSize,      // Source width, height
+                        screenX, screenY,                     // Destination x, y
+                        tileSize, tileSize                    // Destination width, height
+                    );
+                } else {
+                    // Fallback to blue fill if sprite not loaded yet
+                    ctx.fillStyle = "#4287f5";
+                    ctx.fillRect(screenX, screenY, tileSize, tileSize);
+                }
+                continue; // Skip to next tile
+            }
+
+            // For tiles 100-999, draw water underneath first
+            if (tileValue >= 100 && tileValue < 1000) {
+                if (waterSprite && waterSprite.complete) {
+                    ctx.drawImage(
+                        waterSprite,
+                        waterFrameIndex * waterFrameSize, 0, // Source x, y
+                        waterFrameSize, waterFrameSize,      // Source width, height
+                        screenX, screenY,                     // Destination x, y
+                        tileSize, tileSize                    // Destination width, height
+                    );
+                } else {
+                    // Fallback to blue fill if sprite not loaded yet
+                    ctx.fillStyle = "#4287f5";
+                    ctx.fillRect(screenX, screenY, tileSize, tileSize);
+                }
+            }
 
             // Draw base tile
             let baseTile;
