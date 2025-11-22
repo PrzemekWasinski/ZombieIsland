@@ -48,22 +48,26 @@ export async function saveProgress(player, supabase) {
 export async function saveItem(dropName, playerID, supabase) {
 	const key = `${playerID}-${dropName}`;
 	try {
-		const { data: dropData, error: fetchError } = await supabase
+		// Fetch all matching items (handles duplicate entries)
+		const { data: dropDataArray, error: fetchError } = await supabase
 			.from("InventoryItems")
 			.select("*")
 			.eq("playerID", playerID)
-			.eq("itemName", dropName)
-			.single();
-			
-		if (fetchError && fetchError.code !== 'PGRST116') {
+			.eq("itemName", dropName);
+
+		if (fetchError) {
 			console.log(`Failed to fetch item: ${dropName}`, fetchError);
 			return false;
 		}
-		
-		if (dropData) {
+
+		// If items exist (even duplicates)
+		if (dropDataArray && dropDataArray.length > 0) {
+			const dropData = dropDataArray[0]; // Use first item
+
 			if (dropData.itemAmount >= 999) {
 				return false;
 			} else {
+				// Update ALL matching items to keep them in sync
 				const { error: updateError } = await supabase
 					.from("InventoryItems")
 					.update({
@@ -72,13 +76,14 @@ export async function saveItem(dropName, playerID, supabase) {
 					})
 					.eq("playerID", playerID)
 					.eq("itemName", dropName);
-					
+
 				if (updateError) {
 					console.log(`Failed to update item: ${dropName}`, updateError);
 					return false;
 				}
 			}
 		} else {
+			// No items found, insert a new one
 			const { error: insertError } = await supabase
 				.from("InventoryItems")
 				.insert({
@@ -86,13 +91,13 @@ export async function saveItem(dropName, playerID, supabase) {
 					"itemName": dropName,
 					"itemAmount": 1
 				});
-				
+
 			if (insertError) {
 				console.log(`Failed to insert item: ${dropName}`, insertError);
 				return false;
 			}
 		}
-		
+
 		return true;
 	} catch (error) {
 		console.log(`Error saving item ${dropName}:`, error);
@@ -102,32 +107,35 @@ export async function saveItem(dropName, playerID, supabase) {
 
 export async function deleteItem(dropName, playerID, supabase, player, item) {
   try {
+    // Fetch all matching items (handles duplicate entries)
     const { data: items, error: fetchError } = await supabase
       .from("InventoryItems")
       .select("itemAmount")
       .eq("playerID", playerID)
-      .eq("itemName", dropName)
-      .single();
+      .eq("itemName", dropName);
 
-    if (fetchError || !items) {
+    if (fetchError || !items || items.length === 0) {
       console.error(`Item not found: ${dropName}`, fetchError);
       return false;
     }
 
-    if (items.itemAmount <= 0) {
+    // Use the first item if there are duplicates
+    const firstItem = items[0];
+
+    if (firstItem.itemAmount <= 0) {
       console.log(`No ${dropName} left to delete`);
       return false;
     }
 
+    // Update ALL matching items to prevent inconsistency
     const { data, error } = await supabase
       .from("InventoryItems")
-      .update({ itemAmount: items.itemAmount - 1 })
+      .update({ itemAmount: firstItem.itemAmount - 1 })
       .eq("playerID", playerID)
       .eq("itemName", dropName)
-      .select("itemAmount")
-      .single();
+      .select("itemAmount");
 
-	  player.inventory[item].itemAmount = items.itemAmount - 1
+    player.inventory[item].itemAmount = firstItem.itemAmount - 1;
 
     if (error) {
       console.error(`Failed to update item: ${dropName}`, error);
@@ -320,6 +328,6 @@ export function spawnDrop(dropData, x, y, id, drops, TILE_SIZE, offsetX = 0, off
 		mapY: Math.floor(finalY / TILE_SIZE),
 		pixelX: finalX,
 		pixelY: finalY,
-		value: dropData.value
+		value: dropData.value || dropData.health || dropData.amount
 	}
 }

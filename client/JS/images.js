@@ -271,7 +271,6 @@ export const itemImages = {
 	"Brown Mushroom": "../assets/items/Brown Mushroom.png",
 	"Coal": "../assets/items/Coal.png",
 	"Electric Slime Ball": "../assets/items/Electric Slime Ball.png",
-	"Gold": "../assets/items/Gold.png",
 	"Ice Crystal": "../assets/items/Ice Crystal.png",
 	"Ice Slime Ball": "../assets/items/Ice Slime Ball.png",
 	"Ice": "../assets/items/Ice.png",
@@ -294,6 +293,9 @@ export const itemImages = {
 	"White Mushroom": "../assets/items/White Mushroom.png",
 	"White Rock": "../assets/items/White Rock.png",
 	"Yellow Berry": "../assets/items/Yellow Berry.png",
+
+	"Gold": "../assets/items/Gold.png",
+	"Heart": "../assets/items/heart.png",
 
 	"Sword Upgrade": "../assets/items/shop/sword-upgrade.png",
 	"Health Upgrade": "../assets/items/shop/health-upgrade.png",

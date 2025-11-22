@@ -45,15 +45,18 @@ export function startGame(wss, TILE_SIZE, VISIBLE_TILES_X, VISIBLE_TILES_Y, PASS
             const loc = enemy.location;
             locationData[loc]--;
 
-            const rand = Math.floor(Math.random() * 100) + 1; 
-
             for (let i = 0; i < ENEMY_SPAWNS[loc].enemyStats.possibleDrops.length; i++) {
                 let possibleDrop = ENEMY_SPAWNS[loc].enemyStats.possibleDrops[i]
+                const rolls = possibleDrop.roll || 1;
 
-                if (rand < possibleDrop.chance) {
-                    const dropID = getNextDropID();
-                    spawnDrop(possibleDrop, enemy.pixelX, enemy.pixelY, dropID, drops, TILE_SIZE);
-                    newDrops.add(dropID); //Track new drop
+                // Roll multiple times based on the roll property
+                for (let r = 0; r < rolls; r++) {
+                    const rand = Math.floor(Math.random() * 100) + 1;
+                    if (rand < possibleDrop.chance) {
+                        const dropID = getNextDropID();
+                        spawnDrop(possibleDrop, enemy.pixelX, enemy.pixelY, dropID, drops, TILE_SIZE);
+                        newDrops.add(dropID); //Track new drop
+                    }
                 }
             }
 
@@ -65,14 +68,18 @@ export function startGame(wss, TILE_SIZE, VISIBLE_TILES_X, VISIBLE_TILES_Y, PASS
             const loc = object.location;
             objectData[loc]--;
 
-            const rand = Math.floor(Math.random() * 100) + 1; 
             for (let i = 0; i < OBJECT_SPAWNS[loc].objectStats.possibleDrops.length; i++) {
                 let possibleDrop = OBJECT_SPAWNS[loc].objectStats.possibleDrops[i]
-                
-                if (rand < possibleDrop.chance) {
-                    const dropID = getNextDropID();
-                    spawnDrop(possibleDrop, object.pixelX, object.pixelY, dropID, drops, TILE_SIZE);
-                    newDrops.add(dropID); // Track new drop
+                const rolls = possibleDrop.roll || 1;
+
+                // Roll multiple times based on the roll property
+                for (let r = 0; r < rolls; r++) {
+                    const rand = Math.floor(Math.random() * 100) + 1;
+                    if (rand < possibleDrop.chance) {
+                        const dropID = getNextDropID();
+                        spawnDrop(possibleDrop, object.pixelX, object.pixelY, dropID, drops, TILE_SIZE);
+                        newDrops.add(dropID); // Track new drop
+                    }
                 }
             }
 
@@ -533,9 +540,20 @@ export function startGame(wss, TILE_SIZE, VISIBLE_TILES_X, VISIBLE_TILES_Y, PASS
                     (checkY === 1300 && checkX === 1009) ||
                     (checkY === 1299 && checkX === 1009);
 
+                let isPassable = PASSABLE_TILES.includes(MAP[checkY][checkX]);
+
+                // Check for objects blocking the path
+                for (const id in objects) {
+                    const object = objects[id];
+                    if (object.mapX === checkX && object.mapY === checkY) {
+                        isPassable = false;
+                        break;
+                    }
+                }
+
                 if (
                     checkY < 0 || checkY >= MAP.length || checkX < 0 || checkX >= MAP[0].length ||
-                    !PASSABLE_TILES.includes(MAP[checkY][checkX]) ||
+                    !isPassable ||
                     isBlockedCoordinate
                 ) {
                     newPixelX = velocityX > 0 ? currentTileX * TILE_SIZE + TILE_SIZE - 1 : currentTileX * TILE_SIZE;
@@ -557,9 +575,20 @@ export function startGame(wss, TILE_SIZE, VISIBLE_TILES_X, VISIBLE_TILES_Y, PASS
                     (checkY === 1300 && checkX === 1009) ||
                     (checkY === 1299 && checkX === 1009);
 
+                let isPassable = PASSABLE_TILES.includes(MAP[checkY][checkX]);
+
+                // Check for objects blocking the path
+                for (const id in objects) {
+                    const object = objects[id];
+                    if (object.mapX === checkX && object.mapY === checkY) {
+                        isPassable = false;
+                        break;
+                    }
+                }
+
                 if (
                     checkY < 0 || checkY >= MAP.length || checkX < 0 || checkX >= MAP[0].length ||
-                    !PASSABLE_TILES.includes(MAP[checkY][checkX]) ||
+                    !isPassable ||
                     isBlockedCoordinate
                 ) {
                     newPixelY = velocityY > 0 ? currentTileY * TILE_SIZE + TILE_SIZE - 1 : currentTileY * TILE_SIZE;
@@ -576,9 +605,20 @@ export function startGame(wss, TILE_SIZE, VISIBLE_TILES_X, VISIBLE_TILES_Y, PASS
                 const checkX = newTileX;
                 const checkY = newTileY;
 
+                let isPassable = PASSABLE_TILES.includes(MAP[checkY][checkX]);
+
+                // Check for objects blocking the path
+                for (const id in objects) {
+                    const object = objects[id];
+                    if (object.mapX === checkX && object.mapY === checkY) {
+                        isPassable = false;
+                        break;
+                    }
+                }
+
                 if (
                     checkY < 0 || checkY >= MAP.length || checkX < 0 || checkX >= MAP[0].length ||
-                    !PASSABLE_TILES.includes(MAP[checkY][checkX])
+                    !isPassable
                 ) {
                     newPixelX = enemy.pixelX;
                     newPixelY = enemy.pixelY;
@@ -635,24 +675,63 @@ export function startGame(wss, TILE_SIZE, VISIBLE_TILES_X, VISIBLE_TILES_Y, PASS
                 const dx = Math.abs(player.pixelX - drop.pixelX);
                 const dy = Math.abs(player.pixelY - drop.pixelY);
                 if (dx < TILE_SIZE * 0.4 && dy < TILE_SIZE * 0.4) {
-                    //Update inventory in memory
-                    player.healthChanged = true;
+                    //Check if drop is gold/health
+                    if (drop.name === "Heart") {
+                        console.log(drop.name)
+                        player.health = Math.min(player.maxHealth, player.health + drop.value);
+                        player.healthChanged = true;
+                        deadDrops.push(dropID);
 
+                        // Send update to player
+                        if (player.ws && player.ws.readyState === 1) {
+                            player.ws.send(JSON.stringify({
+                                type: "update",
+                                id: player.id,
+                                inventory: player.inventory,
+                                gold: player.gold,
+                                health: player.health,
+                            }));
+                        }
+                        break;
+                    }
+
+                    if (drop.name === "Gold") {
+                        console.log(drop.name)
+                        player.gold += drop.value;
+                        deadDrops.push(dropID);
+
+                        // Send update to player
+                        if (player.ws && player.ws.readyState === 1) {
+                            player.ws.send(JSON.stringify({
+                                type: "update",
+                                id: player.id,
+                                inventory: player.inventory,
+                                gold: player.gold,
+                                health: player.health,
+                            }));
+                        }
+                        break;
+                    }
+
+                    //If not add it to inventory
                     if (!player.inventory[drop.name]) {
                         player.inventory[drop.name] = {
                             itemName: drop.name,
                             itemAmount : 1
                         };
+
+                        saveItem(drop.name, player.dbID, supabase);
                     } else {
                         // Check if adding would exceed 999 limit
                         if (player.inventory[drop.name].itemAmount >= 999) {
                             continue; // Skip this drop, inventory full for this item
                         }
                         player.inventory[drop.name].itemAmount++;
+                        saveItem(drop.name, player.dbID, supabase);
                     }
-                    
+
                     //Save immediately to database
-                    saveItem(drop.name, player.dbID, supabase);
+
                     deadDrops.push(dropID);
 
                     // Send inventory update only to this player
@@ -660,7 +739,9 @@ export function startGame(wss, TILE_SIZE, VISIBLE_TILES_X, VISIBLE_TILES_Y, PASS
                         player.ws.send(JSON.stringify({
                             type: "update",
                             id: player.id,
-                            inventory: player.inventory
+                            inventory: player.inventory,
+                            gold: player.gold,
+                            health: player.health,
                         }));
                     }
                     break; //One player picks it up

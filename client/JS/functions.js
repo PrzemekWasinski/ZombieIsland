@@ -1329,8 +1329,18 @@ export function drawPickupNotifications(notifications) {
             opacity = 1 - ((age - fadeOutStart) / (notificationDuration - fadeOutStart));
         }
 
+        // Determine background color based on item type
+        let backgroundColor;
+        if (notif.itemName === "Gold") {
+            backgroundColor = `rgba(218, 165, 32, ${opacity * 0.85})`; // Golden color
+        } else if (notif.itemName === "Health") {
+            backgroundColor = `rgba(220, 20, 60, ${opacity * 0.85})`; // Red color
+        } else {
+            backgroundColor = `rgba(0, 150, 0, ${opacity * 0.85})`; // Green for other items
+        }
+
         // Draw notification background
-        ctx.fillStyle = `rgba(0, 150, 0, ${opacity * 0.85})`;
+        ctx.fillStyle = backgroundColor;
         ctx.fillRect(startX, y, 230, notificationHeight);
 
         // Draw border

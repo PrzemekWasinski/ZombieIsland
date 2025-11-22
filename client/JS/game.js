@@ -6,8 +6,8 @@ import {
 } from "./functions.js"
 
 export function startGame({ userId, token }) {
-	const socket = new WebSocket("wss://ws.zombieisland.online/"); //Main server
-	//const socket = new WebSocket("ws://localhost:8080"); //Local server
+	//const socket = new WebSocket("wss://ws.zombieisland.online/"); //Prod server
+	const socket = new WebSocket("ws://localhost:8080"); //Local server
 
 	socket.onopen = () => {
 		console.log("Connected to server");
@@ -415,6 +415,33 @@ export function startGame({ userId, token }) {
 
 			//Only update if player is nearby OR it's the current player
 			if (msg.id === playerId || isNearby([players[playerId].mapX, players[playerId].mapY], [msg.mapX, msg.mapY])) {
+				// Track gold and health changes for current player
+				if (msg.id === playerId) {
+					// Track gold changes
+					if (msg.gold !== undefined && player.gold !== undefined) {
+						const goldDiff = msg.gold - player.gold;
+						if (goldDiff > 0) {
+							pickupNotifications.push({
+								itemName: "Gold",
+								amount: goldDiff,
+								timestamp: Date.now()
+							});
+						}
+					}
+
+					// Track health changes (gains only)
+					if (msg.health !== undefined && player.health !== undefined) {
+						const healthDiff = Number(msg.health) - player.health;
+						if (healthDiff > 0) {
+							pickupNotifications.push({
+								itemName: "Health",
+								amount: healthDiff,
+								timestamp: Date.now()
+							});
+						}
+					}
+				}
+
 				if (msg.health !== undefined) player.health = Number(msg.health);
 				if (msg.maxHealth !== undefined) player.maxHealth = msg.maxHealth;
 				if (msg.mapX !== undefined) player.mapX = Number(msg.mapX);
