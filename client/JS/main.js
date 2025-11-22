@@ -83,9 +83,12 @@ document.getElementById('register-button').onclick = async () => {
 			level: 1,
 			gold: 0,
 			health: 100,
-			mapX: 393,
-			mapY: 724,
-			inBoat: false
+			mapX: 1020,
+			mapY: 1300,
+			inBoat: false,
+			maxHealth: 100,
+			speed: 5,
+			damage: 3
 		});
 
 		if (insertError) {

@@ -664,6 +664,7 @@ export function drawHUD(player) {
     ctx.fillStyle = "#FFD700"; // Gold color
     ctx.font = "bold 24px Arial";
     ctx.textAlign = "left";
+    ctx.textBaseline = "alphabetic";
     ctx.fillText(`${player.username} - Lv.${player.level}`, padding + 15, padding + 30);
 
     // Health bar background
@@ -687,10 +688,12 @@ export function drawHUD(player) {
     ctx.fillStyle = "white";
     ctx.font = "bold 16px Arial";
     ctx.textAlign = "center";
+    ctx.textBaseline = "alphabetic";
     ctx.fillText(`HP: ${Math.floor(player.health)}/${player.maxHealth}`, healthBarX + barWidth / 2, healthBarY + 20);
 
     // Gold and coordinates
     ctx.textAlign = "left";
+    ctx.textBaseline = "alphabetic";
     ctx.font = "18px Arial";
     ctx.fillStyle = "#FFD700";
     ctx.fillText(`Gold: ${player.gold}`, padding + 15, padding + 100);
@@ -848,6 +851,281 @@ export function drawChatBox(messages, isTyping, currentMessage) {
     };
 }
 
+export function drawMobileChatBox(messages, isTyping, currentMessage) {
+    const chatWidth = 350; // Match HUD width
+    const chatHeight = 200;
+    const chatX = 20;
+    const chatY = 270; // 15px below inventory button (175 + 80 + 15)
+    const lineHeight = 20;
+    const messagePadding = 10;
+    const maxMessages = 8;
+
+    // Draw chat box background
+    ctx.fillStyle = "rgba(0, 0, 0, 0.75)";
+    ctx.fillRect(chatX, chatY, chatWidth, chatHeight);
+
+    // Draw chat box border
+    ctx.strokeStyle = "rgba(255, 255, 255, 0.4)";
+    ctx.lineWidth = 2;
+    ctx.strokeRect(chatX, chatY, chatWidth, chatHeight);
+
+    // Draw title bar
+    ctx.fillStyle = "rgba(0, 0, 0, 0.9)";
+    ctx.fillRect(chatX, chatY, chatWidth, 30);
+    ctx.strokeRect(chatX, chatY, chatWidth, 30);
+
+    // Title text
+    ctx.fillStyle = "#FFD700";
+    ctx.font = "bold 16px Arial";
+    ctx.textAlign = "left";
+    ctx.fillText("Chat", chatX + 10, chatY + 20);
+
+    // Draw messages
+    ctx.fillStyle = "white";
+    ctx.font = "13px Arial";
+    const startY = chatY + 45;
+    const displayMessages = messages.slice(-maxMessages);
+
+    for (let i = 0; i < displayMessages.length; i++) {
+        const msg = displayMessages[i];
+        const y = startY + i * lineHeight;
+
+        // Check if this is a system message
+        if (msg.isSystem) {
+            ctx.fillStyle = msg.color || "yellow";
+            const maxMessageWidth = chatWidth - messagePadding * 2;
+            let messageText = msg.text;
+            if (ctx.measureText(messageText).width > maxMessageWidth) {
+                while (ctx.measureText(messageText + "...").width > maxMessageWidth && messageText.length > 0) {
+                    messageText = messageText.slice(0, -1);
+                }
+                messageText += "...";
+            }
+            ctx.fillText(messageText, chatX + messagePadding, y);
+        } else {
+            // Regular player messages
+            ctx.fillStyle = "#c64affff";
+            const usernameText = `${msg.username}: `;
+            ctx.fillText(usernameText, chatX + messagePadding, y);
+
+            const usernameWidth = ctx.measureText(usernameText).width;
+            ctx.fillStyle = "white";
+
+            const maxMessageWidth = chatWidth - messagePadding * 2 - usernameWidth;
+            let messageText = msg.text;
+            if (ctx.measureText(messageText).width > maxMessageWidth) {
+                while (ctx.measureText(messageText + "...").width > maxMessageWidth && messageText.length > 0) {
+                    messageText = messageText.slice(0, -1);
+                }
+                messageText += "...";
+            }
+
+            ctx.fillText(messageText, chatX + messagePadding + usernameWidth, y);
+        }
+    }
+
+    // Draw typing indicator box if typing
+    if (isTyping) {
+        const inputBoxHeight = 35;
+        const inputBoxY = chatY + chatHeight + 5;
+
+        // Draw input box background
+        ctx.fillStyle = "rgba(0, 0, 0, 0.8)";
+        ctx.fillRect(chatX, inputBoxY, chatWidth, inputBoxHeight);
+
+        // Draw input box border
+        ctx.strokeStyle = "rgba(100, 200, 100, 0.8)";
+        ctx.lineWidth = 2;
+        ctx.strokeRect(chatX, inputBoxY, chatWidth, inputBoxHeight);
+
+        // Draw current message being typed
+        ctx.fillStyle = "white";
+        ctx.font = "13px Arial";
+        ctx.textAlign = "left";
+
+        // Add cursor animation
+        const cursorVisible = Math.floor(Date.now() / 500) % 2 === 0;
+        const displayText = currentMessage + (cursorVisible ? "|" : "");
+
+        // Truncate if too long
+        let finalText = displayText;
+        const maxInputWidth = chatWidth - messagePadding * 2;
+        if (ctx.measureText(finalText).width > maxInputWidth) {
+            while (ctx.measureText("..." + finalText).width > maxInputWidth && finalText.length > 0) {
+                finalText = finalText.slice(1);
+            }
+            finalText = "..." + finalText;
+        }
+
+        ctx.fillText(finalText, chatX + messagePadding, inputBoxY + 22);
+    }
+
+    // Return chat box bounds for click detection
+    return {
+        chatX,
+        chatY,
+        chatWidth,
+        chatHeight
+    };
+}
+
+export function drawMobileKeyboard(isVisible) {
+    if (!isVisible) return null;
+
+    const scale = 3.5;
+    const keyboardWidth = 350 * scale;
+    const keyboardHeight = 180 * scale;
+    const keyboardX = (canvas.width - keyboardWidth) / 2; // Center horizontally
+    const keyboardY = canvas.height - keyboardHeight - 20;
+
+    // Background
+    ctx.fillStyle = "rgba(0, 0, 0, 0.95)";
+    ctx.fillRect(keyboardX, keyboardY, keyboardWidth, keyboardHeight);
+
+    // Border
+    ctx.strokeStyle = "rgba(100, 200, 100, 0.8)";
+    ctx.lineWidth = 2 * scale;
+    ctx.strokeRect(keyboardX, keyboardY, keyboardWidth, keyboardHeight);
+
+    const keys = [];
+    const keyPadding = 3 * scale;
+    const keyWidth = 30 * scale;
+    const keyHeight = 35 * scale;
+
+    // Row 1: Q W E R T Y U I O P
+    const row1 = ['Q', 'W', 'E', 'R', 'T', 'Y', 'U', 'I', 'O', 'P'];
+    let startX = keyboardX + 10 * scale;
+    let startY = keyboardY + 10 * scale;
+
+    for (let i = 0; i < row1.length; i++) {
+        const x = startX + i * (keyWidth + keyPadding);
+        const y = startY;
+
+        // Draw key background
+        ctx.fillStyle = "rgba(60, 60, 60, 0.9)";
+        ctx.fillRect(x, y, keyWidth, keyHeight);
+
+        // Draw key border
+        ctx.strokeStyle = "rgba(150, 150, 150, 0.5)";
+        ctx.lineWidth = 1 * scale;
+        ctx.strokeRect(x, y, keyWidth, keyHeight);
+
+        // Draw letter
+        ctx.fillStyle = "white";
+        ctx.font = `${14 * scale}px Arial`;
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+        ctx.fillText(row1[i], x + keyWidth / 2, y + keyHeight / 2);
+
+        keys.push({ key: row1[i].toLowerCase(), x, y, width: keyWidth, height: keyHeight });
+    }
+
+    // Row 2: A S D F G H J K L
+    const row2 = ['A', 'S', 'D', 'F', 'G', 'H', 'J', 'K', 'L'];
+    startX = keyboardX + 25 * scale;
+    startY = keyboardY + 50 * scale;
+
+    for (let i = 0; i < row2.length; i++) {
+        const x = startX + i * (keyWidth + keyPadding);
+        const y = startY;
+
+        ctx.fillStyle = "rgba(60, 60, 60, 0.9)";
+        ctx.fillRect(x, y, keyWidth, keyHeight);
+
+        ctx.strokeStyle = "rgba(150, 150, 150, 0.5)";
+        ctx.lineWidth = 1 * scale;
+        ctx.strokeRect(x, y, keyWidth, keyHeight);
+
+        ctx.fillStyle = "white";
+        ctx.font = `${14 * scale}px Arial`;
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+        ctx.fillText(row2[i], x + keyWidth / 2, y + keyHeight / 2);
+
+        keys.push({ key: row2[i].toLowerCase(), x, y, width: keyWidth, height: keyHeight });
+    }
+
+    // Row 3: Z X C V B N M
+    const row3 = ['Z', 'X', 'C', 'V', 'B', 'N', 'M'];
+    startX = keyboardX + 40 * scale;
+    startY = keyboardY + 90 * scale;
+
+    for (let i = 0; i < row3.length; i++) {
+        const x = startX + i * (keyWidth + keyPadding);
+        const y = startY;
+
+        ctx.fillStyle = "rgba(60, 60, 60, 0.9)";
+        ctx.fillRect(x, y, keyWidth, keyHeight);
+
+        ctx.strokeStyle = "rgba(150, 150, 150, 0.5)";
+        ctx.lineWidth = 1 * scale;
+        ctx.strokeRect(x, y, keyWidth, keyHeight);
+
+        ctx.fillStyle = "white";
+        ctx.font = `${14 * scale}px Arial`;
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+        ctx.fillText(row3[i], x + keyWidth / 2, y + keyHeight / 2);
+
+        keys.push({ key: row3[i].toLowerCase(), x, y, width: keyWidth, height: keyHeight });
+    }
+
+    // Row 4: Space, Backspace, Enter, Close
+    startY = keyboardY + 130 * scale;
+
+    // Space bar
+    const spaceWidth = 150 * scale;
+    const spaceX = keyboardX + 10 * scale;
+    ctx.fillStyle = "rgba(60, 60, 60, 0.9)";
+    ctx.fillRect(spaceX, startY, spaceWidth, keyHeight);
+    ctx.strokeStyle = "rgba(150, 150, 150, 0.5)";
+    ctx.lineWidth = 1 * scale;
+    ctx.strokeRect(spaceX, startY, spaceWidth, keyHeight);
+    ctx.fillStyle = "white";
+    ctx.font = `${12 * scale}px Arial`;
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    ctx.fillText("SPACE", spaceX + spaceWidth / 2, startY + keyHeight / 2);
+    keys.push({ key: ' ', x: spaceX, y: startY, width: spaceWidth, height: keyHeight });
+
+    // Backspace
+    const backspaceWidth = 55 * scale;
+    const backspaceX = spaceX + spaceWidth + keyPadding;
+    ctx.fillStyle = "rgba(80, 60, 60, 0.9)";
+    ctx.fillRect(backspaceX, startY, backspaceWidth, keyHeight);
+    ctx.strokeRect(backspaceX, startY, backspaceWidth, keyHeight);
+    ctx.fillStyle = "white";
+    ctx.fillText("←", backspaceX + backspaceWidth / 2, startY + keyHeight / 2);
+    keys.push({ key: 'Backspace', x: backspaceX, y: startY, width: backspaceWidth, height: keyHeight });
+
+    // Enter
+    const enterWidth = 55 * scale;
+    const enterX = backspaceX + backspaceWidth + keyPadding;
+    ctx.fillStyle = "rgba(60, 80, 60, 0.9)";
+    ctx.fillRect(enterX, startY, enterWidth, keyHeight);
+    ctx.strokeRect(enterX, startY, enterWidth, keyHeight);
+    ctx.fillStyle = "white";
+    ctx.fillText("ENTER", enterX + enterWidth / 2, startY + keyHeight / 2);
+    keys.push({ key: 'Enter', x: enterX, y: startY, width: enterWidth, height: keyHeight });
+
+    // Close button (bottom right of keyboard)
+    const closeWidth = 55 * scale;
+    const closeHeight = keyHeight;
+    const closeX = keyboardX + keyboardWidth - closeWidth - 10 * scale;
+    const closeY = startY;
+    ctx.fillStyle = "rgba(150, 50, 50, 0.9)";
+    ctx.fillRect(closeX, closeY, closeWidth, closeHeight);
+    ctx.strokeStyle = "rgba(200, 100, 100, 0.8)";
+    ctx.lineWidth = 1 * scale;
+    ctx.strokeRect(closeX, closeY, closeWidth, closeHeight);
+    ctx.fillStyle = "white";
+    ctx.font = `bold ${18 * scale}px Arial`;
+    ctx.fillText("X", closeX + closeWidth / 2, closeY + closeHeight / 2);
+    keys.push({ key: 'Close', x: closeX, y: closeY, width: closeWidth, height: closeHeight });
+
+    return { keys, keyboardX, keyboardY, keyboardWidth, keyboardHeight };
+}
+
 export function drawChatToggleButton() {
     const buttonSize = 50;
     const buttonX = 20;
@@ -884,7 +1162,7 @@ export function drawChatToggleButton() {
     };
 }
 
-export function drawMinimap(player, mapImage, isVisible) {
+export function drawMinimap(player, mapImage, isVisible, isMobile = false) {
     const hudPadding = 20; // Same padding as HUD
 
     if (!isVisible) {
@@ -946,28 +1224,35 @@ export function drawMinimap(player, mapImage, isVisible) {
     ctx.textAlign = "left";
     ctx.fillText("Map", minimapX, hudPadding + 20);
 
-    // Draw close button
-    const closeButtonSize = 24;
-    const closeButtonX = minimapX + minimapWidth - closeButtonSize + 5;
-    const closeButtonY = hudPadding + 3;
+    // Draw close button (only on desktop)
+    let closeButtonSize = 24;
+    let closeButtonX = minimapX + minimapWidth - closeButtonSize + 5;
+    let closeButtonY = hudPadding + 3;
 
-    ctx.fillStyle = "rgba(220, 53, 69, 0.8)";
-    ctx.fillRect(closeButtonX, closeButtonY, closeButtonSize, closeButtonSize);
+    if (!isMobile) {
+        ctx.fillStyle = "rgba(220, 53, 69, 0.8)";
+        ctx.fillRect(closeButtonX, closeButtonY, closeButtonSize, closeButtonSize);
 
-    ctx.strokeStyle = "rgba(255, 255, 255, 0.6)";
-    ctx.lineWidth = 2;
-    ctx.strokeRect(closeButtonX, closeButtonY, closeButtonSize, closeButtonSize);
+        ctx.strokeStyle = "rgba(255, 255, 255, 0.6)";
+        ctx.lineWidth = 2;
+        ctx.strokeRect(closeButtonX, closeButtonY, closeButtonSize, closeButtonSize);
 
-    // Draw X
-    ctx.strokeStyle = "white";
-    ctx.lineWidth = 2;
-    const padding = 6;
-    ctx.beginPath();
-    ctx.moveTo(closeButtonX + padding, closeButtonY + padding);
-    ctx.lineTo(closeButtonX + closeButtonSize - padding, closeButtonY + closeButtonSize - padding);
-    ctx.moveTo(closeButtonX + closeButtonSize - padding, closeButtonY + padding);
-    ctx.lineTo(closeButtonX + padding, closeButtonY + closeButtonSize - padding);
-    ctx.stroke();
+        // Draw X
+        ctx.strokeStyle = "white";
+        ctx.lineWidth = 2;
+        const padding = 6;
+        ctx.beginPath();
+        ctx.moveTo(closeButtonX + padding, closeButtonY + padding);
+        ctx.lineTo(closeButtonX + closeButtonSize - padding, closeButtonY + closeButtonSize - padding);
+        ctx.moveTo(closeButtonX + closeButtonSize - padding, closeButtonY + padding);
+        ctx.lineTo(closeButtonX + padding, closeButtonY + closeButtonSize - padding);
+        ctx.stroke();
+    } else {
+        // On mobile, set close button coords to invalid so they can't be clicked
+        closeButtonX = -100;
+        closeButtonY = -100;
+        closeButtonSize = 0;
+    }
 
     // Draw map image
     if (mapImage && mapImage.complete) {

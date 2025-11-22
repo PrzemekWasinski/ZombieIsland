@@ -1,5 +1,9 @@
 import { loadImages, sprites, playerImages } from "./images.js";
-import { drawMap, drawPlayer, drawEnemy, drawDrop, drawObject, drawInventory, isNearby, drawHUD, drawShopInventory, drawChatBox, drawPickupNotifications, drawChatToggleButton, drawMinimap } from "./functions.js"
+import {
+	drawMap, drawPlayer, drawEnemy, drawDrop, drawObject, drawInventory, isNearby,
+	drawHUD, drawShopInventory, drawChatBox, drawPickupNotifications, drawChatToggleButton,
+	drawMinimap, drawMobileChatBox, drawMobileKeyboard
+} from "./functions.js"
 
 export function startGame({ userId, token }) {
 	const socket = new WebSocket("wss://ws.zombieisland.online/"); //Main server
@@ -84,7 +88,82 @@ export function startGame({ userId, token }) {
 
 			const isHold = touchDuration > 500; // 500ms = hold
 			const moveDist = touchStartPos ? Math.sqrt(Math.pow(touchEndX - touchStartPos.x, 2) + Math.pow(touchEndY - touchStartPos.y, 2)) : 0;
-			const isTap = touchDuration < 500 && moveDist < 20; 
+			const isTap = touchDuration < 500 && moveDist < 20;
+
+			if (isMobile && mobileKeyboardVisible && mobileKeyboardData && isTap) {
+				let keyPressed = false;
+				for (const keyData of mobileKeyboardData.keys) {
+					if (touchEndX >= keyData.x && touchEndX <= keyData.x + keyData.width &&
+					    touchEndY >= keyData.y && touchEndY <= keyData.y + keyData.height) {
+
+						if (keyData.key === 'Close') {
+							// Close keyboard
+							mobileKeyboardVisible = false;
+							isTyping = false;
+							socket.send(JSON.stringify({
+								type: "typing",
+								isTyping: false,
+								playerID: userId
+							}));
+						} else if (keyData.key === 'Enter') {
+							// Send message
+							if (inputString.trim()) {
+								socket.send(JSON.stringify({
+									type: "keydown",
+									dir: "message",
+									pressed: true,
+									playerID: userId,
+									message: inputString
+								}));
+							}
+							inputString = "";
+							mobileKeyboardVisible = false;
+							isTyping = false;
+							socket.send(JSON.stringify({
+								type: "typing",
+								isTyping: false,
+								playerID: userId
+							}));
+						} else if (keyData.key === 'Backspace') {
+							// Remove last character
+							inputString = inputString.slice(0, -1);
+						} else {
+							// Add character to input
+							inputString += keyData.key;
+						}
+
+						keyPressed = true;
+						break;
+					}
+				}
+
+				// If keyboard key was pressed, skip all other touch handling
+				if (keyPressed) {
+					activeTouches.delete(touch.identifier);
+					touchStartTimes.delete(touch.identifier);
+					touchStartPositions.delete(touch.identifier);
+					continue;
+				}
+			}
+
+			// Handle chat box tap to open keyboard (only when keyboard is closed)
+			if (isMobile && !mobileKeyboardVisible && chatBoxBounds && isTap) {
+				if (touchEndX >= chatBoxBounds.chatX && touchEndX <= chatBoxBounds.chatX + chatBoxBounds.chatWidth &&
+				    touchEndY >= chatBoxBounds.chatY && touchEndY <= chatBoxBounds.chatY + chatBoxBounds.chatHeight) {
+					mobileKeyboardVisible = true;
+					isTyping = true;
+					inputString = "";
+					socket.send(JSON.stringify({
+						type: "typing",
+						isTyping: true,
+						playerID: userId
+					}));
+					activeTouches.delete(touch.identifier);
+					touchStartTimes.delete(touch.identifier);
+					touchStartPositions.delete(touch.identifier);
+					continue;
+				}
+			} 
 
 
 			if (isTap || isHold) {
@@ -581,11 +660,16 @@ export function startGame({ userId, token }) {
 	                 ('ontouchstart' in window) ||
 	                 (navigator.maxTouchPoints > 0);
 
+	// Mobile chat input handling
+	let chatBoxBounds = null; // Store chat box position for touch detection
+	let mobileKeyboardVisible = false; // Track on-screen keyboard visibility
+	let mobileKeyboardData = null; // Store keyboard key positions
+
 	window.addEventListener("keydown", (e) => {
 		// Close controls menu on any key press when open
 		if (inControlsMenu) {
 			inControlsMenu = false;
-			// Don't return - let the key event continue to process the action
+			return; // Stop processing to prevent reopening the menu
 		}
 
 		// Close shop/sell inventory on any key press when open
@@ -610,10 +694,17 @@ export function startGame({ userId, token }) {
 			// Don't return - let the key event continue to second handler for movement
 		}
 
-		if (!isTyping && e.key === "t") {
+		if (!isTyping && (e.key === "t" || e.key === "T")) {
 			chatBoxVisible = true; // Open chat when starting to type
 			isTyping = true;
 			inputString = "";
+
+			// On mobile, focus the hidden input to show keyboard
+			if (isMobile && mobileChatInput) {
+				mobileChatInput.value = inputString;
+				mobileChatInput.focus();
+			}
+
 			socket.send(JSON.stringify({
 				type: "typing",
 				isTyping: true,
@@ -647,7 +738,7 @@ export function startGame({ userId, token }) {
 				inputString = inputString.slice(0, -1);
 			}
 		} else if ("Escape" === e.key) {
-			// Only open menu if not already open (closing is handled at top of function)
+			// Toggle controls menu - closing is handled at top of function
 			if (!inControlsMenu) {
 				inInventory = false;
 				inControlsMenu = true;
@@ -1055,10 +1146,21 @@ export function startGame({ userId, token }) {
 
 		drawHUD(players[playerId])
 
-		// Draw chat box or toggle button (only on desktop)
+		// Draw chat box or toggle button
 		let chatCloseButton = null;
 		let chatToggleButton = null;
-		if (!isMobile) {
+		let mobileChatBox = null;
+		if (isMobile) {
+			// Always show mobile chat box
+			mobileChatBox = drawMobileChatBox(globalChatMessages, isTyping, inputString);
+			chatBoxBounds = mobileChatBox; // Store for touch detection
+
+			// Draw on-screen keyboard if visible
+			if (mobileKeyboardVisible) {
+				mobileKeyboardData = drawMobileKeyboard(true);
+			}
+		} else {
+			// Desktop: toggle between chat and button
 			if (chatBoxVisible) {
 				chatCloseButton = drawChatBox(globalChatMessages, isTyping, inputString);
 			} else {
@@ -1098,15 +1200,17 @@ export function startGame({ userId, token }) {
 				inventory: { ...inventoryButton, width: buttonSize, height: buttonSize, key: "inventory", direction: "current", action: "idle" }
 			};
 
-			// Check which buttons are being touched
+			// Check which buttons are being touched (skip if keyboard is visible)
 			const touchedButtons = new Set();
 			let touchingAnyButton = false;
-			for (const [touchId, touchPos] of activeTouches) {
-				for (const [btnName, btn] of Object.entries(mobileButtons)) {
-					if (touchPos.x >= btn.x && touchPos.x <= btn.x + btn.width &&
-					    touchPos.y >= btn.y && touchPos.y <= btn.y + btn.height) {
-						touchedButtons.add(btnName);
-						touchingAnyButton = true;
+			if (!mobileKeyboardVisible) {
+				for (const [touchId, touchPos] of activeTouches) {
+					for (const [btnName, btn] of Object.entries(mobileButtons)) {
+						if (touchPos.x >= btn.x && touchPos.x <= btn.x + btn.width &&
+						    touchPos.y >= btn.y && touchPos.y <= btn.y + btn.height) {
+							touchedButtons.add(btnName);
+							touchingAnyButton = true;
+						}
 					}
 				}
 			}
@@ -1142,7 +1246,7 @@ export function startGame({ userId, token }) {
 						}
 					}
 
-					// Handle inventory button specially (toggle, not send to server)
+					// Handle inventory button specially (don't send to server)
 					if (btn.key === "inventory") {
 						inInventory = !inInventory;
 					} else {
@@ -1213,32 +1317,38 @@ export function startGame({ userId, token }) {
 				}
 			}
 
-			// Draw mobile buttons
-			const drawMobileButton = (btn, label, color = "rgba(255, 255, 255, 0.3)", btnName) => {
+			// Draw mobile buttons (hide controls/attack/interact when keyboard is visible)
+			const drawMobileButton = (btn, label, color = "rgba(255, 255, 255, 0.3)", btnName, width = buttonSize, height = buttonSize) => {
 				const isTouched = touchedButtons.has(btnName);
 				ctx.fillStyle = isTouched ? "rgba(255, 255, 255, 0.6)" : color;
-				ctx.fillRect(btn.x, btn.y, buttonSize, buttonSize);
+				ctx.fillRect(btn.x, btn.y, width, height);
 				ctx.strokeStyle = "rgba(255, 255, 255, 0.8)";
 				ctx.lineWidth = 2;
-				ctx.strokeRect(btn.x, btn.y, buttonSize, buttonSize);
+				ctx.strokeRect(btn.x, btn.y, width, height);
 				ctx.fillStyle = "white";
 				ctx.font = "bold 20px Arial";
 				ctx.textAlign = "center";
 				ctx.textBaseline = "middle";
-				ctx.fillText(label, btn.x + buttonSize / 2, btn.y + buttonSize / 2);
+				ctx.fillText(label, btn.x + width / 2, btn.y + height / 2);
 			};
 
-			drawMobileButton(upButton, "↑", "rgba(255, 255, 255, 0.3)", "up");
-			drawMobileButton(downButton, "↓", "rgba(255, 255, 255, 0.3)", "down");
-			drawMobileButton(leftButton, "←", "rgba(255, 255, 255, 0.3)", "left");
-			drawMobileButton(rightButton, "→", "rgba(255, 255, 255, 0.3)", "right");
-			drawMobileButton(attackButton, "⚔", "rgba(220, 53, 69, 0.5)", "attack");
-			drawMobileButton(interactButton, "E", "rgba(53, 152, 220, 0.5)", "interact");
-			drawMobileButton(inventoryButton, "I", inInventory ? "rgba(255, 193, 7, 0.8)" : "rgba(255, 193, 7, 0.5)", "inventory");
+			if (!mobileKeyboardVisible) {
+				// Show all buttons when keyboard is closed
+				drawMobileButton(upButton, "↑", "rgba(255, 255, 255, 0.3)", "up");
+				drawMobileButton(downButton, "↓", "rgba(255, 255, 255, 0.3)", "down");
+				drawMobileButton(leftButton, "←", "rgba(255, 255, 255, 0.3)", "left");
+				drawMobileButton(rightButton, "→", "rgba(255, 255, 255, 0.3)", "right");
+				drawMobileButton(attackButton, "⚔", "rgba(220, 53, 69, 0.5)", "attack");
+				drawMobileButton(interactButton, "E", "rgba(53, 152, 220, 0.5)", "interact");
+				drawMobileButton(inventoryButton, "I", inInventory ? "rgba(255, 193, 7, 0.8)" : "rgba(255, 193, 7, 0.5)", "inventory");
+			} else {
+				// Only show inventory button when keyboard is open
+				drawMobileButton(inventoryButton, "I", inInventory ? "rgba(255, 193, 7, 0.8)" : "rgba(255, 193, 7, 0.5)", "inventory");
+			}
 		}
 
 		// Draw minimap
-		const minimapButtons = drawMinimap(players[playerId], minimapImage, minimapVisible);
+		const minimapButtons = drawMinimap(players[playerId], minimapImage, minimapVisible, isMobile);
 
 		// Draw controls menu (after chat and minimap so overlay covers them)
 		let logoutButton = null;
