@@ -13,8 +13,6 @@ export const shops = {
             "Small Healing Potion": {itemName: "Small Healing Potion", itemValue: 15},
             "Medium Healing Potion": {itemName: "Medium Healing Potion", itemValue: 30},
             "Large Healing Potion": {itemName: "Large Healing Potion", itemValue: 50},
-            "Greater Healing Potion": {itemName: "Greater Healing Potion", itemValue: 75},
-            "Supreme Healing Potion": {itemName: "Supreme Healing Potion", itemValue: 100},
         }
     }
 }

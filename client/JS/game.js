@@ -1,4 +1,4 @@
-import { loadImages, sprites, playerImages } from "./images.js";
+import { loadImages, sprites, playerImages, boatSprite } from "./images.js";
 import {
 	drawMap, drawPlayer, drawEnemy, drawDrop, drawObject, drawInventory, isNearby,
 	drawHUD, drawShopInventory, drawChatBox, drawPickupNotifications, drawChatToggleButton,
@@ -1024,12 +1024,33 @@ export function startGame({ userId, token }) {
 			//Ensure player has valid defaults before drawing
 			ensurePlayerDefaults(player);
 
-			const sprite = playerImages[player.action];
-			if (!sprite) continue;
+			// Use boat frame count if in boat, otherwise use player sprite frame count
+			let frameAmount;
+			if (player.inBoat) {
+				frameAmount = boatSprite.frameCount;
+			} else {
+				const sprite = playerImages[player.action];
+				if (!sprite) continue;
+				frameAmount = sprite[1];
+			}
 
-			let frameAmount = sprite[1];
+			if (player.inBoat) {
+				// Boat animation - only animate if moving (action is "walk")
+				if (player.action === "walk") {
+					player.frameTimer += deltaTime * 1000;
+					let loopTime = 800; // Slower boat animation
+					const frameDelay = loopTime / frameAmount;
 
-			if (player.action === "idle") {
+					if (player.frameTimer >= frameDelay) {
+						player.frameTimer = 0;
+						player.frameIndex = (player.frameIndex + 1) % frameAmount;
+					}
+				} else {
+					// When idle in boat, stay on frame 0
+					player.frameIndex = 0;
+					player.frameTimer = 0;
+				}
+			} else if (player.action === "idle") {
 				player.frameIndex = 0;
 				player.frameTimer = 0;
 				if (player.direction === "up") {
@@ -1055,6 +1076,7 @@ export function startGame({ userId, token }) {
 				}
 			}
 
+			const sprite = playerImages[player.action];
 			drawPlayer(player, false, currentPlayer, sprite);
 		}
 
@@ -1113,35 +1135,58 @@ export function startGame({ userId, token }) {
 				player.attackEndTime = null;
 			}
 
-			const sprite = playerImages[player.action];
-			if (sprite) {
-				let frameAmount = sprite[1];
+			// Use boat frame count if in boat, otherwise use player sprite frame count
+			let frameAmount;
+			if (player.inBoat) {
+				frameAmount = boatSprite.frameCount;
+			} else {
+				const sprite = playerImages[player.action];
+				if (!sprite) return;
+				frameAmount = sprite[1];
+			}
 
-				if (player.action === "idle") {
-					// For idle, keep frame at 0 (still frame)
-					player.frameIndex = 0;
-					player.frameTimer = 0;
-				} else if (player.action === "attack") {
-					// Attack animation - cycle through frames
+			if (player.inBoat) {
+				// Boat animation - only animate if moving (action is "walk")
+				if (player.action === "walk") {
 					player.frameTimer += deltaTime * 1000;
-					const frameDelay = 100;
-
-					if (player.frameTimer >= frameDelay) {
-						player.frameTimer = 0;
-						player.frameIndex = (player.frameIndex + 1) % 8; // Loop through 8 frames
-					}
-				} else {
-					// For other animated actions (walk, etc.), cycle through frames
-					player.frameTimer += deltaTime * 1000;
-					const frameDelay = 100;
+					let loopTime = 800; // Slower boat animation
+					const frameDelay = loopTime / frameAmount;
 
 					if (player.frameTimer >= frameDelay) {
 						player.frameTimer = 0;
 						player.frameIndex = (player.frameIndex + 1) % frameAmount;
 					}
+				} else {
+					// When idle in boat, stay on frame 0
+					player.frameIndex = 0;
+					player.frameTimer = 0;
 				}
-				drawPlayer(currentPlayer, true, currentPlayer, sprite);
+			} else if (player.action === "idle") {
+				// For idle, keep frame at 0 (still frame)
+				player.frameIndex = 0;
+				player.frameTimer = 0;
+			} else if (player.action === "attack") {
+				// Attack animation - cycle through frames
+				player.frameTimer += deltaTime * 1000;
+				const frameDelay = 100;
+
+				if (player.frameTimer >= frameDelay) {
+					player.frameTimer = 0;
+					player.frameIndex = (player.frameIndex + 1) % 8; // Loop through 8 frames
+				}
+			} else {
+				// For other animated actions (walk, etc.), cycle through frames
+				player.frameTimer += deltaTime * 1000;
+				const frameDelay = 100;
+
+				if (player.frameTimer >= frameDelay) {
+					player.frameTimer = 0;
+					player.frameIndex = (player.frameIndex + 1) % frameAmount;
+				}
 			}
+
+			const sprite = playerImages[player.action];
+			drawPlayer(currentPlayer, true, currentPlayer, sprite);
 		}
 
 		// Check if player has moved too far from shop/sell inventory

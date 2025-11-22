@@ -3,7 +3,7 @@
 export const enemySpawns = {
     //GHOSTS - Snow Biome (Hardest)
     GHOST: {
-        enemyAmount: 25,
+        enemyAmount: 50,
         biome: "Snow",
 
         enemyStats: {
@@ -32,7 +32,7 @@ export const enemySpawns = {
     },
 
     SHADOW_GHOST: {
-        enemyAmount: 25,
+        enemyAmount: 50,
         biome: "Snow",
 
         enemyStats: {
@@ -61,7 +61,7 @@ export const enemySpawns = {
     },
 
     NIGHT_GHOST: {
-        enemyAmount: 25,
+        enemyAmount: 50,
         biome: "Snow",
 
         enemyStats: {
@@ -91,7 +91,7 @@ export const enemySpawns = {
 
     //GOBLINS - Progression across biomes
     GOBLIN: {
-        enemyAmount: 15,
+        enemyAmount: 35,
         biome: "Forest",
 
         enemyStats: {
@@ -120,7 +120,7 @@ export const enemySpawns = {
     },
 
     SAND_GOBLIN: {
-        enemyAmount: 15,
+        enemyAmount: 35,
         biome: "Desert",
 
         enemyStats: {
@@ -149,7 +149,7 @@ export const enemySpawns = {
     },
 
     SNOW_GOBLIN: {
-        enemyAmount: 15,
+        enemyAmount: 35,
         biome: "Snow",
 
         enemyStats: {
@@ -179,7 +179,7 @@ export const enemySpawns = {
 
     //GOLEMS - Boss-tier enemies per biome
     NIGHT_GOLEM: {
-        enemyAmount: 5,
+        enemyAmount: 12,
         biome: "Plains",
 
         enemyStats: {
@@ -208,7 +208,7 @@ export const enemySpawns = {
     },
 
     SAND_GOLEM: {
-        enemyAmount: 5,
+        enemyAmount: 12,
         biome: "Desert",
 
         enemyStats: {
@@ -237,7 +237,7 @@ export const enemySpawns = {
     },
 
     SNOW_GOLEM: {
-        enemyAmount: 5,
+        enemyAmount: 12,
         biome: "Snow",
 
         enemyStats: {
@@ -267,7 +267,7 @@ export const enemySpawns = {
 
     //ORCS - Mid-tier enemies
     ORC: {
-        enemyAmount: 15,
+        enemyAmount: 35,
         biome: "Forest",
 
         enemyStats: {
@@ -296,7 +296,7 @@ export const enemySpawns = {
     },
 
     BLUE_ORC: {
-        enemyAmount: 15,
+        enemyAmount: 35,
         biome: "Snow",
 
         enemyStats: {
@@ -325,7 +325,7 @@ export const enemySpawns = {
     },
 
     ORC_WORRIOR: {
-        enemyAmount: 15,
+        enemyAmount: 35,
         biome: "Snow",
 
         enemyStats: {
@@ -355,7 +355,7 @@ export const enemySpawns = {
 
     //SKELETONS
     SKELETON: {
-        enemyAmount: 20,
+        enemyAmount: 45,
         biome: "Forest",
 
         enemyStats: {
@@ -384,7 +384,7 @@ export const enemySpawns = {
     },
 
     SKELETON_WORRIOR: {
-        enemyAmount: 20,
+        enemyAmount: 45,
         biome: "Plains",
 
         enemyStats: {
@@ -413,7 +413,7 @@ export const enemySpawns = {
     },
 
     GOLDEN_SKELETON: {
-        enemyAmount: 20,
+        enemyAmount: 45,
         biome: "Desert",
 
         enemyStats: {
@@ -443,7 +443,7 @@ export const enemySpawns = {
 
     //SLIMES - Low-tier enemies across biomes
     CRYSTAL_SLIME: {
-        enemyAmount: 10,
+        enemyAmount: 25,
         biome: "Plains",
 
         enemyStats: {
@@ -472,7 +472,7 @@ export const enemySpawns = {
     },
 
     GREEN_SLIME: {
-        enemyAmount: 10,
+        enemyAmount: 25,
         biome: "Plains",
 
         enemyStats: {
@@ -501,7 +501,7 @@ export const enemySpawns = {
     },
 
     GHOST_SLIME: {
-        enemyAmount: 10,
+        enemyAmount: 25,
         biome: "Plains",
 
         enemyStats: {
@@ -530,7 +530,7 @@ export const enemySpawns = {
     },
 
     ELECTRIC_SLIME: {
-        enemyAmount: 10,
+        enemyAmount: 25,
         biome: "Desert",
 
         enemyStats: {
@@ -559,7 +559,7 @@ export const enemySpawns = {
     },
 
     FIRE_SLIME: {
-        enemyAmount: 10,
+        enemyAmount: 25,
         biome: "Desert",
 
         enemyStats: {
@@ -588,7 +588,7 @@ export const enemySpawns = {
     },
 
     HELL_SLIME: {
-        enemyAmount: 10,
+        enemyAmount: 25,
         biome: "Desert",
 
         enemyStats: {
@@ -617,7 +617,7 @@ export const enemySpawns = {
     },
 
     LAVA_SLIME: {
-        enemyAmount: 10,
+        enemyAmount: 25,
         biome: "Desert",
 
         enemyStats: {
@@ -646,7 +646,7 @@ export const enemySpawns = {
     },
 
     ICE_SLIME: {
-        enemyAmount: 10,
+        enemyAmount: 25,
         biome: "Snow",
 
         enemyStats: {
@@ -676,7 +676,7 @@ export const enemySpawns = {
 
     //ZOMBIES - Forest Biome (Easiest)
     ZOMBIE: {
-        enemyAmount: 10,
+        enemyAmount: 30,
         biome: "Forest",
 
         enemyStats: {
@@ -705,7 +705,7 @@ export const enemySpawns = {
     },
 
     NIGHT_ZOMBIE: {
-        enemyAmount: 10,
+        enemyAmount: 30,
         biome: "Forest",
 
         enemyStats: {
@@ -734,7 +734,7 @@ export const enemySpawns = {
     },
 
     VIKING_ZOMBIE: {
-        enemyAmount: 10,
+        enemyAmount: 30,
         biome: "Forest",
 
         enemyStats: {

@@ -5,6 +5,7 @@ import { broadcast, updateStats, getMap, deleteItem, broadcastToNearby, sendNear
 import { players, enemies, getNextId, objects, drops, getNextDropID } from "../game/state.js";
 import { startGame } from "../game/game.js";
 import { shops } from "../config/shop.js";
+import { isConsumable, getHealthRestore } from "../config/items.js";
 
 const getSerializablePlayer = (player) => {
 	if (!player) {
@@ -676,12 +677,13 @@ export async function startWebSocket(config, url, apiKey) {
 
 						if (sellingCoords && player.inventory[data.item]) {
 							const itemName = player.inventory[data.item].itemName;
+							const itemValue = player.inventory[data.item].itemValue || 10; // Use stored value or default to 10
 
 							// Only sell if item amount is greater than 0
 							if (player.inventory[data.item].itemAmount > 0) {
-								console.log(data.item, "sold");
+								console.log(data.item, "sold for", itemValue, "gold");
 								player.inventory[data.item].itemAmount -= 1;
-								player.gold += 10;
+								player.gold += itemValue;
 
 								// Update database for item
 								try {
@@ -720,26 +722,19 @@ export async function startWebSocket(config, url, apiKey) {
 						if (targetPlayer && targetPlayer.dbID === data.playerID && targetPlayer.inventory[data.item]) {
 							const itemName = targetPlayer.inventory[data.item].itemName;
 
+							// Check if item is consumable
+							if (!isConsumable(itemName)) {
+								console.log(`${targetPlayer.username} tried to consume non-consumable item: ${itemName}`);
+								return;
+							}
+
 							// Only consume if item amount is greater than 0 and player is not max health
 							if (targetPlayer.inventory[data.item].itemAmount > 0 && targetPlayer.health < targetPlayer.maxHealth) {
 
 								targetPlayer.inventory[data.item].itemAmount -= 1;
 
-								// Determine healing amount based on potion type
-								let healAmount = 10; // Default healing for non-potion items
-
-								// Healing potion tiers
-								if (itemName === "Small Healing Potion") {
-									healAmount = 25;
-								} else if (itemName === "Medium Healing Potion") {
-									healAmount = 50;
-								} else if (itemName === "Large Healing Potion") {
-									healAmount = 75;
-								} else if (itemName === "Greater Healing Potion") {
-									healAmount = 100;
-								} else if (itemName === "Supreme Healing Potion") {
-									healAmount = 150;
-								}
+								// Get healing amount from items configuration
+								const healAmount = getHealthRestore(itemName);
 
 								// Add health to player (cap at maxHealth)
 								const oldHealth = targetPlayer.health;

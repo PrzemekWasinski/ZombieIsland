@@ -1,4 +1,4 @@
-import { tileImages, objectImages, playerImages, itemImages, boatImages } from "./images.js";
+import { tileImages, objectImages, playerImages, itemImages, boatSprite } from "./images.js";
 
 const canvas = document.getElementById('game');
 const ctx = canvas.getContext('2d');
@@ -137,26 +137,39 @@ export function drawPlayer(player, isCurrentPlayer, currentPlayer, sprite) { //D
 
     // Check if player is in a boat
     if (player.inBoat) {
-        // Use boat sprites (static images based on direction)
-        let boatImage;
+        // Use boat sprite with animations
+        const boatImage = boatSprite.image;
+        const frameSize = boatSprite.frameSize;
+
+        // Determine which row of the sprite sheet to use based on direction
+        // Sprite sheet order: up, down, left, right
+        let sourceY;
         if (player.direction === "up" || player.direction === "up-left" || player.direction === "up-right") {
-            boatImage = boatImages.up;
+            sourceY = 0; // up row
         } else if (player.direction === "down" || player.direction === "down-left" || player.direction === "down-right") {
-            boatImage = boatImages.down;
+            sourceY = 1; // down row
         } else if (player.direction === "left") {
-            boatImage = boatImages.left;
+            sourceY = 2; // left row
         } else if (player.direction === "right") {
-            boatImage = boatImages.right;
+            sourceY = 3; // right row
         } else {
-            boatImage = boatImages.down; // Default to down
+            sourceY = 1; // Default to down
         }
 
-        // Check if boat image is loaded
+        // Calculate source position in sprite sheet
+        const sourceX = player.frameIndex * frameSize;
+        sourceY *= frameSize;
+
+        // Check if boat sprite is loaded
         if (boatImage && boatImage.complete && boatImage.naturalHeight > 0) {
             try {
-                ctx.drawImage(boatImage, screenX, screenY, tileSize, tileSize);
+                ctx.drawImage(
+                    boatImage,
+                    sourceX, sourceY, frameSize, frameSize,
+                    screenX, screenY, frameSize, frameSize
+                );
             } catch (error) {
-                console.error('Failed to draw boat image:', error);
+                console.error('Failed to draw boat sprite:', error);
             }
         }
     } else {

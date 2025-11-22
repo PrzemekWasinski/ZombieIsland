@@ -717,7 +717,8 @@ export function startGame(wss, TILE_SIZE, VISIBLE_TILES_X, VISIBLE_TILES_Y, PASS
                     if (!player.inventory[drop.name]) {
                         player.inventory[drop.name] = {
                             itemName: drop.name,
-                            itemAmount : 1
+                            itemAmount : 1,
+                            itemValue: drop.value || 10 // Store the item's sell value
                         };
 
                         saveItem(drop.name, player.dbID, supabase);
@@ -727,6 +728,10 @@ export function startGame(wss, TILE_SIZE, VISIBLE_TILES_X, VISIBLE_TILES_Y, PASS
                             continue; // Skip this drop, inventory full for this item
                         }
                         player.inventory[drop.name].itemAmount++;
+                        // Update value if it doesn't exist (for old items)
+                        if (!player.inventory[drop.name].itemValue) {
+                            player.inventory[drop.name].itemValue = drop.value || 10;
+                        }
                         saveItem(drop.name, player.dbID, supabase);
                     }
 

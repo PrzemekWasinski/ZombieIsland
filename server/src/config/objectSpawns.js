@@ -1,6 +1,6 @@
 export const objectSpawns = {
     BLUE_BERRY_BUSH: {
-        objectAmount: 20,
+        objectAmount: 50,
         biome: "Forest",
 
         objectStats: {
@@ -9,14 +9,15 @@ export const objectSpawns = {
             possibleDrops: [
                 {
                     name: "Blue Berry",
-                    chance: 80
+                    chance: 60,
+                    value: 5
                 }
             ]
         }
     },
 
     RED_BERRY_BUSH: {
-        objectAmount: 20,
+        objectAmount: 50,
         biome: "Forest",
 
         objectStats: {
@@ -25,14 +26,15 @@ export const objectSpawns = {
             possibleDrops: [
                 {
                     name: "Red Berry",
-                    chance: 80
+                    chance: 60,
+                    value: 5
                 }
             ]
         }
     },
 
     YELLOW_BERRY_BUSH: {
-        objectAmount: 20,
+        objectAmount: 50,
         biome: "Plains",
 
         objectStats: {
@@ -41,14 +43,15 @@ export const objectSpawns = {
             possibleDrops: [
                 {
                     name: "Yellow Berry",
-                    chance: 80
+                    chance: 60,
+                    value: 8
                 }
             ]
         }
     },
 
     CACTUS: {
-        objectAmount: 20,
+        objectAmount: 50,
         biome: "Desert",
 
         objectStats: {
@@ -56,15 +59,16 @@ export const objectSpawns = {
             name: "Cactus",
             possibleDrops: [
                 {
-                    name: "Cactus",
-                    chance: 80
+                    name: "Cactus Fruit",
+                    chance: 50,
+                    value: 12
                 }
             ]
         }
     },
 
     FRUIT_CACTUS: {
-        objectAmount: 20,
+        objectAmount: 50,
         biome: "Desert",
 
         objectStats: {
@@ -72,15 +76,16 @@ export const objectSpawns = {
             name: "Fruit Cactus",
             possibleDrops: [
                 {
-                    name: "Cactus",
-                    chance: 80
+                    name: "Cactus Fruit",
+                    chance: 70,
+                    value: 12
                 }
             ]
         }
     },
 
     SNOW_BUSH: {
-        objectAmount: 20,
+        objectAmount: 50,
         biome: "Snow",
 
         objectStats: {
@@ -88,15 +93,16 @@ export const objectSpawns = {
             name: "Snow Bush",
             possibleDrops: [
                 {
-                    name: "Cactus",
-                    chance: 80
+                    name: "Frost Berry",
+                    chance: 55,
+                    value: 15
                 }
             ]
         }
     },
 
     VINE_MUSHROOM: {
-        objectAmount: 20,
+        objectAmount: 50,
         biome: "Forest",
 
         objectStats: {
@@ -104,31 +110,33 @@ export const objectSpawns = {
             name: "Vine Mushroom",
             possibleDrops: [
                 {
-                    name: "Cactus",
-                    chance: 80
+                    name: "Red Mushroom",
+                    chance: 65,
+                    value: 18
                 }
             ]
         }
     },
 
     WHITE_MUSHROOM: {
-        objectAmount: 20,
+        objectAmount: 50,
         biome: "Plains",
 
         objectStats: {
             health: [5, 5],
-            name: "White Mushrrom",
+            name: "White Mushroom",
             possibleDrops: [
                 {
-                    name: "Cactus",
-                    chance: 80
+                    name: "White Mushroom",
+                    chance: 70,
+                    value: 10
                 }
             ]
         }
     },
 
     RED_MUSHROOM: {
-        objectAmount: 20,
+        objectAmount: 50,
         biome: "Snow",
 
         objectStats: {
@@ -136,15 +144,16 @@ export const objectSpawns = {
             name: "Red Mushroom",
             possibleDrops: [
                 {
-                    name: "Cactus",
-                    chance: 80
+                    name: "Red Mushroom",
+                    chance: 65,
+                    value: 18
                 }
             ]
         }
     },
 
     ICE_MUSHROOM: {
-        objectAmount: 20,
+        objectAmount: 50,
         biome: "Snow",
 
         objectStats: {
@@ -152,15 +161,16 @@ export const objectSpawns = {
             name: "Ice Mushroom",
             possibleDrops: [
                 {
-                    name: "Cactus",
-                    chance: 80
+                    name: "Ice Mushroom",
+                    chance: 60,
+                    value: 20
                 }
             ]
         }
     },
 
     ICE_FLOWER: {
-        objectAmount: 20,
+        objectAmount: 50,
         biome: "Snow",
 
         objectStats: {
@@ -168,31 +178,16 @@ export const objectSpawns = {
             name: "Ice Flower",
             possibleDrops: [
                 {
-                    name: "Cactus",
-                    chance: 80
-                }
-            ]
-        }
-    },
-
-    ICE_SPIKE: {
-        objectAmount: 20,
-        biome: "Snow",
-
-        objectStats: {
-            health: [30, 30],
-            name: "Ice Spike",
-            possibleDrops: [
-                {
-                    name: "Cactus",
-                    chance: 80
+                    name: "Ice Flower",
+                    chance: 55,
+                    value: 22
                 }
             ]
         }
     },
 
     WHITE_ROCK: {
-        objectAmount: 20,
+        objectAmount: 40,
         biome: "Snow",
 
         objectStats: {
@@ -200,15 +195,26 @@ export const objectSpawns = {
             name: "White Rock",
             possibleDrops: [
                 {
-                    name: "Cactus",
-                    chance: 80
+                    name: "Diamond",
+                    chance: 5,
+                    value: 150
+                },
+                {
+                    name: "Gem",
+                    chance: 15,
+                    value: 50
+                },
+                {
+                    name: "Stone",
+                    chance: 70,
+                    value: 5
                 }
             ]
         }
     },
 
     LIGHT_STONE: {
-        objectAmount: 20,
+        objectAmount: 40,
         biome: "Plains",
 
         objectStats: {
@@ -216,15 +222,21 @@ export const objectSpawns = {
             name: "Light Stone",
             possibleDrops: [
                 {
-                    name: "Cactus",
-                    chance: 80
+                    name: "Gem",
+                    chance: 12,
+                    value: 50
+                },
+                {
+                    name: "Stone",
+                    chance: 80,
+                    value: 5
                 }
             ]
         }
     },
 
     BROWN_ROCK: {
-        objectAmount: 20,
+        objectAmount: 40,
         biome: "Plains",
 
         objectStats: {
@@ -232,15 +244,21 @@ export const objectSpawns = {
             name: "Brown Rock",
             possibleDrops: [
                 {
-                    name: "Cactus",
-                    chance: 80
+                    name: "Gem",
+                    chance: 10,
+                    value: 50
+                },
+                {
+                    name: "Stone",
+                    chance: 85,
+                    value: 5
                 }
             ]
         }
     },
 
     GREY_ROCK: {
-        objectAmount: 20,
+        objectAmount: 40,
         biome: "Forest",
 
         objectStats: {
@@ -248,15 +266,21 @@ export const objectSpawns = {
             name: "Grey Rock",
             possibleDrops: [
                 {
-                    name: "Cactus",
-                    chance: 80
+                    name: "Gem",
+                    chance: 5,
+                    value: 50
+                },
+                {
+                    name: "Stone",
+                    chance: 90,
+                    value: 5
                 }
             ]
         }
     },
 
     DESERT_SPIKES: {
-        objectAmount: 20,
+        objectAmount: 40,
         biome: "Desert",
 
         objectStats: {
@@ -264,15 +288,16 @@ export const objectSpawns = {
             name: "Desert Spikes",
             possibleDrops: [
                 {
-                    name: "Cactus",
-                    chance: 80
+                    name: "Stone",
+                    chance: 75,
+                    value: 5
                 }
             ]
         }
     },
 
     DESERT_ROCK: {
-        objectAmount: 20,
+        objectAmount: 40,
         biome: "Desert",
 
         objectStats: {
@@ -280,15 +305,26 @@ export const objectSpawns = {
             name: "Desert Rock",
             possibleDrops: [
                 {
-                    name: "Cactus",
-                    chance: 80
+                    name: "Ruby",
+                    chance: 4,
+                    value: 120
+                },
+                {
+                    name: "Gem",
+                    chance: 15,
+                    value: 50
+                },
+                {
+                    name: "Stone",
+                    chance: 75,
+                    value: 5
                 }
             ]
         }
     },
 
     SAND_DEPOSIT: {
-        objectAmount: 20,
+        objectAmount: 40,
         biome: "Desert",
 
         objectStats: {
@@ -296,15 +332,16 @@ export const objectSpawns = {
             name: "Sand Deposit",
             possibleDrops: [
                 {
-                    name: "Cactus",
-                    chance: 80
+                    name: "Sand",
+                    chance: 85,
+                    value: 3
                 }
             ]
         }
     },
 
     FRUIT_TREE: {
-        objectAmount: 20,
+        objectAmount: 60,
         biome: "Forest",
 
         objectStats: {
@@ -312,15 +349,21 @@ export const objectSpawns = {
             name: "Fruit Tree",
             possibleDrops: [
                 {
-                    name: "Cactus",
-                    chance: 80
+                    name: "Apple",
+                    chance: 65,
+                    value: 7
+                },
+                {
+                    name: "Wood",
+                    chance: 80,
+                    value: 10
                 }
             ]
         }
     },
 
     OAK_TREE: {
-        objectAmount: 20,
+        objectAmount: 60,
         biome: "Forest",
 
         objectStats: {
@@ -328,15 +371,16 @@ export const objectSpawns = {
             name: "Oak Tree",
             possibleDrops: [
                 {
-                    name: "Cactus",
-                    chance: 80
+                    name: "Wood",
+                    chance: 85,
+                    value: 10
                 }
             ]
         }
     },
 
     ICE_TREE: {
-        objectAmount: 20,
+        objectAmount: 60,
         biome: "Snow",
 
         objectStats: {
@@ -344,15 +388,16 @@ export const objectSpawns = {
             name: "Ice Tree",
             possibleDrops: [
                 {
-                    name: "Cactus",
-                    chance: 80
-                }
+                    name: "Wood",
+                    chance: 80,
+                    value: 10
+                },
             ]
         }
     },
 
     CHRISTMAS_TREE: {
-        objectAmount: 20,
+        objectAmount: 60,
         biome: "Plains",
 
         objectStats: {
@@ -360,15 +405,16 @@ export const objectSpawns = {
             name: "Christmas Tree",
             possibleDrops: [
                 {
-                    name: "Cactus",
-                    chance: 80
+                    name: "Wood",
+                    chance: 85,
+                    value: 10
                 }
             ]
         }
     },
 
     SNOWY_TREE: {
-        objectAmount: 20,
+        objectAmount: 60,
         biome: "Snow",
 
         objectStats: {
@@ -376,15 +422,16 @@ export const objectSpawns = {
             name: "Snowy Tree",
             possibleDrops: [
                 {
-                    name: "Cactus",
-                    chance: 80
-                }
+                    name: "Wood",
+                    chance: 80,
+                    value: 10
+                },
             ]
         }
     },
 
     PALM_TREE: {
-        objectAmount: 20,
+        objectAmount: 60,
         biome: "Desert",
 
         objectStats: {
@@ -392,15 +439,21 @@ export const objectSpawns = {
             name: "Palm Tree",
             possibleDrops: [
                 {
-                    name: "Cactus",
-                    chance: 80
+                    name: "Coconut",
+                    chance: 55,
+                    value: 15
+                },
+                {
+                    name: "Wood",
+                    chance: 80,
+                    value: 10
                 }
             ]
         }
     },
 
     GREEN_PALM_TREE: {
-        objectAmount: 20,
+        objectAmount: 60,
         biome: "Desert",
 
         objectStats: {
@@ -408,8 +461,14 @@ export const objectSpawns = {
             name: "Green Palm Tree",
             possibleDrops: [
                 {
-                    name: "Cactus",
-                    chance: 80
+                    name: "Coconut",
+                    chance: 60,
+                    value: 15
+                },
+                {
+                    name: "Wood",
+                    chance: 85,
+                    value: 10
                 }
             ]
         }
