@@ -603,12 +603,16 @@ export function drawShopInventory(inventory, playerSpeed, playerDamage, playerMa
         }
 
         // Draw price in bottom-right corner with gold background
-        if (currentItem.itemName === "Speed Upgrade" && playerSpeed === 10) {
+        const isMaxed = (currentItem.itemName === "Speed Upgrade" && playerSpeed >= 10) ||
+                        (currentItem.itemName === "Health Upgrade" && playerMaxHealth >= 1000) ||
+                        (currentItem.itemName === "Sword Upgrade" && playerDamage >= 50);
+
+        if (isMaxed) {
             const priceText = `No Stock`;
             ctx.font = "bold 14px Arial";
             const priceWidth = ctx.measureText(priceText).width + 8;
 
-            ctx.fillStyle = "rgba(218, 44, 32, 0.9)"; // Gold background
+            ctx.fillStyle = "rgba(218, 44, 32, 0.9)"; // Red background for maxed
             ctx.fillRect(x + itemSize - priceWidth - 2, y + itemSize - 22, priceWidth + 2, 20);
 
             ctx.fillStyle = "black";

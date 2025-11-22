@@ -65,20 +65,20 @@ export const items = {
     "Small Health Potion": {
         consumable: true,
         healthRestore: 25,
-        value: 30
+        value: 25
     },
     "Medium Health Potion": {
         consumable: true,
         healthRestore: 50,
-        value: 60
+        value: 75
     },
     "Large Health Potion": {
         consumable: true,
         healthRestore: 100,
-        value: 120
+        value: 150
     },
 
-    // Non-consumable resources
+    // Non consumable resources
     "Wood": {
         consumable: false,
         value: 10

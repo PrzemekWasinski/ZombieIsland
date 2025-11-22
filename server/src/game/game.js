@@ -345,14 +345,18 @@ export function startGame(wss, TILE_SIZE, VISIBLE_TILES_X, VISIBLE_TILES_Y, PASS
                 playerMoved = true; 
             }
 
+            // Only regenerate and send map if player moved to a new tile
             let sendMap = false;
-            player.map = getMap(player.mapY, player.mapX, MAP, VISIBLE_TILES_X, VISIBLE_TILES_Y);
-            player.lastMapX = player.mapX;
-            player.lastMapY = player.mapY;
-            sendMap = true;
+            if (player.lastMapX !== player.mapX || player.lastMapY !== player.mapY) {
+                player.map = getMap(player.mapY, player.mapX, MAP, VISIBLE_TILES_X, VISIBLE_TILES_Y);
+                player.lastMapX = player.mapX;
+                player.lastMapY = player.mapY;
+                sendMap = true;
+            }
 
+            // Only send self updates when something actually changed
             const ws_client = player.ws;
-            if (ws_client && ws_client.readyState === 1) {
+            if (ws_client && ws_client.readyState === 1 && (playerMoved || player.healthChanged || sendMap || player.messages.length > 0)) {
                 const selfUpdatePayload = {
                     type: "update",
                     id: player.id,
@@ -367,7 +371,7 @@ export function startGame(wss, TILE_SIZE, VISIBLE_TILES_X, VISIBLE_TILES_Y, PASS
                     username: player.username,
                     level: player.level,
                     gold: player.gold,
-                    inBoat: player.inBoat, 
+                    inBoat: player.inBoat,
                     messages: player.messages,
                     inventory: player.inventory
                 };
@@ -396,12 +400,16 @@ export function startGame(wss, TILE_SIZE, VISIBLE_TILES_X, VISIBLE_TILES_Y, PASS
                     //No inventory for others
                 };
                 broadcast(othersUpdatePayload, wss, ws_client);
-                sendNearbyObjects(players[id], objects, wss)
+
+                // Only send nearby objects when player moves to a new tile (not every pixel)
+                if (sendMap) {
+                    sendNearbyObjects(players[id], objects, wss)
+                }
 
                 player.healthChanged = false;
             }
 
-            // Handle enemy collisionsaaa
+            // Handle enemy collisions
             for (const enemyID in enemies) {
                 const enemy = enemies[enemyID];
                 const dx = Math.abs(player.pixelX - enemy.pixelX);

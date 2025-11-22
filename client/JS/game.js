@@ -6,8 +6,8 @@ import {
 } from "./functions.js"
 
 export function startGame({ userId, token }) {
-	//const socket = new WebSocket("wss://ws.zombieisland.online/"); //Prod server
-	const socket = new WebSocket("ws://localhost:8080"); //Local server
+	const socket = new WebSocket("wss://ws.zombieisland.online/"); //Prod server
+	//const socket = new WebSocket("ws://localhost:8080"); //Local server
 
 	socket.onopen = () => {
 		console.log("Connected to server");
@@ -206,15 +206,24 @@ export function startGame({ userId, token }) {
 							const currentItem = shopInventory[item];
 							if (touchEndX >= currentItem.xPosition && touchEndX <= currentItem.xPosition + 80 &&
 							    touchEndY >= currentItem.yPosition && touchEndY <= currentItem.yPosition + 80) {
-								socket.send(JSON.stringify({
-									type: "keydown",
-									dir: "buyItem",
-									pressed: true,
-									playerID: userId,
-									item: currentItem.itemName
-								}));
-								lastShopPurchaseTime = now;
-								break;
+
+									// Check if upgrade is already maxed before sending request
+									const player = players[playerId];
+									const isMaxed = (currentItem.itemName === "Speed Upgrade" && player.speed >= 10) ||
+									                (currentItem.itemName === "Health Upgrade" && player.maxHealth >= 1000) ||
+									                (currentItem.itemName === "Sword Upgrade" && player.damage >= 50);
+
+									if (!isMaxed) {
+										socket.send(JSON.stringify({
+											type: "keydown",
+											dir: "buyItem",
+											pressed: true,
+											playerID: userId,
+											item: currentItem.itemName
+										}));
+										lastShopPurchaseTime = now;
+									}
+									break;
 							}
 						}
 					}
@@ -316,6 +325,7 @@ export function startGame({ userId, token }) {
 		enemies: new Set(),
 		objects: new Set(),
 		players: new Set(),
+		drops: new Set(),
 		lastUpdate: 0
 	};
 
@@ -463,13 +473,14 @@ export function startGame({ userId, token }) {
 						// Client is animating attack, ignore all server action updates
 					} else {
 						// For other players, trust server's action updates
-						player.action = msg.action;
-						// Reset frame when action changes
-						if (msg.action === "attack") {
-							player.frameIndex = 0;
-							player.frameTimer = 0;
-						}
+					const previousAction = player.action;
+					player.action = msg.action;
+					// Reset frame whenever action changes
+					if (previousAction !== msg.action) {
+						player.frameIndex = 0;
+						player.frameTimer = 0;
 					}
+				}
 				}
 				if (msg.inBoat !== undefined) player.inBoat = msg.inBoat;
 
@@ -593,11 +604,13 @@ export function startGame({ userId, token }) {
 					pixelX: msg.pixelX,
 					pixelY: msg.pixelY
 				};
+				nearbyCache.drops.add(msg.id);
 			}
 
 		} else if ("dropDelete" === msg.type) {
 			// Remove drop from client when picked up
 			delete drops[msg.id];
+			nearbyCache.drops.delete(msg.id);
 
 		} else if ("object" === msg.type) {
 			if (playerId && players[playerId] && isNearby([players[playerId].mapX, players[playerId].mapY], [msg.mapX, msg.mapY])) {
@@ -904,30 +917,37 @@ export function startGame({ userId, token }) {
 
 		ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-		//Update nearby cache 
+		//Update nearby cache
 		if (currentTime - nearbyCache.lastUpdate > 200) {
 			nearbyCache.enemies.clear();
 			nearbyCache.objects.clear();
 			nearbyCache.players.clear();
-			
+			nearbyCache.drops.clear();
+
 			for (const id in enemies) {
 				if (isNearby([currentPlayer.mapX, currentPlayer.mapY], [enemies[id].mapX, enemies[id].mapY])) {
 					nearbyCache.enemies.add(id);
 				}
 			}
-			
+
 			for (const id in objects) {
 				if (isNearby([currentPlayer.mapX, currentPlayer.mapY], [objects[id].mapX, objects[id].mapY])) {
 					nearbyCache.objects.add(id);
 				}
 			}
-			
+
 			for (const id in players) {
 				if (id !== playerId && isNearby([currentPlayer.mapX, currentPlayer.mapY], [players[id].mapX, players[id].mapY])) {
 					nearbyCache.players.add(id);
 				}
 			}
-			
+
+			for (const id in drops) {
+				if (isNearby([currentPlayer.mapX, currentPlayer.mapY], [drops[id].mapX, drops[id].mapY])) {
+					nearbyCache.drops.add(id);
+				}
+			}
+
 			nearbyCache.lastUpdate = currentTime;
 		}
 
@@ -1035,7 +1055,7 @@ export function startGame({ userId, token }) {
 				// Boat animation - only animate if moving (action is "walk")
 				if (player.action === "walk") {
 					player.frameTimer += deltaTime * 1000;
-					let loopTime = 800; // Slower boat animation
+					let loopTime = 500; // Slower boat animation
 					const frameDelay = loopTime / frameAmount;
 
 					if (player.frameTimer >= frameDelay) {
@@ -1097,10 +1117,12 @@ export function startGame({ userId, token }) {
 			}
 		}
 
-		//Draw drops (server handles pickup and deletion)
-		for (const id in drops) {
+		//Draw drops (only nearby ones)
+		for (const id of nearbyCache.drops) {
 			const drop = drops[id];
-			drawDrop(drop, currentPlayer);
+			if (drop) {
+				drawDrop(drop, currentPlayer);
+			}
 		}
 
 		//Draw current player
@@ -1597,13 +1619,22 @@ export function startGame({ userId, token }) {
 					if (mouseLeftX >= currentItem.xPosition && mouseLeftX <= currentItem.xPosition + 80 &&
 						mouseLeftY >= currentItem.yPosition && mouseLeftY <= currentItem.yPosition + 80) {
 						selectedItem = currentItem;
-						socket.send(JSON.stringify({
-							type: "keydown",
-							dir: "buyItem",
-							pressed: true,
-							playerID: userId,
-							item: selectedItem.itemName
-						}));
+
+						// Check if upgrade is already maxed before sending request
+						const player = players[playerId];
+						const isMaxed = (selectedItem.itemName === "Speed Upgrade" && player.speed >= 10) ||
+						                (selectedItem.itemName === "Health Upgrade" && player.maxHealth >= 1000) ||
+						                (selectedItem.itemName === "Sword Upgrade" && player.damage >= 50);
+
+						if (!isMaxed) {
+							socket.send(JSON.stringify({
+								type: "keydown",
+								dir: "buyItem",
+								pressed: true,
+								playerID: userId,
+								item: selectedItem.itemName
+							}));
+						}
 						break;
 					}
 				}

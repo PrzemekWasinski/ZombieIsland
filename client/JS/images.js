@@ -279,7 +279,7 @@ export const itemImages = {
 	"Yellow Berry": "../assets/items/yellow-berry.png",
 
 	//Enemy bonus drops
-	"Gold": "../assets/items/Gold.png",
+	"Gold": "../assets/items/gold.png",
 	"Heart": "../assets/items/heart.png",
 
 	//Upgrades shop

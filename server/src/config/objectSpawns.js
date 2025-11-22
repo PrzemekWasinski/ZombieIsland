@@ -344,8 +344,12 @@ export const objectSpawns = {
             name: "Oak Tree",
             possibleDrops: [
                 {
+                    name: "Apple",
+                    chance: 26
+                },
+                {
                     name: "Wood",
-                    chance: 34
+                    chance: 32
                 }
             ]
         }
@@ -360,9 +364,13 @@ export const objectSpawns = {
             name: "Ice Tree",
             possibleDrops: [
                 {
+                    name: "Apple",
+                    chance: 26
+                },
+                {
                     name: "Wood",
                     chance: 32
-                },
+                }
             ]
         }
     },
@@ -376,8 +384,12 @@ export const objectSpawns = {
             name: "Christmas Tree",
             possibleDrops: [
                 {
+                    name: "Apple",
+                    chance: 26
+                },
+                {
                     name: "Wood",
-                    chance: 34
+                    chance: 32
                 }
             ]
         }
@@ -392,9 +404,13 @@ export const objectSpawns = {
             name: "Snowy Tree",
             possibleDrops: [
                 {
+                    name: "Apple",
+                    chance: 26
+                },
+                {
                     name: "Wood",
                     chance: 32
-                },
+                }
             ]
         }
     },

@@ -136,7 +136,8 @@ export async function startWebSocket(config, url, apiKey) {
 						action: "idle",
 						ready: true,
 						lastAttackTime: 0,
-						attackStartTime: null
+						attackStartTime: null,
+						lastDamagedTime: 0
 					};
 
 					const serializableNewPlayer = getSerializablePlayer(players[id]);
@@ -595,19 +596,35 @@ export async function startWebSocket(config, url, apiKey) {
 						}
 
 						if (itemPrice && player.gold >= itemPrice) {
+							// Check if upgrade is already maxed before taking money
+							let canUpgrade = true;
+
+							if (isUpgrade) {
+								if (data.item === "Health Upgrade" && player.maxHealth >= 1000) {
+									canUpgrade = false;
+								} else if (data.item === "Speed Upgrade" && player.speed >= 10) {
+									canUpgrade = false;
+								} else if (data.item === "Sword Upgrade" && player.damage >= 50) {
+									canUpgrade = false;
+								}
+							}
+
+							// Only proceed if upgrade is not maxed
+							if (!canUpgrade) {
+								return;
+							}
+
 							player.gold -= itemPrice;
 
 							if (isUpgrade) {
-								// Handle upgrade items (permanent stat increases)
+								// Handle upgrade items 
 								if (data.item === "Health Upgrade") {
 									player.maxHealth += 10;
 									player.health = player.maxHealth;
 									player.level += 1;
 								} else if (data.item === "Speed Upgrade") {
-									if (player.speed < 10) { //Ensure player is still controllable
-										player.speed += 1;
-										player.level += 1;
-									}
+									player.speed += 1;
+									player.level += 1;
 								} else if (data.item === "Sword Upgrade") {
 									player.damage += 1;
 									player.level += 1;
@@ -623,7 +640,7 @@ export async function startWebSocket(config, url, apiKey) {
 									// Check if adding would exceed 999 limit
 									if (player.inventory[data.item].itemAmount >= 999) {
 										// Inventory full for this item, refund the player
-										player.gold += itemValue;
+										player.gold += itemPrice;
 										return;
 									}
 									player.inventory[data.item].itemAmount++;
