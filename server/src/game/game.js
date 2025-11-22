@@ -677,7 +677,6 @@ export function startGame(wss, TILE_SIZE, VISIBLE_TILES_X, VISIBLE_TILES_Y, PASS
                 if (dx < TILE_SIZE * 0.4 && dy < TILE_SIZE * 0.4) {
                     //Check if drop is gold/health
                     if (drop.name === "Heart") {
-                        console.log(drop.name)
                         player.health = Math.min(player.maxHealth, player.health + drop.value);
                         player.healthChanged = true;
                         deadDrops.push(dropID);
@@ -696,7 +695,6 @@ export function startGame(wss, TILE_SIZE, VISIBLE_TILES_X, VISIBLE_TILES_Y, PASS
                     }
 
                     if (drop.name === "Gold") {
-                        console.log(drop.name)
                         player.gold += drop.value;
                         deadDrops.push(dropID);
 

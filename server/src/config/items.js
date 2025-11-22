@@ -3,85 +3,101 @@ export const items = {
     // Berries - Small health restoration
     "Blue Berry": {
         consumable: true,
-        healthRestore: 5
+        healthRestore: 5,
+        value: 5
     },
     "Red Berry": {
         consumable: true,
-        healthRestore: 5
+        healthRestore: 5,
+        value: 5
     },
     "Yellow Berry": {
         consumable: true,
-        healthRestore: 8
+        healthRestore: 8,
+        value: 8
     },
     "Frost Berry": {
         consumable: true,
-        healthRestore: 12
+        healthRestore: 12,
+        value: 15
     },
 
     // Fruits - Medium health restoration
     "Cactus Fruit": {
         consumable: true,
-        healthRestore: 10
+        healthRestore: 10,
+        value: 12
     },
     "Apple": {
         consumable: true,
-        healthRestore: 8
+        healthRestore: 8,
+        value: 7
     },
     "Coconut": {
         consumable: true,
-        healthRestore: 15
+        healthRestore: 15,
+        value: 15
     },
 
     // Mushrooms - Varied health restoration
     "White Mushroom": {
         consumable: true,
-        healthRestore: 12
+        healthRestore: 12,
+        value: 10
     },
     "Red Mushroom": {
         consumable: true,
-        healthRestore: 18
+        healthRestore: 18,
+        value: 18
     },
     "Ice Mushroom": {
         consumable: true,
-        healthRestore: 20
+        healthRestore: 20,
+        value: 20
     },
     "Ice Flower": {
         consumable: true,
-        healthRestore: 22
+        healthRestore: 22,
+        value: 22
     },
 
     // Potions - Large health restoration
-    "Small Healing Potion": {
+    "Small Health Potion": {
         consumable: true,
-        healthRestore: 25
+        healthRestore: 25,
+        value: 30
     },
-    "Medium Healing Potion": {
+    "Medium Health Potion": {
         consumable: true,
-        healthRestore: 50
+        healthRestore: 50,
+        value: 60
     },
-    "Large Healing Potion": {
+    "Large Health Potion": {
         consumable: true,
-        healthRestore: 75
+        healthRestore: 100,
+        value: 120
     },
 
     // Non-consumable resources
     "Wood": {
-        consumable: false
+        consumable: false,
+        value: 10
     },
     "Stone": {
-        consumable: false
+        consumable: false,
+        value: 5
     },
     "Gem": {
-        consumable: false
+        consumable: false,
+        value: 50
     },
     "Diamond": {
-        consumable: false
+        consumable: false,
+        value: 150
     },
     "Ruby": {
-        consumable: false
-    },
-    "Sand": {
-        consumable: false
+        consumable: false,
+        value: 120
     }
 };
 
@@ -95,4 +111,10 @@ export function isConsumable(itemName) {
 export function getHealthRestore(itemName) {
     const item = items[itemName];
     return item && item.consumable ? item.healthRestore : 0;
+}
+
+// Helper function to get item sell value
+export function getItemValue(itemName) {
+    const item = items[itemName];
+    return item ? item.value : 0;
 }

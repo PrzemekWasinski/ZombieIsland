@@ -260,46 +260,37 @@ export const boatSprite = {
 };
 
 export const itemImages = {
-	"Apple": "../assets/items/Apple.png",
-	"Blue Berry": "../assets/items/Blue Berry.png",
-	"Blue Slime Ball": "../assets/items/Blue Slime Ball.png",
-	"Bone": "../assets/items/Bone.png",
-	"Brown Rock": "../assets/items/Brown Rock.png",
-	"Cactus": "../assets/items/Cactus.png",
-	"Cactus Fruit": "../assets/items/Cactus Fruit.png",
-	"Brown Mushroom": "../assets/items/Brown Mushroom.png",
-	"Coal": "../assets/items/Coal.png",
-	"Electric Slime Ball": "../assets/items/Electric Slime Ball.png",
-	"Ice Crystal": "../assets/items/Ice Crystal.png",
-	"Ice Slime Ball": "../assets/items/Ice Slime Ball.png",
-	"Ice": "../assets/items/Ice.png",
-	"Iron": "../assets/items/Iron.png",
-	"Leaf": "../assets/items/Leaf.png",
-	"Nature's Apple": "../assets/items/Nature's Apple.png",
-	"Night Mushroom": "../assets/items/Night Mushroom.png",
-	"Night Stone": "../assets/items/Night Stone.png",
-	"Red Mushroom": "../assets/items/Red Mushroom.png",
-	"Rock": "../assets/items/Rock.png",
-	"Sand": "../assets/items/Sand.png",
-	"Toxic Breath": "../assets/items/Toxic Breath.png",
-	"Wood": "../assets/items/Wood.png",
-	"Ice Mushroom": "../assets/items/Ice Mushroom.png",
-	"Ice Petal": "../assets/items/ice Petal.png",
-	"Night Stone": "../assets/items/Night Stone.png",
-	"Red Berry": "../assets/items/Red Berry.png",
-	"Stick": "../assets/items/Stick.png",
-	"Vine Mushroom": "../assets/items/Vine Mushroom.png",
-	"White Mushroom": "../assets/items/White Mushroom.png",
-	"White Rock": "../assets/items/White Rock.png",
-	"Yellow Berry": "../assets/items/Yellow Berry.png",
+	//Object/enemy drops
+	"Apple": "../assets/items/apple.png",
+	"Blue Berry": "../assets/items/blue-berry.png",
+	"Cactus Fruit": "../assets/items/cactus-fruit.png",
+	"Coconut": "../assets/items/coconut.png",
+	"Diamond": "../assets/items/diamond.png",
+	"Gem": "../assets/items/gem.png",
+	"Ice Berry": "../assets/items/ice-berry.png",
+	"Ice Flower": "../assets/items/ice-flower.png",
+	"Ice Mushroom": "../assets/items/ice-mushroom.png",
+	"Red Berry": "../assets/items/red-berry.png",
+	"Red Mushroom": "../assets/items/red-mushroom.png",
+	"Ruby": "../assets/items/ruby.png",
+	"Stone": "../assets/items/stone.png",
+	"White Mushroom": "../assets/items/white-mushroom.png",
+	"Wood": "../assets/items/wood.png",
+	"Yellow Berry": "../assets/items/yellow-berry.png",
 
+	//Enemy bonus drops
 	"Gold": "../assets/items/Gold.png",
 	"Heart": "../assets/items/heart.png",
 
+	//Upgrades shop
 	"Sword Upgrade": "../assets/items/shop/sword-upgrade.png",
 	"Health Upgrade": "../assets/items/shop/health-upgrade.png",
 	"Speed Upgrade": "../assets/items/shop/speed-upgrade.png",
 
+	//Potion shop
+	"Small Health Potion": "../assets/items/small-healing-potion.png",
+	"Medium Health Potion": "../assets/items/medium-healing-potion.png",
+	"Large Health Potion": "../assets/items/large-healing-potion.png"
 }
 
 export const tileImages = {};

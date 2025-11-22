@@ -511,7 +511,6 @@ export function drawInventory(inventory, title = "Inventory") {
             try {
                 ctx.drawImage(img, x + 8, y + 8, itemSize - 16, itemSize - 16);
             } catch (error) {
-                console.log(currentItem.itemName, "failed to draw");
             }
 
             // Draw item quantity in bottom-right corner
@@ -601,7 +600,6 @@ export function drawShopInventory(inventory, playerSpeed, playerDamage, playerMa
         try {
             ctx.drawImage(img, x + 8, y + 8, itemSize - 16, itemSize - 16);
         } catch (error) {
-            console.log(currentItem.itemName, error);
         }
 
         // Draw price in bottom-right corner with gold background

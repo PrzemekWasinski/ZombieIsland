@@ -169,14 +169,11 @@ document.getElementById('reset-password-button').onclick = async () => {
 window.addEventListener('DOMContentLoaded', async () => {
 	//Check URL hash for recovery token
 	const hash = window.location.hash;
-	console.log('URL hash:', hash); // Debug log
 
 	if (hash) {
 		const hashParams = new URLSearchParams(hash.substring(1));
 		const accessToken = hashParams.get('access_token');
 		const type = hashParams.get('type');
-
-		console.log('Type:', type, 'Access Token:', accessToken ? 'present' : 'missing'); // Debug log
 
 		if (type === 'recovery' && accessToken) {
 			//User clicked the reset password link from email

@@ -628,9 +628,6 @@ export function startGame({ userId, token }) {
 			}
 
 		} else if ("shop" === msg.type) {
-			console.log(msg.name)
-			console.log(msg.inventory)
-
 			inInventory = false; // Close player inventory when shop opens
 			inShopInventory = true;
 			shopInventory = msg.inventory;

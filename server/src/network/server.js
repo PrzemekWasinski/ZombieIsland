@@ -5,7 +5,7 @@ import { broadcast, updateStats, getMap, deleteItem, broadcastToNearby, sendNear
 import { players, enemies, getNextId, objects, drops, getNextDropID } from "../game/state.js";
 import { startGame } from "../game/game.js";
 import { shops } from "../config/shop.js";
-import { isConsumable, getHealthRestore } from "../config/items.js";
+import { isConsumable, getHealthRestore, getItemValue } from "../config/items.js";
 
 const getSerializablePlayer = (player) => {
 	if (!player) {
@@ -52,8 +52,6 @@ export async function startWebSocket(config, url, apiKey) {
 					for (const existingPlayerId in players) {
 						const existingPlayer = players[existingPlayerId];
 						if (existingPlayer.dbID === ws.userId) {
-							console.log(`User ${ws.userId} already connected. Disconnecting old session.`);
-
 							// Broadcast leave message for the old session
 							broadcast({
 								type: "leave",
@@ -573,21 +571,16 @@ export async function startWebSocket(config, url, apiKey) {
 												}, wss, players);
 											}
 
-											console.log(`${targetPlayer.username} dropped ${itemName} at (${dropPosition.x}, ${dropPosition.y})`);
 										} else {
 											console.log("Failed to delete item from inventory");
 										}
 									} catch (err) {
 										console.error("Failed to drop item:", err);
 									}
-								} else {
-									console.log("No valid tile found to drop item");
 								}
 							}
 						}
 					} else if (data.dir === "buyItem") {
-						console.log(data.item)
-
 						// Check which shop the item is from
 						let itemPrice = null;
 						let isUpgrade = false;
@@ -677,11 +670,10 @@ export async function startWebSocket(config, url, apiKey) {
 
 						if (sellingCoords && player.inventory[data.item]) {
 							const itemName = player.inventory[data.item].itemName;
-							const itemValue = player.inventory[data.item].itemValue || 10; // Use stored value or default to 10
+							const itemValue = getItemValue(itemName) || 10; // Get value from items config or default to 10
 
 							// Only sell if item amount is greater than 0
 							if (player.inventory[data.item].itemAmount > 0) {
-								console.log(data.item, "sold for", itemValue, "gold");
 								player.inventory[data.item].itemAmount -= 1;
 								player.gold += itemValue;
 
@@ -724,7 +716,6 @@ export async function startWebSocket(config, url, apiKey) {
 
 							// Check if item is consumable
 							if (!isConsumable(itemName)) {
-								console.log(`${targetPlayer.username} tried to consume non-consumable item: ${itemName}`);
 								return;
 							}
 
@@ -744,8 +735,6 @@ export async function startWebSocket(config, url, apiKey) {
 								if (targetPlayer.health !== oldHealth) {
 									targetPlayer.healthChanged = true;
 								}
-
-								console.log(`${targetPlayer.username} consumed ${itemName} and healed ${targetPlayer.health - oldHealth} HP`);
 
 								// Update database for item
 								try {

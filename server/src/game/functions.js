@@ -1,4 +1,5 @@
 import { getNextDropID, getNextEnemyID } from "./state.js";
+import { getItemValue } from "../config/items.js";
 
 export function broadcast(data, wss, exclude) { //Send data to all clients
 	const msg = JSON.stringify(data);
@@ -158,8 +159,6 @@ export async function updateStats(key, newValue, supabase) {
 
 	if (error) {
 		console.log(`Failed to update metric '${key}':`, error.message);
-	} else {
-		console.log(`Metric '${key}' updated to:`, data[0]?.value);
 	}
 }
 
@@ -211,8 +210,6 @@ export function sendNearbyObjects(player, objects, wss) {
                     maxHealth: object.maxHealth,
                     name: object.name,
                 }));
-            } else {
-                console.log(`WebSocket not ready for player ${player.id}`);
             }
         }
     }
@@ -234,8 +231,6 @@ export function sendNearbyDrops(player, drops, wss) {
                     pixelX: drop.pixelX,
                     pixelY: drop.pixelY
                 }));
-            } else {
-                console.log(`WebSocket not ready for player ${player.id}`);
             }
         }
     }
@@ -321,6 +316,9 @@ export function spawnDrop(dropData, x, y, id, drops, TILE_SIZE, offsetX = 0, off
 	const finalX = x + (offsetX * TILE_SIZE);
 	const finalY = y + (offsetY * TILE_SIZE);
 
+	// Get value from items config, fallback to dropData for special items like Heart/Gold
+	const itemValue = getItemValue(dropData.name) || dropData.value || dropData.health || dropData.amount;
+
 	drops[id] = {
 		id: id,
 		name: dropData.name,
@@ -328,6 +326,6 @@ export function spawnDrop(dropData, x, y, id, drops, TILE_SIZE, offsetX = 0, off
 		mapY: Math.floor(finalY / TILE_SIZE),
 		pixelX: finalX,
 		pixelY: finalY,
-		value: dropData.value || dropData.health || dropData.amount
+		value: itemValue
 	}
 }

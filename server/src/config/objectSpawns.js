@@ -9,8 +9,7 @@ export const objectSpawns = {
             possibleDrops: [
                 {
                     name: "Blue Berry",
-                    chance: 60,
-                    value: 5
+                    chance: 24
                 }
             ]
         }
@@ -26,8 +25,7 @@ export const objectSpawns = {
             possibleDrops: [
                 {
                     name: "Red Berry",
-                    chance: 60,
-                    value: 5
+                    chance: 24
                 }
             ]
         }
@@ -43,8 +41,7 @@ export const objectSpawns = {
             possibleDrops: [
                 {
                     name: "Yellow Berry",
-                    chance: 60,
-                    value: 8
+                    chance: 24
                 }
             ]
         }
@@ -60,8 +57,7 @@ export const objectSpawns = {
             possibleDrops: [
                 {
                     name: "Cactus Fruit",
-                    chance: 50,
-                    value: 12
+                    chance: 20
                 }
             ]
         }
@@ -77,8 +73,7 @@ export const objectSpawns = {
             possibleDrops: [
                 {
                     name: "Cactus Fruit",
-                    chance: 70,
-                    value: 12
+                    chance: 28
                 }
             ]
         }
@@ -94,8 +89,7 @@ export const objectSpawns = {
             possibleDrops: [
                 {
                     name: "Frost Berry",
-                    chance: 55,
-                    value: 15
+                    chance: 22
                 }
             ]
         }
@@ -111,8 +105,7 @@ export const objectSpawns = {
             possibleDrops: [
                 {
                     name: "Red Mushroom",
-                    chance: 65,
-                    value: 18
+                    chance: 26
                 }
             ]
         }
@@ -128,8 +121,7 @@ export const objectSpawns = {
             possibleDrops: [
                 {
                     name: "White Mushroom",
-                    chance: 70,
-                    value: 10
+                    chance: 28
                 }
             ]
         }
@@ -145,8 +137,7 @@ export const objectSpawns = {
             possibleDrops: [
                 {
                     name: "Red Mushroom",
-                    chance: 65,
-                    value: 18
+                    chance: 26
                 }
             ]
         }
@@ -162,8 +153,7 @@ export const objectSpawns = {
             possibleDrops: [
                 {
                     name: "Ice Mushroom",
-                    chance: 60,
-                    value: 20
+                    chance: 24
                 }
             ]
         }
@@ -179,8 +169,7 @@ export const objectSpawns = {
             possibleDrops: [
                 {
                     name: "Ice Flower",
-                    chance: 55,
-                    value: 22
+                    chance: 22
                 }
             ]
         }
@@ -196,18 +185,15 @@ export const objectSpawns = {
             possibleDrops: [
                 {
                     name: "Diamond",
-                    chance: 5,
-                    value: 150
+                    chance: 2
                 },
                 {
                     name: "Gem",
-                    chance: 15,
-                    value: 50
+                    chance: 6
                 },
                 {
                     name: "Stone",
-                    chance: 70,
-                    value: 5
+                    chance: 28
                 }
             ]
         }
@@ -223,13 +209,11 @@ export const objectSpawns = {
             possibleDrops: [
                 {
                     name: "Gem",
-                    chance: 12,
-                    value: 50
+                    chance: 5
                 },
                 {
                     name: "Stone",
-                    chance: 80,
-                    value: 5
+                    chance: 32
                 }
             ]
         }
@@ -245,13 +229,11 @@ export const objectSpawns = {
             possibleDrops: [
                 {
                     name: "Gem",
-                    chance: 10,
-                    value: 50
+                    chance: 4
                 },
                 {
                     name: "Stone",
-                    chance: 85,
-                    value: 5
+                    chance: 34
                 }
             ]
         }
@@ -267,13 +249,11 @@ export const objectSpawns = {
             possibleDrops: [
                 {
                     name: "Gem",
-                    chance: 5,
-                    value: 50
+                    chance: 2
                 },
                 {
                     name: "Stone",
-                    chance: 90,
-                    value: 5
+                    chance: 36
                 }
             ]
         }
@@ -289,8 +269,7 @@ export const objectSpawns = {
             possibleDrops: [
                 {
                     name: "Stone",
-                    chance: 75,
-                    value: 5
+                    chance: 30
                 }
             ]
         }
@@ -306,18 +285,15 @@ export const objectSpawns = {
             possibleDrops: [
                 {
                     name: "Ruby",
-                    chance: 4,
-                    value: 120
+                    chance: 2
                 },
                 {
                     name: "Gem",
-                    chance: 15,
-                    value: 50
+                    chance: 6
                 },
                 {
                     name: "Stone",
-                    chance: 75,
-                    value: 5
+                    chance: 30
                 }
             ]
         }
@@ -332,9 +308,8 @@ export const objectSpawns = {
             name: "Sand Deposit",
             possibleDrops: [
                 {
-                    name: "Sand",
-                    chance: 85,
-                    value: 3
+                    name: "Gem",
+                    chance: 2
                 }
             ]
         }
@@ -350,13 +325,11 @@ export const objectSpawns = {
             possibleDrops: [
                 {
                     name: "Apple",
-                    chance: 65,
-                    value: 7
+                    chance: 26
                 },
                 {
                     name: "Wood",
-                    chance: 80,
-                    value: 10
+                    chance: 32
                 }
             ]
         }
@@ -372,8 +345,7 @@ export const objectSpawns = {
             possibleDrops: [
                 {
                     name: "Wood",
-                    chance: 85,
-                    value: 10
+                    chance: 34
                 }
             ]
         }
@@ -389,8 +361,7 @@ export const objectSpawns = {
             possibleDrops: [
                 {
                     name: "Wood",
-                    chance: 80,
-                    value: 10
+                    chance: 32
                 },
             ]
         }
@@ -406,8 +377,7 @@ export const objectSpawns = {
             possibleDrops: [
                 {
                     name: "Wood",
-                    chance: 85,
-                    value: 10
+                    chance: 34
                 }
             ]
         }
@@ -423,8 +393,7 @@ export const objectSpawns = {
             possibleDrops: [
                 {
                     name: "Wood",
-                    chance: 80,
-                    value: 10
+                    chance: 32
                 },
             ]
         }
@@ -440,13 +409,11 @@ export const objectSpawns = {
             possibleDrops: [
                 {
                     name: "Coconut",
-                    chance: 55,
-                    value: 15
+                    chance: 22
                 },
                 {
                     name: "Wood",
-                    chance: 80,
-                    value: 10
+                    chance: 32
                 }
             ]
         }
@@ -462,13 +429,11 @@ export const objectSpawns = {
             possibleDrops: [
                 {
                     name: "Coconut",
-                    chance: 60,
-                    value: 15
+                    chance: 24
                 },
                 {
                     name: "Wood",
-                    chance: 85,
-                    value: 10
+                    chance: 34
                 }
             ]
         }
