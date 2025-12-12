@@ -1,4 +1,4 @@
-import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
+import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.0/+esm';
 import { startGame } from './game.js';
 
 const supabase = createClient(
@@ -88,7 +88,7 @@ document.getElementById('register-button').onclick = async () => {
 			inBoat: false,
 			maxHealth: 100,
 			speed: 5,
-			damage: 3
+			damage: 5
 		});
 
 		if (insertError) {
