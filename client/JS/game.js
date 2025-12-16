@@ -417,6 +417,26 @@ export function startGame({ userId, token }) {
 				isSystem: true
 			});
 
+		} else if ("chatMessage" === msg.type) { //Global chat message
+			// Add chat message to global chat from any player
+			globalChatMessages.push({
+				username: msg.username,
+				text: msg.message,
+				timestamp: msg.timestamp || Date.now()
+			});
+
+			// Update player's messages array for overhead chat bubble
+			const player = players[msg.playerID];
+			if (player) {
+				if (!player.messages) {
+					player.messages = [];
+				}
+				player.messages.push({
+					text: msg.message,
+					timestamp: msg.timestamp || Date.now()
+				});
+			}
+
 		} else if ("update" === msg.type) { //Player update
 			if (!players[msg.id]) {
 				return;

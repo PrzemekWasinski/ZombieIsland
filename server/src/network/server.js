@@ -491,7 +491,16 @@ export async function startWebSocket(config, url, apiKey) {
 								timestamp: Date.now()
 							});
 
-							// Immediately broadcast the message to all players (including sender)
+							// Broadcast global chat message to ALL players
+							broadcast({
+								type: "chatMessage",
+								playerID: targetPlayer.id,
+								username: targetPlayer.username,
+								message: data.message,
+								timestamp: Date.now()
+							}, wss);
+
+							// Also broadcast player update so overhead chat bubble appears for nearby players
 							broadcast({
 								type: "update",
 								id: targetPlayer.id,
@@ -570,6 +579,15 @@ export async function startWebSocket(config, url, apiKey) {
 													pixelX: drop.pixelX,
 													pixelY: drop.pixelY
 												}, wss, players);
+											}
+
+											// Send updated inventory to the player immediately
+											if (targetPlayer.ws && targetPlayer.ws.readyState === 1) {
+												targetPlayer.ws.send(JSON.stringify({
+													type: "update",
+													id: targetPlayer.id,
+													inventory: targetPlayer.inventory
+												}));
 											}
 
 										} else {
