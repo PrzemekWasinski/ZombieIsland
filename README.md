@@ -1,11 +1,13 @@
 # Zombie Island
 Zombie Island an Online Web Game. The game features a massive shared online world where players can interact, explore, fight enemies and collect, sell or trade items, to upgrade their character.
 
-# Game Screenshot
-<img width="1918" height="947" alt="dd" src="https://github.com/user-attachments/assets/7a562d48-8a69-47a8-bbb7-22b2ef0f9cd6" />
+# Game Screenshots
+<img width="1917" height="946" alt="spawn-point" src="https://github.com/user-attachments/assets/3c6f0a2a-41bc-4ada-8f80-ad6a8381b9c9" />
+<img width="1918" height="947" alt="snow" src="https://github.com/user-attachments/assets/04768709-016c-4d89-8bb0-3172a8b923f8" />
 
 # Inventory Screenshot: 
-<img width="1918" height="944" alt="Screenshot 2025-09-17 194114" src="https://github.com/user-attachments/assets/5446458f-c115-4d82-8e1d-526e072baad9" />
+<img width="1915" height="942" alt="desert" src="https://github.com/user-attachments/assets/5cebd4b3-f639-43bf-ae88-f600b6976ea3" />
+
 
 
 # Current features:
@@ -31,3 +33,5 @@ Zombie Island an Online Web Game. The game features a massive shared online worl
     Backend: Node.js
     Connection: Websocket
     Database: SupaBase (PostgreSQL)
+
+
