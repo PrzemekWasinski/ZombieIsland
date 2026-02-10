@@ -1,0 +1,524 @@
+body { 
+    margin: 0; 
+    padding: 0; 
+}
+
+canvas { 
+    background: #111; 
+    display: block; 
+    margin: 0 auto; 
+    position:fixed;
+    left:0;
+    top:0;
+    width:100%;
+    height:100%;
+}
+
+@font-face {
+  font-family: "PixelOperator";
+  src: url("./assets/font/PixelOperator.ttf") format("truetype");
+  font-weight: normal;
+  font-style: normal;
+}
+
+/* -------- Variables -------- */
+:root{
+  --bg-1: #0b1220;         /* deep night */
+  --bg-2: #08121a;         /* darker */
+  --panel: rgba(10,14,20,0.65);
+  --glass: rgba(255,255,255,0.04);
+  --accent: #5ef3a2;       /* mint neon */
+  --accent-2: #62b0ff;     /* blue neon */
+  --danger: #ff6b6b;
+  --text: #e9f1f7;
+  --muted: #a6b3c2;
+  --pixel-border: 3px;     /* "chunky" border to feel pixel art */
+  --radius: 12px;
+  --max-width: 1100px;
+  --gap: 28px;
+  --glass-border: rgba(255,255,255,0.06);
+  --shadow: 0 10px 30px rgba(2,6,12,0.6);
+  --small-shadow: 0 6px 18px rgba(2,6,12,0.45);
+  --noise: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='40' height='40'><filter id='n'><feTurbulence baseFrequency='0.9' numOctaves='1' stitchTiles='stitch'/><feColorMatrix type='saturate' values='0'/><feComponentTransfer><feFuncA type='table' tableValues='0 0.06'/></feComponentTransfer></filter><rect width='100%' height='100%' filter='url(%23n)' opacity='0.06' fill='%23222'/></svg>");
+}
+
+/* -------- Page background & base rules -------- */
+* { box-sizing: border-box; }
+html,body { height:100%; margin:0; background: radial-gradient(1200px 600px at 10% 10%, rgba(98,176,255,0.06), transparent),
+            radial-gradient(800px 400px at 90% 80%, rgba(94,243,162,0.02), transparent),
+            linear-gradient(180deg, var(--bg-1), var(--bg-2));
+            color:var(--text);
+            -webkit-font-smoothing:antialiased;
+            -moz-osx-font-smoothing:grayscale;
+            font-family: "PixelOperator", "Source Code Pro", monospace;
+}
+
+/* subtle textured overlay */
+body::after{
+  content:"";
+  position:fixed; inset:0; pointer-events:none;
+  background-image:var(--noise);
+  mix-blend-mode:overlay;
+  opacity:0.35;
+}
+
+/* center layout container */
+#login-screen, #register-screen, #reset-password-screen, #update-password-screen, #game-screen {
+  min-height:100vh;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  padding:40px;
+}
+
+/* Auth screens background */
+#login-screen, #register-screen, #reset-password-screen, #update-password-screen {
+  position: relative;
+  background: none !important;
+}
+
+#login-screen::before, #register-screen::before, #reset-password-screen::before, #update-password-screen::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  background-image: url('./assets/UI/background.png');
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  filter: blur(3px);
+  z-index: 0;
+}
+
+/* Ensure form containers appear above background */
+.login-form-container, .login-info-container,
+.register-form-container,
+.reset-password-form-container,
+.update-password-form-container {
+  position: relative;
+  z-index: 1;
+}
+
+/* -------- Login screen layout (two-column) -------- */
+.login-form-container, .login-info-container {
+  background: rgba(10, 14, 20, 0.95);
+  border-radius: var(--radius);
+  border: 1px solid var(--glass-border);
+  box-shadow: var(--shadow);
+  padding: clamp(18px, 3.5vw, 34px);
+}
+
+/* wrapper for both columns */
+#login-screen {
+  width:100%;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+}
+#login-screen .login-form-container {
+  width: min(420px, 42%);
+  margin-right: var(--gap);
+  position:relative;
+  overflow:hidden;
+  border-left: calc(var(--pixel-border) * 1px) solid rgba(255,255,255,0.02);
+  border-top: calc(var(--pixel-border) * 1px) solid rgba(255,255,255,0.02);
+}
+
+/* info column */
+#login-screen .login-info-container {
+  width: min(520px, 46%);
+  color:var(--muted);
+  line-height:1.5;
+}
+
+/* retro framed title */
+.login-form-container h1, #register-screen h1 {
+  font-size: clamp(28px, 4.6vw, 40px);
+  margin: 0 0 14px 0;
+  color:var(--text);
+  text-shadow: 0 2px 0 rgba(0,0,0,0.6);
+  letter-spacing:1px;
+}
+
+/* input styles (big chunky pixel-like inputs) */
+input[type="email"], input[type="password"], input[type="text"] {
+  width:100%;
+  display:block;
+  padding:14px 16px;
+  margin: 10px 0;
+  background: rgba(15, 20, 30, 0.9);
+  border: 2px solid rgba(255,255,255,0.1);
+  outline:none;
+  border-radius:8px;
+  color:var(--text);
+  font-size:16px;
+  box-shadow: var(--small-shadow);
+  transition: transform .08s ease, box-shadow .12s ease, border-color .12s ease;
+}
+
+/* mono label appearance is already placeholder — keep uppercase small caps feel */
+input::placeholder { color: rgba(230,240,255,0.35); font-weight:600; font-size:14px; letter-spacing:0.6px; }
+
+/* focus glow that suits neon vibe, accessible thick outline */
+input:focus{
+  border-color: rgba(94,243,162,0.95);
+  box-shadow: 0 8px 30px rgba(94,243,162,0.08), 0 0 18px rgba(94,243,162,0.12);
+  transform: translateY(-1px);
+}
+
+/* Buttons */
+button{
+  -webkit-appearance:none;
+  appearance:none;
+  cursor:pointer;
+  font-weight:700;
+  padding:12px 18px;
+  margin-top:10px;
+  width:100%;
+  border-radius:10px;
+  border: none;
+  background: linear-gradient(180deg, rgba(98,176,255,0.14), rgba(94,243,162,0.08));
+  color: #071018;
+  text-transform:uppercase;
+  letter-spacing:1.6px;
+  box-shadow: 0 6px 18px rgba(2,6,12,0.5), 0 0 18px rgba(98,176,255,0.06);
+  transition: transform .08s ease, box-shadow .12s ease, filter .12s ease;
+}
+
+/* primary button accent */
+#login-button, #register-button{
+  background: linear-gradient(180deg, var(--accent-2), var(--accent));
+  color:#04121b;
+  text-shadow: 0 1px 0 rgba(255,255,255,0.12);
+  box-shadow: 0 12px 40px rgba(92,197,240,0.08), 0 2px 0 rgba(0,0,0,0.3);
+}
+
+/* hover/active for buttons */
+button:hover { transform: translateY(-2px); filter:brightness(1.02); }
+button:active { transform: translateY(0); filter:brightness(0.98); }
+
+/* small paragraph links */
+.login-form-container p, #register-screen p {
+  color:var(--muted);
+  margin-top:12px;
+  font-size:14px;
+}
+.login-form-container a, #register-screen a {
+  color:var(--accent-2);
+  text-decoration: none;
+  font-weight:700;
+}
+.login-form-container a:hover { text-decoration: underline; }
+
+/* Info column headings & list styles */
+.login-info-container h2 {
+  margin:8px 0;
+  color:var(--text);
+  font-size:23px;
+}
+.login-info-container ul { margin:6px 0 0 18px; padding:0; color:var(--muted); }
+.login-info-container li { margin:6px 0; }
+
+/* Pixel frame effect: small inner border with "stair" effect using inset box-shadow */
+.login-form-container::before{
+  content:"";
+  position:absolute; inset:0;
+  pointer-events:none;
+  border-radius:inherit;
+  box-shadow:
+    inset 0 var(--pixel-border) 0 rgba(255,255,255,0.02),
+    inset var(--pixel-border) 0 0 rgba(255,255,255,0.02);
+  mix-blend-mode:overlay;
+}
+
+/* -------- Register screen styles (single column) -------- */
+/* -------- Register screen styles (centered layout like login) -------- */
+#register-screen {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 40px;
+}
+
+/* container box for register form */
+.register-form-container {
+  width: min(420px, 90%);
+  background: rgba(10, 14, 20, 0.95);
+  border-radius: var(--radius);
+  border: 1px solid var(--glass-border);
+  box-shadow: var(--shadow);
+  padding: clamp(18px, 3.5vw, 34px);
+  text-align: center;
+}
+
+.register-form-container h1 {
+  font-size: clamp(28px, 4.6vw, 40px);
+  margin: 0 0 18px 0;
+  color: var(--text);
+  text-shadow: 0 2px 0 rgba(0,0,0,0.6);
+  letter-spacing: 1px;
+}
+
+.register-form-container input {
+  width: 100%;
+  display: block;
+  margin: 10px 0;
+}
+
+.register-form-container p {
+  color: var(--muted);
+  margin-top: 12px;
+  font-size: 14px;
+}
+.register-form-container a {
+  color: var(--accent-2);
+  text-decoration: none;
+  font-weight: 700;
+}
+.register-form-container a:hover {
+  text-decoration: underline;
+}
+
+
+/* -------- Responsive adjustments -------- */
+@media (max-width: 900px){
+  #login-screen { padding:26px; flex-direction:column; gap:22px; }
+  #login-screen .login-form-container { width: min(560px, 100%); margin-right:0; }
+  #login-screen .login-info-container { width:100%; padding-top:0; }
+  .login-info-container h3 { font-size:16px; }
+  input { padding:12px; font-size:15px; }
+  button { padding:12px; }
+}
+
+/* small screens: stack everything */
+@media (max-width:560px){
+  body::after { opacity:0.18; } /* reduce noise */
+  .login-form-container, .login-info-container { padding:18px; border-radius:10px; }
+  #game { width: calc(100vw - 40px); height: calc(100vh - 80px); }
+}
+
+/* -------- Accessibility helpers -------- */
+.sr-only {
+  position:absolute !important;
+  width:1px; height:1px;
+  padding:0; margin:-1px; overflow:hidden; clip:rect(0 0 0 0); white-space:nowrap; border:0;
+}
+
+/* friendly error state example */
+.input-error {
+  border-color: var(--danger) !important;
+  box-shadow: 0 6px 30px rgba(255,107,107,0.12) !important;
+}
+
+
+.login-info-container { animation: floaty 6s ease-in-out infinite; }
+
+/* tiny pixel-like separators */
+.separator {
+  height:2px;
+  margin:14px 0;
+  background: linear-gradient(90deg, rgba(255,255,255,0.03), rgba(255,255,255,0.06), rgba(255,255,255,0.03));
+  border-radius:2px;
+}
+
+@media (max-width: 768px) {
+  .login-form-container {
+    display: none;
+  }
+
+  /* Keep register, reset, and update password forms visible on mobile */
+  .register-form-container,
+  .reset-password-form-container,
+  .update-password-form-container {
+    display: block;
+  }
+}
+
+/* -------- Login Options (Remember Me & Forgot Password) -------- */
+.login-options {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin: 12px 0;
+  font-size: 13px;
+}
+
+.remember-me {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  color: var(--muted);
+  user-select: none;
+}
+
+.remember-me input[type="checkbox"] {
+  width: auto;
+  margin: 0 6px 0 0;
+  cursor: pointer;
+  accent-color: var(--accent);
+}
+
+.remember-me span {
+  font-weight: 600;
+}
+
+#forgot-password {
+  color: var(--accent-2);
+  text-decoration: none;
+  font-weight: 600;
+  font-size: 13px;
+}
+
+#forgot-password:hover {
+  text-decoration: underline;
+}
+
+/* -------- Reset Password Screen -------- */
+.reset-password-form-container {
+  width: min(420px, 90%);
+  background: rgba(10, 14, 20, 0.95);
+  border-radius: var(--radius);
+  border: 1px solid var(--glass-border);
+  box-shadow: var(--shadow);
+  padding: clamp(18px, 3.5vw, 34px);
+  text-align: center;
+}
+
+.reset-password-form-container h1 {
+  font-size: clamp(28px, 4.6vw, 40px);
+  margin: 0 0 12px 0;
+  color: var(--text);
+  text-shadow: 0 2px 0 rgba(0,0,0,0.6);
+  letter-spacing: 1px;
+}
+
+.reset-description {
+  color: var(--muted);
+  margin: 12px 0 20px 0;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.reset-password-form-container input {
+  width: 100%;
+  display: block;
+  margin: 10px 0;
+}
+
+.reset-password-form-container p {
+  color: var(--muted);
+  margin-top: 16px;
+  font-size: 14px;
+}
+
+.reset-password-form-container a {
+  color: var(--accent-2);
+  text-decoration: none;
+  font-weight: 700;
+}
+
+.reset-password-form-container a:hover {
+  text-decoration: underline;
+}
+
+#reset-password-button {
+  background: linear-gradient(180deg, var(--accent-2), var(--accent));
+  color: #04121b;
+  text-shadow: 0 1px 0 rgba(255,255,255,0.12);
+  box-shadow: 0 12px 40px rgba(92,197,240,0.08), 0 2px 0 rgba(0,0,0,0.3);
+}
+
+/* -------- Update Password Screen -------- */
+.update-password-form-container {
+  width: min(420px, 90%);
+  background: rgba(10, 14, 20, 0.95);
+  border-radius: var(--radius);
+  border: 1px solid var(--glass-border);
+  box-shadow: var(--shadow);
+  padding: clamp(18px, 3.5vw, 34px);
+  text-align: center;
+}
+
+.update-password-form-container h1 {
+  font-size: clamp(28px, 4.6vw, 40px);
+  margin: 0 0 12px 0;
+  color: var(--text);
+  text-shadow: 0 2px 0 rgba(0,0,0,0.6);
+  letter-spacing: 1px;
+}
+
+.update-password-form-container .reset-description {
+  color: var(--muted);
+  margin: 12px 0 20px 0;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.update-password-form-container input {
+  width: 100%;
+  display: block;
+  margin: 10px 0;
+}
+
+#update-password-button {
+  background: linear-gradient(180deg, var(--accent-2), var(--accent));
+  color: #04121b;
+  text-shadow: 0 1px 0 rgba(255,255,255,0.12);
+  box-shadow: 0 12px 40px rgba(92,197,240,0.08), 0 2px 0 rgba(0,0,0,0.3);
+}
+
+/* -------- Orientation Warning -------- */
+#orientation-warning {
+  display: none;
+}
+
+@media screen and (max-width: 900px) and (orientation: portrait) {
+  #orientation-warning {
+    position: fixed;
+    inset: 0;
+    z-index: 10000;
+    background: var(--bg-1);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 30px;
+  }
+
+  #orientation-warning h1 {
+    color: var(--danger);
+    font-size: 24px;
+    margin: 30px 0 15px 0;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+  }
+
+  #orientation-warning p {
+    color: var(--muted);
+    font-size: 16px;
+    line-height: 1.5;
+    max-width: 300px;
+  }
+
+  .rotate-device-icon {
+    width: 50px;
+    height: 80px;
+    border: 3px solid var(--accent);
+    border-radius: 6px;
+    animation: rotate-animation 2.5s infinite ease-in-out;
+  }
+
+  @keyframes rotate-animation {
+    0% { transform: rotate(0deg); }
+    30% { transform: rotate(90deg); }
+    70% { transform: rotate(90deg); }
+    100% { transform: rotate(0deg); }
+  }
+
+  /* Hide all other screens */
+  #login-screen, #register-screen, #reset-password-screen, #update-password-screen, #game-screen {
+    display: none !important;
+  }
+}
+/* end of styles.css */

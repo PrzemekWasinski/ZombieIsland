@@ -44,3 +44,4 @@ The server also manages object and enemy amounts per biome, if the amount of Oak
     Backend: Node.js
     Connection: Websocket
     Database: SupaBase (PostgreSQL)
+
