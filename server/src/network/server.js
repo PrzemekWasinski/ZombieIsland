@@ -41,8 +41,8 @@ export async function startWebSocket(config, url, apiKey) {
 				if (data.type === "auth") {
 					const { data: userData, error } = await supabase.auth.getUser(data.token);
 
-					if (error || !userData?.user) {
-						console.error("Authentication failed:", error?.message);
+					if (error || !userData.user) {
+						console.error("Authentication failed:", error.message);
 						return ws.close();
 					}
 
@@ -77,7 +77,7 @@ export async function startWebSocket(config, url, apiKey) {
 						.single();
 
 					if (fetchError || !characterData) {
-						console.error("Failed to retrieve player data:", fetchError?.message);
+						console.error("Failed to retrieve player data:", fetchError.message);
 						return;
 					}
 
