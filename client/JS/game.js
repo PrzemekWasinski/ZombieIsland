@@ -1681,6 +1681,42 @@ export function startGame({ userId, token }) {
 				}
 				mouseLeftClicked = false;
 			}
+
+			//Handle left-click to attack (desktop only) - only when NOT interacting with any GUI
+			if (!isMobile && mouseLeftClicked && !isTyping &&
+				!inInventory && !inShopInventory && !inSellInventory && !inControlsMenu &&
+				playerId && players[playerId]) {
+
+				// Don't attack if the click landed on a visible GUI overlay (chat box / minimap)
+				const insidePanel = (panel) =>
+					panel && panel.panelX !== undefined &&
+					mouseLeftX >= panel.panelX && mouseLeftX <= panel.panelX + panel.panelWidth &&
+					mouseLeftY >= panel.panelY && mouseLeftY <= panel.panelY + panel.panelHeight;
+
+				const clickedChat = chatBoxVisible && insidePanel(chatCloseButton);
+				const clickedMinimap = minimapVisible && insidePanel(minimapButtons);
+
+				if (!clickedChat && !clickedMinimap) {
+					const player = players[playerId];
+					// Respect the same client-side attack cooldown as the spacebar attack
+					if (player.action !== "attack" && (!player.attackEndTime || Date.now() >= player.attackEndTime)) {
+						socket.send(JSON.stringify({
+							type: "keydown",
+							dir: "attack",
+							pressed: true,
+							playerID: userId,
+						}));
+
+						player.action = "attack";
+						player.frameIndex = 0;
+						player.frameTimer = 0;
+						player.attackEndTime = Date.now() + 400;
+					}
+				}
+			}
+
+			// Click handled - reset so each press triggers at most one attack/action
+			mouseLeftClicked = false;
 		}
 
 		//Draw delete X on all inventory items (desktop only - mobile uses hold to drop)

@@ -862,7 +862,12 @@ export function drawChatBox(messages, isTyping, currentMessage) {
     return {
         closeButtonX,
         closeButtonY,
-        closeButtonSize
+        closeButtonSize,
+        // Full chat panel bounds (used to block attacks when clicking the chat box)
+        panelX: chatX,
+        panelY: chatY,
+        panelWidth: chatWidth,
+        panelHeight: chatHeight + inputBoxHeight
     };
 }
 
@@ -1306,7 +1311,12 @@ export function drawMinimap(player, mapImage, isVisible, isMobile = false) {
     return {
         closeButtonX,
         closeButtonY,
-        closeButtonSize
+        closeButtonSize,
+        // Full minimap panel bounds (used to block attacks when clicking the minimap)
+        panelX: minimapX - 5,
+        panelY: hudPadding,
+        panelWidth: minimapWidth + 10,
+        panelHeight: minimapHeight + 40
     };
 }
 
