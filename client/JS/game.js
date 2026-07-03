@@ -10,8 +10,8 @@ export function startGame({ userId, token }) {
 	/// SERVER CONFIGURATION HERE ///	
 	/////////////////////////////////
 	
-	//const socket = new WebSocket("wss://ws.zombieisland.online/"); //Prod server
-	const socket = new WebSocket("ws://localhost:8080"); //Local server
+	const socket = new WebSocket("wss://ws.zombieisland.online/"); //Prod server
+	//const socket = new WebSocket("ws://localhost:8080"); //Local server
 
 	socket.onopen = () => {
 		console.log("Connected to server");

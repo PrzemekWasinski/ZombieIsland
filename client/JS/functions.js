@@ -438,11 +438,13 @@ export function drawDrop(drop, currentPlayer) { //Draw drop
 
     const relativeX = drop.pixelX - currentRenderX;
     const relativeY = drop.pixelY - currentRenderY;
-    const screenX = Math.round(halfCanvasWidth - halfTileSize + relativeX);
-    const screenY = Math.round(halfCanvasHeight - halfTileSize + relativeY);
+    const dropSize = tileSize / 2;
+    const halfDropSize = dropSize / 2;
+    const screenX = Math.round(halfCanvasWidth - halfDropSize + relativeX);
+    const screenY = Math.round(halfCanvasHeight - halfDropSize + relativeY);
 
     const img = itemImages[drop.name]
-    ctx.drawImage(img, screenX, screenY, tileSize, tileSize)
+    ctx.drawImage(img, screenX, screenY, dropSize, dropSize)
 }
 
 export function isNearby(coord1, coord2) {
@@ -862,12 +864,7 @@ export function drawChatBox(messages, isTyping, currentMessage) {
     return {
         closeButtonX,
         closeButtonY,
-        closeButtonSize,
-        // Full chat panel bounds (used to block attacks when clicking the chat box)
-        panelX: chatX,
-        panelY: chatY,
-        panelWidth: chatWidth,
-        panelHeight: chatHeight + inputBoxHeight
+        closeButtonSize
     };
 }
 
@@ -1311,12 +1308,7 @@ export function drawMinimap(player, mapImage, isVisible, isMobile = false) {
     return {
         closeButtonX,
         closeButtonY,
-        closeButtonSize,
-        // Full minimap panel bounds (used to block attacks when clicking the minimap)
-        panelX: minimapX - 5,
-        panelY: hudPadding,
-        panelWidth: minimapWidth + 10,
-        panelHeight: minimapHeight + 40
+        closeButtonSize
     };
 }
 
